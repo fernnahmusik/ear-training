@@ -6,30 +6,37 @@
     <title>펜나뮤직 이어핏 청음</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
-        :root { --primary: #2C3E50; --gold: #D4AF37; --bg: #F9F9F9; }
+        :root { --primary: #2C3E50; --secondary: #34495E; --bg: #F9F9F9; }
         body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .app-card { background: white; width: 90%; max-width: 400px; padding: 40px 20px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid var(--primary); }
-        .display-box { background: #F2F4F6; height: 130px; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 30px; }
+        .app-card { background: white; width: 90%; max-width: 420px; padding: 35px 20px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid var(--primary); }
+        .display-box { background: #F2F4F6; height: 140px; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 25px; padding: 0 15px; }
         #quiz-status { font-size: 15px; color: #7F8C8D; font-weight: 500; }
-        #answer-text { font-size: 18px; color: var(--primary); font-weight: bold; margin-top: 15px; display: none; line-height: 1.4; }
-        button { width: 100%; padding: 18px; border: none; border-radius: 15px; font-size: 17px; font-weight: 600; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
-        .btn-main { background: var(--primary); color: white; margin-bottom: 12px; }
-        .btn-sub { background: white; color: var(--primary); border: 2px solid var(--primary); }
+        #answer-text { font-size: 18px; color: var(--primary); font-weight: bold; margin-top: 15px; display: none; line-height: 1.5; word-break: keep-all; }
+        .btn-group { display: flex; flex-direction: column; gap: 10px; }
+        button { width: 100%; padding: 16px; border: none; border-radius: 15px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
+        .btn-main { background: var(--primary); color: white; }
+        .btn-sub { background: white; color: var(--primary); border: 2px solid var(--primary); margin-top: 5px; }
         button:disabled { background: #BDC3C7; cursor: not-allowed; }
         button:active { transform: scale(0.98); }
         .subtitle { font-size: 14px; color: #95a5a6; margin-top: 5px; margin-bottom: 20px; }
+        .label { font-size: 12px; color: #34495E; margin-bottom: 4px; display: block; opacity: 0.8; }
     </style>
 </head>
 <body>
     <div class="app-card">
         <h2 style="margin-top:0; color: var(--primary); margin-bottom:0;">펜나뮤직 이어핏 청음</h2>
-        <div class="subtitle">6도상행 2-단6도 하행</div>
+        <div class="subtitle">선택형 음정 훈련</div>
+        
         <div class="display-box">
             <div id="quiz-status">피아노 소리를 로딩 중입니다...</div>
             <div id="answer-text">정답 표시</div>
         </div>
-        <button id="play-btn" class="btn-main" onclick="playNew()" disabled>문제 듣기 (Fast)</button>
-        <button class="btn-sub" onclick="showAns()">정답 확인</button>
+
+        <div class="btn-group">
+            <button id="p1-btn" class="btn-main" onclick="playQuiz(1)" disabled>연습 1: 6도 상행 훈련</button>
+            <button id="p2-btn" class="btn-main" onclick="playQuiz(2)" disabled style="background: var(--secondary);">연습 2: 7도 상행 훈련</button>
+            <button class="btn-sub" onclick="showAns()">정답 확인</button>
+        </div>
     </div>
 
     <script>
@@ -42,42 +49,51 @@
                 "A4": "A4.mp3", "C5": "C5.mp3", "D#5": "Ds5.mp3", "F#5": "Fs5.mp3",
                 "A5": "A5.mp3", "C6": "C6.mp3"
             },
-            // release를 0.1로 설정하여 손을 떼자마자 소리가 즉시 멈추도록 함
-            release: 0.1,
+            release: 0.4,
             baseUrl: "https://tonejs.github.io/audio/salamander/",
             onload: () => {
-                document.getElementById('quiz-status').innerText = "준비 완료!";
-                const btn = document.getElementById('play-btn');
-                btn.disabled = false;
-                btn.innerText = "문제 듣기 (Fast)";
+                document.getElementById('quiz-status').innerText = "준비 완료! 연습을 선택하세요.";
+                document.getElementById('p1-btn').disabled = false;
+                document.getElementById('p2-btn').disabled = false;
             }
         }).toDestination();
 
-        const intervalNames = { 1:"단2", 2:"장2", 3:"단3", 4:"장3", 5:"완4", 6:"증4/감5", 7:"완5", 8:"단6", 9:"장6" };
+        const intervalNames = { 
+            1:"단2", 2:"장2", 3:"단3", 4:"장3", 5:"완4", 6:"증4/감5", 
+            7:"완5", 8:"단6", 9:"장6", 10:"단7", 11:"장7" 
+        };
         let currentAns = "";
 
-        async function playNew() {
-            await Tone.start();
+        async function playQuiz(type) {
+            if (Tone.context.state !== 'running') await Tone.start();
             document.getElementById('answer-text').style.display = 'none';
-            document.getElementById('quiz-status').innerText = '🎶 연주 중...';
+            document.getElementById('quiz-status').innerText = `🎶 연습 ${type} 연주 중...`;
             
-            const root = 55 + Math.floor(Math.random() * 18);
-            const upInterval = Math.random() > 0.5 ? 8 : 9;
-            
-            let downInterval;
-            if (upInterval === 8) {
-                downInterval = 1 + Math.floor(Math.random() * 7);
+            const root = 52 + Math.floor(Math.random() * 15); // 미(E3)~솔#(G#4) 정도로 약간 낮게 조정
+            let upInterval, downInterval, quizTitle;
+
+            if (type === 1) {
+                // 연습 1: 6도 상행 → 2~단6도 하행
+                upInterval = Math.random() > 0.5 ? 8 : 9; // 단6(8) or 장6(9)
+                downInterval = (upInterval === 8) ? 
+                               1 + Math.floor(Math.random() * 7) : // 1~7 (단2~완5)
+                               1 + Math.floor(Math.random() * 8);   // 1~8 (단2~단6)
+                quizTitle = "[연습 1]";
             } else {
-                downInterval = 1 + Math.floor(Math.random() * 8);
+                // 연습 2: 7도 상행 → 6도 하행
+                upInterval = Math.random() > 0.5 ? 10 : 11; // 단7(10) or 장7(11)
+                downInterval = Math.random() > 0.5 ? 8 : 9;  // 단6(8) or 장6(9)
+                quizTitle = "[연습 2]";
             }
             
             const midiNotes = [root, root + upInterval, (root + upInterval) - downInterval];
-            currentAns = `${intervalNames[upInterval]} 상행 → ${intervalNames[downInterval]} 하행`;
+            currentAns = `${quizTitle}\n${intervalNames[upInterval]} 상행 → ${intervalNames[downInterval]} 하행`;
             
             const now = Tone.now();
+            const noteDuration = 0.65;
+            
             midiNotes.forEach((n, i) => {
-                // 지속 시간을 0.6초로 설정하여 다음 음이 나오기 직전에 소리가 깔끔하게 끊기도록 함
-                sampler.triggerAttackRelease(Tone.Frequency(n, "midi"), 0.6, now + i * 0.65);
+                sampler.triggerAttackRelease(Tone.Frequency(n, "midi"), noteDuration, now + i * noteDuration);
             });
 
             setTimeout(() => { 
@@ -87,6 +103,7 @@
 
         function showAns() {
             const a = document.getElementById('answer-text');
+            if (!currentAns) return;
             a.innerText = currentAns;
             a.style.display = 'block';
         }
