@@ -9,14 +9,13 @@
     <style>
         :root { --primary: #2C3E50; --secondary: #34495E; --bg: #F9F9F9; }
         body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .app-card { background: white; width: 95%; max-width: 420px; padding: 25px 15px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid var(--primary); margin: 20px; }
+        .app-card { background: white; width: 95%; max-width: 420px; padding: 35px 15px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid var(--primary); margin: 20px; }
         .display-box { background: #F2F4F6; min-height: 190px; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 20px; padding: 15px; overflow: hidden; }
         #quiz-status { font-size: 14px; color: #7F8C8D; font-weight: 500; margin-bottom: 10px; }
         #answer-text { font-size: 16px; color: var(--primary); font-weight: bold; margin-bottom: 5px; display: none; white-space: pre-line; }
         #lyric-match { font-size: 18px; color: #E74C3C; font-weight: 800; margin-bottom: 10px; display: none; }
         #score-container { width: 100%; display: none; justify-content: center; }
         
-        /* 템포 컨트롤러 스타일 */
         .tempo-container { background: #fff; padding: 15px; border-radius: 20px; margin-bottom: 20px; border: 1px solid #eee; }
         .tempo-label { font-size: 14px; color: var(--secondary); font-weight: 600; margin-bottom: 10px; display: flex; justify-content: space-between; }
         #tempo-slider { width: 100%; cursor: pointer; accent-color: var(--primary); }
@@ -34,8 +33,7 @@
 </head>
 <body>
     <div class="app-card">
-        <h2 style="margin-top:0; color: var(--primary); margin-bottom:5px;">펜나뮤직 이어핏 청음</h2>
-        <div style="font-size: 13px; color: #95a5a6; margin-bottom: 15px;">G3 ~ C6 음역 훈련</div>
+        <h2 style="margin-top:0; color: var(--primary); margin-bottom:20px;">펜나뮤직 이어핏 청음</h2>
         
         <div class="display-box">
             <div id="quiz-status">피아노 소리를 로딩 중입니다...</div>
@@ -49,7 +47,7 @@
                 <span>재생 속도 (Tempo)</span>
                 <span id="tempo-val">BPM 80</span>
             </div>
-            <input type="range" id="tempo-slider" min="50" max="140" value="80" oninput="updateTempo(this.value)">
+            <input type="range" id="tempo-slider" min="50" max="180" value="80" oninput="updateTempo(this.value)">
         </div>
 
         <div class="btn-group">
@@ -80,7 +78,7 @@
                 "A4": "A4.mp3", "C5": "C5.mp3", "D#5": "Ds5.mp3", "F#5": "Fs5.mp3",
                 "A5": "A5.mp3", "C6": "C6.mp3"
             },
-            release: 0.6,
+            release: 0.4,
             baseUrl: "https://tonejs.github.io/audio/salamander/",
             onload: () => {
                 document.getElementById('quiz-status').innerText = "준비 완료!";
@@ -169,12 +167,12 @@
                 if (lyrics[downInt]) matchedLyric = lyrics[downInt];
             }
 
-            // [템포 계산] 60 / BPM = 1박의 초 단위 시간
             const secondsPerBeat = 60 / currentBpm;
             const now = Tone.now();
             
             visualNotes.forEach((n, i) => {
-                sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), secondsPerBeat * 0.8, now + i * secondsPerBeat);
+                // [논레가토 설정] 음의 지속 시간을 1박의 0.4(40%)로 설정하여 음 사이의 여백 확보
+                sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), secondsPerBeat * 0.4, now + i * secondsPerBeat);
             });
 
             setTimeout(() => { 
