@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>그랜드 피아노 청음</title>
+    <title>펜나뮤직 이어핏 청음</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <style>
         :root { --primary: #2C3E50; --gold: #D4AF37; --bg: #F9F9F9; }
@@ -11,17 +11,19 @@
         .app-card { background: white; width: 90%; max-width: 400px; padding: 40px 20px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid var(--primary); }
         .display-box { background: #F2F4F6; height: 130px; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 30px; }
         #quiz-status { font-size: 15px; color: #7F8C8D; font-weight: 500; }
-        #answer-text { font-size: 20px; color: var(--primary); font-weight: bold; margin-top: 15px; display: none; }
+        #answer-text { font-size: 18px; color: var(--primary); font-weight: bold; margin-top: 15px; display: none; line-height: 1.4; }
         button { width: 100%; padding: 18px; border: none; border-radius: 15px; font-size: 17px; font-weight: 600; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
         .btn-main { background: var(--primary); color: white; margin-bottom: 12px; }
         .btn-sub { background: white; color: var(--primary); border: 2px solid var(--primary); }
         button:disabled { background: #BDC3C7; cursor: not-allowed; }
         button:active { transform: scale(0.98); }
+        .subtitle { font-size: 14px; color: #95a5a6; margin-top: 5px; margin-bottom: 20px; }
     </style>
 </head>
 <body>
     <div class="app-card">
-        <h2 style="margin-top:0; color: var(--primary);">🎹 Grand Piano Ear Training</h2>
+        <h2 style="margin-top:0; color: var(--primary); margin-bottom:0;">펜나뮤직 이어핏 청음</h2>
+        <div class="subtitle">6도상행 2-단6도 하행</div>
         <div class="display-box">
             <div id="quiz-status">피아노 소리를 로딩 중입니다...</div>
             <div id="answer-text">정답 표시</div>
@@ -40,8 +42,8 @@
                 "A4": "A4.mp3", "C5": "C5.mp3", "D#5": "Ds5.mp3", "F#5": "Fs5.mp3",
                 "A5": "A5.mp3", "C6": "C6.mp3"
             },
-            // release를 0.8로 설정하여 손을 뗐을 때 아주 약간의 자연스러운 감쇠를 줌 (레가토 느낌)
-            release: 0.8,
+            // release를 0.1로 설정하여 손을 떼자마자 소리가 즉시 멈추도록 함
+            release: 0.1,
             baseUrl: "https://tonejs.github.io/audio/salamander/",
             onload: () => {
                 document.getElementById('quiz-status').innerText = "준비 완료!";
@@ -74,8 +76,8 @@
             
             const now = Tone.now();
             midiNotes.forEach((n, i) => {
-                // 지속 시간을 "2n"으로 늘려 다음 음이 나오기 전까지 소리가 이어지게 함
-                sampler.triggerAttackRelease(Tone.Frequency(n, "midi"), "2n", now + i * 0.65);
+                // 지속 시간을 0.6초로 설정하여 다음 음이 나오기 직전에 소리가 깔끔하게 끊기도록 함
+                sampler.triggerAttackRelease(Tone.Frequency(n, "midi"), 0.6, now + i * 0.65);
             });
 
             setTimeout(() => { 
