@@ -10,23 +10,25 @@
         :root { --primary: #2C3E50; --secondary: #34495E; --bg: #F9F9F9; }
         body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
         .app-card { background: white; width: 95%; max-width: 420px; padding: 30px 15px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid var(--primary); margin: 20px; }
-        .display-box { background: #F2F4F6; min-height: 140px; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 25px; padding: 15px; overflow: hidden; }
+        .display-box { background: #F2F4F6; min-height: 160px; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 25px; padding: 15px; }
         #quiz-status { font-size: 15px; color: #7F8C8D; font-weight: 500; margin-bottom: 10px; }
-        #answer-text { font-size: 16px; color: var(--primary); font-weight: bold; margin-bottom: 15px; display: none; }
+        #answer-text { font-size: 16px; color: var(--primary); font-weight: bold; margin-bottom: 15px; display: none; white-space: pre-line; }
         #score-container { width: 100%; display: none; justify-content: center; }
         .btn-group { display: flex; flex-direction: column; gap: 10px; }
         button { width: 100%; padding: 16px; border: none; border-radius: 15px; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
         .btn-main { background: var(--primary); color: white; }
         .btn-sub { background: white; color: var(--primary); border: 2px solid var(--primary); }
+        .guide-box { margin-top: 25px; padding: 15px; background: #fff; border: 1px dashed #BDC3C7; border-radius: 15px; text-align: left; }
+        .guide-title { font-size: 13px; font-weight: bold; color: var(--primary); margin-bottom: 8px; }
+        .guide-list { font-size: 12px; color: #7F8C8D; line-height: 1.6; }
         button:disabled { background: #BDC3C7; cursor: not-allowed; }
         button:active { transform: scale(0.98); }
-        .subtitle { font-size: 14px; color: #95a5a6; margin-bottom: 20px; }
     </style>
 </head>
 <body>
     <div class="app-card">
         <h2 style="margin-top:0; color: var(--primary); margin-bottom:5px;">펜나뮤직 이어핏 청음</h2>
-        <div class="subtitle">악보 확인형 음정 훈련</div>
+        <div style="font-size: 14px; color: #95a5a6; margin-bottom: 20px;">무작위 음정 훈련 모드</div>
         
         <div class="display-box">
             <div id="quiz-status">피아노 소리를 로딩 중입니다...</div>
@@ -35,9 +37,18 @@
         </div>
 
         <div class="btn-group">
-            <button id="p1-btn" class="btn-main" onclick="playQuiz(1)" disabled>연습 1: 6도 상행 훈련</button>
-            <button id="p2-btn" class="btn-main" onclick="playQuiz(2)" disabled style="background: var(--secondary);">연습 2: 7도 상행 훈련</button>
+            <button id="p1-btn" class="btn-main" onclick="playQuiz(1)" disabled>연습 1: 6도 상행 무작위</button>
+            <button id="p2-btn" class="btn-main" onclick="playQuiz(2)" disabled style="background: var(--secondary);">연습 2: 7도 상행 무작위</button>
             <button class="btn-sub" onclick="showAns()">정답 및 악보 확인</button>
+        </div>
+
+        <div class="guide-box">
+            <div class="guide-title">💡 주요 훈련 예시</div>
+            <div class="guide-list">
+                1. 미-도-시 &nbsp; 2. 시-솔-파 &nbsp; 3. 미-도-라<br>
+                4. 미-도-솔# &nbsp; 5. 미-도-솔 &nbsp; 6. 라-파-시<br>
+                7. 시-솔-도
+            </div>
         </div>
     </div>
 
@@ -56,20 +67,55 @@
             release: 0.4,
             baseUrl: "https://tonejs.github.io/audio/salamander/",
             onload: () => {
-                document.getElementById('quiz-status').innerText = "준비 완료! 문제를 선택하세요.";
+                document.getElementById('quiz-status').innerText = "준비 완료!";
                 document.getElementById('p1-btn').disabled = false;
                 document.getElementById('p2-btn').disabled = false;
             }
         }).toDestination();
 
         const intervalNames = { 1:"단2", 2:"장2", 3:"단3", 4:"장3", 5:"완4", 6:"증4/감5", 7:"완5", 8:"단6", 9:"장6", 10:"단7", 11:"장7" };
-        const midiToNote = (midi) => {
-            const names = ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b'];
-            return { name: names[midi % 12], octave: Math.floor(midi / 12) - 1 };
-        };
+        const baseScales = [{ n: 'c', m: 0 }, { n: 'd', m: 2 }, { n: 'e', m: 4 }, { n: 'f', m: 5 }, { n: 'g', m: 7 }, { n: 'a', m: 9 }, { n: 'b', m: 11 }];
 
         let currentAns = "";
-        let currentNotes = [];
+        let visualNotes = [];
+
+        function calculateAccidental(midi, baseIdx, octave) {
+            const targetMidi = baseScales[baseIdx].m + (octave + 1) * 12;
+            const diff = midi - targetMidi;
+            if (diff === 0) return "";
+            if (diff === 1) return "#";
+            if (diff === 2) return "##";
+            if (diff === -1) return "b";
+            if (diff === -2) return "bb";
+            return "";
+        }
+
+        function getNoteData(upInt, downInt) {
+            const rMidi = 48 + Math.floor(Math.random() * 13);
+            const preferredNames = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6, 0];
+            const rBaseIdx = preferredNames[rMidi % 12];
+            const rOctave = Math.floor(rMidi / 12) - 1;
+            const rAcc = calculateAccidental(rMidi, rBaseIdx, rOctave);
+
+            const upDeg = (upInt >= 10) ? 6 : 5;
+            const upBaseIdx = (rBaseIdx + upDeg) % 7;
+            const upMidi = rMidi + upInt;
+            const upOctave = Math.floor(upMidi / 12) - 1;
+            const upAcc = calculateAccidental(upMidi, upBaseIdx, upOctave);
+
+            const downDegMap = { 1:1, 2:1, 3:2, 4:2, 5:3, 6:3, 7:4, 8:5, 9:5 };
+            const downDeg = downDegMap[downInt] || 1;
+            const downBaseIdx = (upBaseIdx - downDeg + 7) % 7;
+            const downMidi = upMidi - downInt;
+            const downOctave = Math.floor(downMidi / 12) - 1;
+            const downAcc = calculateAccidental(downMidi, downBaseIdx, downOctave);
+
+            return [
+                { midi: rMidi, key: baseScales[rBaseIdx].n, acc: rAcc, oct: rOctave },
+                { midi: upMidi, key: baseScales[upBaseIdx].n, acc: upAcc, oct: upOctave },
+                { midi: downMidi, key: baseScales[downBaseIdx].n, acc: downAcc, oct: downOctave }
+            ];
+        }
 
         async function playQuiz(type) {
             if (Tone.context.state !== 'running') await Tone.start();
@@ -77,57 +123,46 @@
             document.getElementById('score-container').style.display = 'none';
             document.getElementById('quiz-status').innerText = `🎶 연습 ${type} 연주 중...`;
             
-            const root = 52 + Math.floor(Math.random() * 12); 
-            let upInterval, downInterval, quizTitle;
-
+            let upInt, downInt, quizTitle;
             if (type === 1) {
-                upInterval = Math.random() > 0.5 ? 8 : 9;
-                downInterval = (upInterval === 8) ? 1 + Math.floor(Math.random() * 7) : 1 + Math.floor(Math.random() * 8);
+                upInt = Math.random() > 0.5 ? 8 : 9;
+                downInt = (upInt === 8) ? 1 + Math.floor(Math.random() * 7) : 1 + Math.floor(Math.random() * 8);
                 quizTitle = "[연습 1]";
             } else {
-                upInterval = Math.random() > 0.5 ? 10 : 11;
-                downInterval = Math.random() > 0.5 ? 8 : 9;
+                upInt = Math.random() > 0.5 ? 10 : 11;
+                downInt = Math.random() > 0.5 ? 8 : 9;
                 quizTitle = "[연습 2]";
             }
             
-            currentNotes = [root, root + upInterval, (root + upInterval) - downInterval];
-            currentAns = `${quizTitle} ${intervalNames[upInterval]} 상행 → ${intervalNames[downInterval]} 하행`;
+            visualNotes = getNoteData(upInt, downInt);
+            currentAns = `${quizTitle} ${intervalNames[upInt]} 상행 → ${intervalNames[downInt]} 하행`;
             
             const now = Tone.now();
-            currentNotes.forEach((n, i) => {
-                sampler.triggerAttackRelease(Tone.Frequency(n, "midi"), 0.65, now + i * 0.65);
+            visualNotes.forEach((n, i) => {
+                sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), 0.65, now + i * 0.65);
             });
-
             setTimeout(() => { document.getElementById('quiz-status').innerText = '들으신 음정은?'; }, 2000);
         }
 
-        function drawScore(notesMidi) {
+        function drawScore() {
             const container = document.getElementById('score-container');
             container.innerHTML = "";
             container.style.display = "flex";
-            
             const renderer = new Renderer(container, Renderer.Backends.SVG);
-            renderer.resize(250, 120);
+            renderer.resize(280, 130);
             const context = renderer.getContext();
-            const stave = new Stave(10, 0, 200);
+            const stave = new Stave(10, 10, 240);
             stave.addClef("treble").setContext(context).draw();
 
-            const staveNotes = notesMidi.map(midi => {
-                const noteInfo = midiToNote(midi);
-                const note = new StaveNote({
-                    clef: "treble",
-                    keys: [`${noteInfo.name}/${noteInfo.octave}`],
-                    duration: "q"
-                });
-                if (noteInfo.name.includes('#')) {
-                    note.addModifier(new Accidental("#"));
-                }
+            const staveNotes = visualNotes.map(n => {
+                const note = new StaveNote({ clef: "treble", keys: [`${n.key}/${n.oct}`], duration: "q" });
+                if (n.acc) note.addModifier(new Accidental(n.acc));
                 return note;
             });
 
             const voice = new Voice({ num_beats: 3, beat_value: 4 });
             voice.addTickables(staveNotes);
-            new Formatter().joinVoices([voice]).format([voice], 150);
+            new Formatter().joinVoices([voice]).format([voice], 180);
             voice.draw(context, stave);
         }
 
@@ -135,7 +170,7 @@
             if (!currentAns) return;
             document.getElementById('answer-text').innerText = currentAns;
             document.getElementById('answer-text').style.display = 'block';
-            drawScore(currentNotes);
+            drawScore();
         }
     </script>
 </body>
