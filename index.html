@@ -78,7 +78,8 @@
                 "A4": "A4.mp3", "C5": "C5.mp3", "D#5": "Ds5.mp3", "F#5": "Fs5.mp3",
                 "A5": "A5.mp3", "C6": "C6.mp3"
             },
-            release: 0.4,
+            // 건반에서 손을 떼었을 때 페달 잔향이 남지 않도록 짧게 설정
+            release: 0.5,
             baseUrl: "https://tonejs.github.io/audio/salamander/",
             onload: () => {
                 document.getElementById('quiz-status').innerText = "준비 완료!";
@@ -171,8 +172,9 @@
             const now = Tone.now();
             
             visualNotes.forEach((n, i) => {
-                // [논레가토 설정] 음의 지속 시간을 1박의 0.4(40%)로 설정하여 음 사이의 여백 확보
-                sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), secondsPerBeat * 0.4, now + i * secondsPerBeat);
+                // [레가토 설정] 음의 지속 시간을 연주 간격과 동일하게 설정하여 다음 음 직전까지 소리 유지
+                // secondsPerBeat를 그대로 사용하여 음 사이의 끊김을 없앱니다.
+                sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), secondsPerBeat, now + i * secondsPerBeat);
             });
 
             setTimeout(() => { 
