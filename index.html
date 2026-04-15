@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>그랜드 피아노 청음</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        :root { --primary: #2C3E50; --gold: #D4AF37; --bg: #F9F9F9; }
+        body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .app-card { background: white; width: 90%; max-width: 400px; padding: 40px 20px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid var(--primary); }
+        .display-box { background: #F2F4F6; height: 130px; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 30px; }
+        #quiz-status { font-size: 15px; color: #7F8C8D; font-weight: 500; }
+        #answer-text { font-size: 20px; color: var(--primary); font-weight: bold; margin-top: 15px; display: none; }
+        button { width: 100%; padding: 18px; border: none; border-radius: 15px; font-size: 17px; font-weight: 600; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
+        .btn-main { background: var(--primary); color: white; margin-bottom: 12px; }
+        .btn-sub { background: white; color: var(--primary); border: 2px solid var(--primary); }
+        button:disabled { background: #BDC3C7; cursor: not-allowed; }
+        button:active { transform: scale(0.98); }
+    </style>
+</head>
+<body>
+    <div class="app-card">
+        <h2 style="margin-top:0; color: var(--primary);">🎹 Grand Piano Ear Training</h2>
+        <div class="display-box">
+            <div id="quiz-status">피아노 소리를 로딩 중입니다...</div>
+            <div id="answer-text">정답 표시</div>
+        </div>
+        <button id="play-btn" class="btn-main" onclick="playNew()" disabled>문제 듣기 (Fast)</button>
+        <button class="btn-sub" onclick="showAns()">정답 확인</button>
+    </div>
+
+    <script>
+        const sampler = new Tone.Sampler({
+            urls: {
+                "A0": "A0.mp3", "C1": "C1.mp3", "D#1": "Ds1.mp3", "F#1": "Fs1.mp3",
+                "A1": "A1.mp3", "C2": "C2.mp3", "D#2": "Ds2.mp3", "F#2": "Fs2.mp3",
+                "A2": "A2.mp3", "C3": "C3.mp3", "D#3": "Ds3.mp3", "F#3": "Fs3.mp3",
+                "A3": "A3.mp3", "C4": "C4.mp3", "D#4": "Ds4.mp3", "F#4": "Fs4.mp3",
+                "A4": "A4.mp3", "C5": "C5.mp3", "D#5": "Ds5.mp3", "F#5": "Fs5.mp3",
+                "A5": "A5.mp3", "C6": "C6.mp3"
+            },
+            // release를 0.8로 설정하여 손을 뗐을 때 아주 약간의 자연스러운 감쇠를 줌 (레가토 느낌)
+            release: 0.8,
+            baseUrl: "https://tonejs.github.io/audio/salamander/",
+            onload: () => {
+                document.getElementById('quiz-status').innerText = "준비 완료!";
+                const btn = document.getElementById('play-btn');
+                btn.disabled = false;
+                btn.innerText = "문제 듣기 (Fast)";
+            }
+        }).toDestination();
+
+        const intervalNames = { 1:"단2", 2:"장2", 3:"단3", 4:"장3", 5:"완4", 6:"증4/감5", 7:"완5", 8:"단6", 9:"장6" };
+        let currentAns = "";
+
+        async function playNew() {
+            await Tone.start();
+            document.getElementById('answer-text').style.display = 'none';
+            document.getElementById('quiz-status').innerText = '🎶 연주 중...';
+            
+            const root = 55 + Math.floor(Math.random() * 18);
+            const upInterval = Math.random() > 0.5 ? 8 : 9;
+            
+            let downInterval;
+            if (upInterval === 8) {
+                downInterval = 1 + Math.floor(Math.random() * 7);
+            } else {
+                downInterval = 1 + Math.floor(Math.random() * 8);
+            }
+            
+            const midiNotes = [root, root + upInterval, (root + upInterval) - downInterval];
+            currentAns = `${intervalNames[upInterval]} 상행 → ${intervalNames[downInterval]} 하행`;
+            
+            const now = Tone.now();
+            midiNotes.forEach((n, i) => {
+                // 지속 시간을 "2n"으로 늘려 다음 음이 나오기 전까지 소리가 이어지게 함
+                sampler.triggerAttackRelease(Tone.Frequency(n, "midi"), "2n", now + i * 0.65);
+            });
+
+            setTimeout(() => { 
+                document.getElementById('quiz-status').innerText = '방금 들은 음정은?'; 
+            }, 2000);
+        }
+
+        function showAns() {
+            const a = document.getElementById('answer-text');
+            a.innerText = currentAns;
+            a.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
