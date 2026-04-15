@@ -92,7 +92,8 @@
         }
 
         function getNoteData(upInt, downInt) {
-            const rMidi = 48 + Math.floor(Math.random() * 13);
+            // 시작 음 범위를 약간 넓힘 (G2~G4)
+            const rMidi = 43 + Math.floor(Math.random() * 24);
             const preferredNames = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6, 0];
             const rBaseIdx = preferredNames[rMidi % 12];
             const rOctave = Math.floor(rMidi / 12) - 1;
@@ -143,7 +144,6 @@
             visualNotes = getNoteData(upInt, downInt);
             currentAns = `${quizTitle} ${intervalNames[upInt]} 상행 → ${intervalNames[downInt]} 하행`;
             
-            // 가사 매칭 로직 (단6도 상행 시 하행 음정에 따른 가사)
             matchedLyric = "";
             if (upInt === 8) {
                 const lyrics = { 1: "미-도-시", 2: "시-솔-파", 3: "미-도-라", 4: "미-도-솔#", 5: "미-도-솔", 6: "라-파-시", 7: "시-솔-도" };
@@ -162,13 +162,18 @@
             container.innerHTML = "";
             container.style.display = "flex";
             const renderer = new Renderer(container, Renderer.Backends.SVG);
-            renderer.resize(280, 130);
+            renderer.resize(280, 140);
             const context = renderer.getContext();
+            
+            // 음자리표 결정 로직: 평균 MIDI 값이 55(G3) 미만이면 낮은음자리표
+            const avgMidi = visualNotes.reduce((a, b) => a + b.midi, 0) / 3;
+            const clef = avgMidi < 55 ? "bass" : "treble";
+
             const stave = new Stave(10, 10, 240);
-            stave.addClef("treble").setContext(context).draw();
+            stave.addClef(clef).setContext(context).draw();
 
             const staveNotes = visualNotes.map(n => {
-                const note = new StaveNote({ clef: "treble", keys: [`${n.key}/${n.oct}`], duration: "q" });
+                const note = new StaveNote({ clef: clef, keys: [`${n.key}/${n.oct}`], duration: "q" });
                 if (n.acc) note.addModifier(new Accidental(n.acc));
                 return note;
             });
@@ -183,17 +188,14 @@
             if (!currentAns) return;
             const aText = document.getElementById('answer-text');
             const lMatch = document.getElementById('lyric-match');
-            
             aText.innerText = currentAns;
             aText.style.display = 'block';
-
             if (matchedLyric) {
                 lMatch.innerText = `가사: ${matchedLyric}`;
                 lMatch.style.display = 'block';
             } else {
                 lMatch.style.display = 'none';
             }
-            
             drawScore();
         }
     </script>
