@@ -29,7 +29,7 @@
 <body>
     <div class="app-card">
         <h2 style="margin-top:0; color: var(--primary); margin-bottom:5px;">펜나뮤직 이어핏 청음</h2>
-        <div style="font-size: 14px; color: #95a5a6; margin-bottom: 20px;">무작위 음정 훈련 모드</div>
+        <div style="font-size: 14px; color: #95a5a6; margin-bottom: 20px;">G3 - C5 음역 훈련</div>
         
         <div class="display-box">
             <div id="quiz-status">피아노 소리를 로딩 중입니다...</div>
@@ -39,7 +39,7 @@
         </div>
 
         <div class="btn-group">
-            <button id="p1-btn" class="btn-main" onclick="playQuiz(1)" disabled>연습 1: 6도 상행 무작위</button>
+            <button id="p1-btn" class="btn-main" onclick="playQuiz(1)" disabled>연습 1: 단6도 상행 무작위</button>
             <button id="p2-btn" class="btn-main" onclick="playQuiz(2)" disabled style="background: var(--secondary);">연습 2: 7도 상행 무작위</button>
             <button class="btn-sub" onclick="showAns()">정답 및 악보 확인</button>
         </div>
@@ -92,13 +92,14 @@
         }
 
         function getNoteData(upInt, downInt) {
-            // 시작 음 범위를 약간 넓힘 (G2~G4)
-            const rMidi = 43 + Math.floor(Math.random() * 24);
+            // 시작 음 G3(55) ~ D4(62) 사이로 설정하여 C5를 넘지 않게 조절
+            const rMidi = 55 + Math.floor(Math.random() * 8); 
             const preferredNames = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6, 0];
             const rBaseIdx = preferredNames[rMidi % 12];
             const rOctave = Math.floor(rMidi / 12) - 1;
             const rAcc = calculateAccidental(rMidi, rBaseIdx, rOctave);
 
+            // 상행 도수 (단6도=5도수, 7도=6도수)
             const upDeg = (upInt >= 10) ? 6 : 5;
             const upBaseIdx = (rBaseIdx + upDeg) % 7;
             const upMidi = rMidi + upInt;
@@ -132,8 +133,9 @@
             
             let upInt, downInt, quizTitle;
             if (type === 1) {
-                upInt = Math.random() > 0.5 ? 8 : 9;
-                downInt = (upInt === 8) ? 1 + Math.floor(Math.random() * 7) : 1 + Math.floor(Math.random() * 8);
+                // [수정] 상행 음정을 단6도(8반음)로 고정
+                upInt = 8; 
+                downInt = 1 + Math.floor(Math.random() * 7); // 단2도 ~ 완5도 하행 무작위
                 quizTitle = "[연습 1]";
             } else {
                 upInt = Math.random() > 0.5 ? 10 : 11;
@@ -164,16 +166,11 @@
             const renderer = new Renderer(container, Renderer.Backends.SVG);
             renderer.resize(280, 140);
             const context = renderer.getContext();
-            
-            // 음자리표 결정 로직: 평균 MIDI 값이 55(G3) 미만이면 낮은음자리표
-            const avgMidi = visualNotes.reduce((a, b) => a + b.midi, 0) / 3;
-            const clef = avgMidi < 55 ? "bass" : "treble";
-
             const stave = new Stave(10, 10, 240);
-            stave.addClef(clef).setContext(context).draw();
+            stave.addClef("treble").setContext(context).draw();
 
             const staveNotes = visualNotes.map(n => {
-                const note = new StaveNote({ clef: clef, keys: [`${n.key}/${n.oct}`], duration: "q" });
+                const note = new StaveNote({ clef: "treble", keys: [`${n.key}/${n.oct}`], duration: "q" });
                 if (n.acc) note.addModifier(new Accidental(n.acc));
                 return note;
             });
