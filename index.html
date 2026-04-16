@@ -185,7 +185,7 @@
 
             const lyrics = { 1: "미-도-시", 2: "시-솔-파", 3: "미-도-라", 4: "미-도-솔#", 5: "미-도-솔", 6: "라-파-시", 7: "시-솔-도" };
             matchedLyric = lyrics[downInt] || "";
-            currentAns = `단6도 상행 → ${ {1:"단2", 2:"장2", 3:"단3", 4:"장3", 5:"완4", 6:"증4/감5", 7:"완5"}[downInt] } 하행`;
+            currentAns = `단6도 상행 → ${ {1:"단2", 2:"장2", 3:"단3", 4:"장2", 5:"완4", 6:"증4/감5", 7:"완5"}[downInt] } 하행`;
 
             return [ getSimplestNoteInfo(rMidi, rBaseIdx), getSimplestNoteInfo(upMidi, upBaseIdx), getSimplestNoteInfo(downMidi, downBaseIdx) ];
         }
@@ -204,10 +204,8 @@
             document.getElementById('main-page').classList.remove('active');
             document.getElementById('quiz-page').classList.add('active');
 
-            // [연습 2 자동 재생 로직 추가]
-            if (isSightReadingMode) {
-                setTimeout(() => { handlePlay(false); }, 300); // 페이지 전환 애니메이션 시간 고려
-            }
+            // [자동 재생 로직 적용]
+            setTimeout(() => { handlePlay(false); }, 300); 
         }
 
         function nextProblem() {
@@ -215,10 +213,8 @@
             visualNotes = generateProblem(currentType);
             document.getElementById('quiz-status').innerText = isSightReadingMode ? "새 시창 문제가 준비되었습니다!" : "새 청음 문제가 준비되었습니다!";
             
-            // [연습 2 자동 재생 로직 추가]
-            if (isSightReadingMode) {
-                setTimeout(() => { handlePlay(false); }, 100);
-            }
+            // [자동 재생 로직 적용]
+            setTimeout(() => { handlePlay(false); }, 100);
         }
 
         function resetUI() {
@@ -241,8 +237,9 @@
                 sampler.triggerAttackRelease(Tone.Frequency(visualNotes[0].midi, "midi"), 1.0);
             } else {
                 const bpmSec = 60 / currentBpm;
+                const now = Tone.now();
                 visualNotes.forEach((n, i) => {
-                    sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, Tone.now() + i * bpmSec);
+                    sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec);
                 });
                 document.getElementById('quiz-status').innerText = "연주 중...";
                 setTimeout(() => { document.getElementById('quiz-status').innerText = "방금 들은 가사는 무엇일까요?"; }, (bpmSec * 3) * 1000);
@@ -266,8 +263,9 @@
             if (!visualNotes.length) return;
             if (isSightReadingMode || document.getElementById('play-btn').disabled === false) {
                 const bpmSec = 60 / currentBpm;
+                const now = Tone.now();
                 visualNotes.forEach((n, i) => {
-                    sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, Tone.now() + i * bpmSec);
+                    sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec);
                 });
                 document.getElementById('play-btn').disabled = true;
                 document.getElementById('replay-btn').disabled = false;
