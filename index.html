@@ -29,20 +29,20 @@
         .page { display: none; flex-direction: column; flex-grow: 1; position: relative; z-index: 10; }
         .page.active { display: flex; }
 
-        h2 { margin: 10px 0 20px 0; color: var(--primary); font-size: 1.3rem; line-height: 1.2; }
-        h3 { font-size: 1rem; color: #7F8C8D; margin-bottom: 25px; font-weight: 500; }
+        h2 { margin: 10px 0 15px 0; color: var(--primary); font-size: 1.2rem; line-height: 1.2; }
+        h3 { font-size: 0.9rem; color: #7F8C8D; margin-bottom: 20px; font-weight: 500; }
         
-        .display-box { background: #F2F4F6; min-height: 130px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 10px; padding: 10px; flex-shrink: 0; }
+        .display-box { background: #F2F4F6; min-height: 120px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 10px; padding: 10px; flex-shrink: 0; }
         
         #quiz-status { font-size: 13px; color: #7F8C8D; margin-bottom: 5px; font-weight: 600; }
-        #quiz-guide-text { font-size: 12px; color: #2C3E50; line-height: 1.3; margin-bottom: 8px; font-weight: 600; white-space: pre-wrap; background: rgba(255,255,255,0.7); padding: 6px; border-radius: 10px; width: 95%; }
+        #quiz-guide-text { font-size: 11px; color: #2C3E50; line-height: 1.3; margin-bottom: 8px; font-weight: 600; white-space: pre-wrap; background: rgba(255,255,255,0.7); padding: 6px; border-radius: 10px; width: 95%; }
         
         #answer-text { font-size: 14px; color: var(--primary); font-weight: bold; margin-bottom: 3px; display: none; }
         #lyric-match { font-size: 15px; color: #E74C3C; font-weight: 800; margin-bottom: 5px; display: none; }
-        #score-container { width: 100%; display: none; justify-content: center; transform: scale(0.85); margin-top: -10px; }
+        #score-container { width: 100%; display: none; justify-content: center; transform: scale(0.8); margin-top: -15px; }
 
-        #options-area { display: none; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 10px; }
-        .opt-btn { background: #fff; border: 1.2px solid #DCDFE6; color: #606266; padding: 10px 2px; font-size: 11px; border-radius: 10px; font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        #options-area { display: none; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-bottom: 10px; }
+        .opt-btn { background: #fff; border: 1.2px solid #DCDFE6; color: #606266; padding: 8px 2px; font-size: 10px; border-radius: 10px; font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .opt-btn.correct { background: #E1F3D8; border-color: #67C23A; color: #67C23A; }
         .opt-btn.wrong { background: #FDE2E2; border-color: #F56C6C; color: #F56C6C; }
 
@@ -50,18 +50,18 @@
         .tempo-label { font-size: 10px; color: var(--secondary); font-weight: 600; margin-bottom: 3px; display: flex; justify-content: space-between; }
         #tempo-slider { width: 100%; cursor: pointer; accent-color: var(--secondary); }
 
-        .btn-group { display: flex; flex-direction: column; gap: 8px; margin-top: auto; padding-bottom: 10px; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 15px; font-size: 14px; font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 5px; }
+        button { width: 100%; padding: 12px; border: none; border-radius: 15px; font-size: 13px; font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         button:active { transform: scale(0.98); opacity: 0.9; }
         button:disabled { background: #BDC3C7; cursor: not-allowed; }
 
-        .btn-category { background: var(--secondary); color: white; font-size: 1.1rem; padding: 25px; }
+        .btn-category { background: var(--secondary); color: white; padding: 20px; font-size: 1rem; }
         .btn-main { background: var(--primary); color: white; }
         .btn-play { background: #27AE60; color: white; } 
         .btn-replay { background: #95A5A6; color: white; } 
         .btn-next { background: #E67E22; color: white; } 
         .btn-sub { background: white; color: var(--primary); border: 1.5px solid #DCDFE6; }
-        .btn-back { background: transparent; color: #95A5A6; font-size: 12px; padding: 5px; }
+        .btn-back { background: transparent; color: #95A5A6; font-size: 11px; padding: 5px; }
         
         #report-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:white; border-radius: 25px; display:none; flex-direction:column; justify-content:center; align-items:center; z-index:1000; padding:20px; box-sizing:border-box; }
     </style>
@@ -78,24 +78,34 @@
 
         <div id="step1-page" class="page active">
             <h2>펜나뮤직 이어핏</h2>
-            <h3>훈련할 음정을 선택하세요</h3>
-            <div class="btn-group" style="justify-content: center; flex-grow: 1;">
-                <button class="btn-category" onclick="showStep2(2)">2도 훈련</button>
-                <button class="btn-category" onclick="showStep2(6)" style="background: #2C3E50;">6도 훈련</button>
+            <h3>음정을 선택하세요</h3>
+            <div class="btn-group">
+                <button class="btn-category" onclick="selectMajor(2)">2도 훈련</button>
+                <button class="btn-category" onclick="selectMajor(6)" style="background: #2C3E50;">6도 훈련</button>
+            </div>
+        </div>
+
+        <div id="step1-5-page" class="page">
+            <h2>6도 세부 선택</h2>
+            <h3>진행 방향을 선택하세요</h3>
+            <div class="btn-group">
+                <button class="btn-category" onclick="selectSub6('up')">단6도 상행 훈련<br><small>(2~5도 하행)</small></button>
+                <button class="btn-category" onclick="selectSub6('down')" style="background: #2C3E50;">단6도 하행 훈련<br><small>(2~5도 상행)</small></button>
+                <button class="btn-back" onclick="goStep1()">⬅ 처음으로</button>
             </div>
         </div>
 
         <div id="step2-page" class="page">
-            <h2 id="step2-title">훈련 모드 선택</h2>
-            <div class="btn-group" style="justify-content: center; flex-grow: 1;">
+            <h2 id="step2-title">모드 선택</h2>
+            <div class="btn-group">
                 <button id="mode-ear-btn" class="btn-main" onclick="startQuiz('ear')" disabled>청음 훈련 (Ear Training)</button>
                 <button id="mode-sight-btn" class="btn-main" onclick="startQuiz('sight')" disabled style="background: #5D6D7E;">시창 훈련 (Sight Singing)</button>
-                <button class="btn-back" onclick="goStep1()">⬅ 뒤로 가기</button>
+                <button class="btn-back" id="back-to-prev" onclick="goPrevStep()">⬅ 뒤로 가기</button>
             </div>
         </div>
 
         <div id="quiz-page" class="page">
-            <h2 id="quiz-title" style="font-size: 1.1rem;">훈련 진행 중</h2>
+            <h2 id="quiz-title" style="font-size: 1rem;">훈련 중</h2>
             <div class="display-box">
                 <div id="quiz-status">방금 들은 가사는?</div>
                 <div id="quiz-guide-text"></div> 
@@ -103,14 +113,11 @@
                 <div id="lyric-match">가사 매칭</div>
                 <div id="score-container"></div>
             </div>
-
             <div id="options-area"></div>
-
             <div class="tempo-container">
                 <div class="tempo-label"><span>속도</span><span id="tempo-val">BPM 80</span></div>
                 <input type="range" id="tempo-slider" min="50" max="180" value="80" oninput="updateTempo(this.value)">
             </div>
-
             <div class="btn-group">
                 <div style="display: flex; gap: 5px;">
                     <button id="play-btn" class="btn-play" style="flex: 1;" onclick="handlePlay(false)">재생</button>
@@ -135,7 +142,7 @@
         }).toDestination();
 
         let currentBpm = 80; let visualNotes = []; let historyPool = []; let currentAns = "", matchedLyric = "";
-        let isSightReadingMode = false; let currentIntervalType = 2; // 2 또는 6
+        let isSightReadingMode = false; let currentIntervalMajor = 2; let sub6Direction = 'up'; 
         let trialCount = 0; let correctCount = 0; let wrongList = [];
 
         function updateTempo(val) { currentBpm = val; document.getElementById('tempo-val').innerText = `BPM ${val}`; }
@@ -158,21 +165,50 @@
             { lyric: "도-시-세", ans: "단2↓+단2↓", iv: [-1, -1] }, { lyric: "솔-파-미", ans: "장2↓+단2↓", iv: [-2, -1] }, { lyric: "도-시-라", ans: "단2↓+장2↓", iv: [-1, -2] }, { lyric: "미-레-도", ans: "장2↓+장2↓", iv: [-2, -2] }
         ];
 
-        const patternM6 = {
+        const patternM6Up = {
             1: { lyric: "미-도-시", ans: "단6↑+단2↓" }, 2: { lyric: "시-솔-파", ans: "단6↑+장2↓" }, 3: { lyric: "미-도-라", ans: "단6↑+단3↓" }, 4: { lyric: "미-도-솔#", ans: "단6↑+장3↓" },
             5: { lyric: "미-도-솔", ans: "단6↑+완4↓" }, 6: { lyric: "라-파-시", ans: "단6↑+증4↓" }, 7: { lyric: "시-솔-도", ans: "단6↑+완5↓" }
         };
 
-        function showStep2(interval) {
-            currentIntervalType = interval;
-            document.getElementById('step2-title').innerText = `${interval}도 훈련 모드 선택`;
-            document.getElementById('step1-page').classList.remove('active');
+        const patternM6Down = {
+            1: { lyric: "시-도-미", ans: "단6↓+단2↑" }, 2: { lyric: "파-솔-시", ans: "단6↓+장2↑" }, 3: { lyric: "라-도-미", ans: "단6↓+단3↑" }, 4: { lyric: "솔#-도-미", ans: "단6↓+장3↑" },
+            5: { lyric: "솔-도-미", ans: "단6↓+완4↑" }, 6: { lyric: "시-파-라", ans: "단6↓+증4↑" }, 7: { lyric: "도-솔-시", ans: "단6↓+완5↑" }
+        };
+
+        function selectMajor(major) {
+            currentIntervalMajor = major;
+            if (major === 6) {
+                document.getElementById('step1-page').classList.remove('active');
+                document.getElementById('step1-5-page').classList.add('active');
+            } else {
+                showStep2();
+            }
+        }
+
+        function selectSub6(dir) {
+            sub6Direction = dir;
+            showStep2();
+        }
+
+        function showStep2() {
+            const title = currentIntervalMajor === 2 ? "2도 훈련 모드" : (sub6Direction === 'up' ? "단6도 상행 모드" : "단6도 하행 모드");
+            document.getElementById('step2-title').innerText = title;
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById('step2-page').classList.add('active');
         }
 
         function goStep1() {
-            document.getElementById('step2-page').classList.remove('active');
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById('step1-page').classList.add('active');
+        }
+
+        function goPrevStep() {
+            if (currentIntervalMajor === 6) {
+                document.getElementById('step2-page').classList.remove('active');
+                document.getElementById('step1-5-page').classList.add('active');
+            } else {
+                goStep1();
+            }
         }
 
         function goStep2() {
@@ -185,14 +221,9 @@
             Tone.start();
             isSightReadingMode = (mode === 'sight');
             trialCount = 0; correctCount = 0; wrongList = [];
-            
             updateOptionsArea();
             resetUI();
-            
             visualNotes = generateProblem();
-            const modeText = isSightReadingMode ? "시창" : "청음";
-            document.getElementById('quiz-title').innerText = `${currentIntervalType}도 ${modeText} 훈련`;
-            
             document.getElementById('step2-page').classList.remove('active');
             document.getElementById('quiz-page').classList.add('active');
             setTimeout(() => { handlePlay(false); }, 300);
@@ -204,16 +235,23 @@
             historyPool.push(n1Midi); if (historyPool.length > 5) historyPool.shift();
             const n1Idx = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6][n1Midi % 12];
 
-            if (currentIntervalType === 2) { 
+            if (currentIntervalMajor === 2) { 
                 const p = pattern2D[Math.floor(Math.random() * pattern2D.length)];
                 n2Midi = n1Midi + p.iv[0]; n3Midi = n2Midi + p.iv[1];
                 const n2Idx = (n1Idx + (p.iv[0] > 0 ? 1 : -1) + 7) % 7; const n3Idx = (n2Idx + (p.iv[1] > 0 ? 1 : -1) + 7) % 7;
                 matchedLyric = p.lyric; currentAns = p.ans; return [getSimplestNoteInfo(n1Midi, n1Idx), getSimplestNoteInfo(n2Midi, n2Idx), getSimplestNoteInfo(n3Midi, n3Idx)];
             } else {
-                const upMidi = n1Midi + 8; const upIdx = (n1Idx + 5) % 7; const downInt = 1 + Math.floor(Math.random() * 7);
-                const downMidi = upMidi - downInt; const downDeg = (downInt === 6) ? 3 : ({ 1:1, 2:1, 3:2, 4:2, 5:3, 7:4, 8:5, 9:5 }[downInt] || 1);
-                const downIdx = (upIdx - downDeg + 7) % 7; matchedLyric = patternM6[downInt].lyric; currentAns = patternM6[downInt].ans;
-                return [getSimplestNoteInfo(n1Midi, n1Idx), getSimplestNoteInfo(upMidi, upIdx), getSimplestNoteInfo(downMidi, downIdx)];
+                if (sub6Direction === 'up') {
+                    const upMidi = n1Midi + 8; const upIdx = (n1Idx + 5) % 7; const downInt = 1 + Math.floor(Math.random() * 7);
+                    const downMidi = upMidi - downInt; const downDeg = (downInt === 6) ? 3 : ({ 1:1, 2:1, 3:2, 4:2, 5:3, 7:4, 8:5, 9:5 }[downInt] || 1);
+                    const downIdx = (upIdx - downDeg + 7) % 7; matchedLyric = patternM6Up[downInt].lyric; currentAns = patternM6Up[downInt].ans;
+                    return [getSimplestNoteInfo(n1Midi, n1Idx), getSimplestNoteInfo(upMidi, upIdx), getSimplestNoteInfo(downMidi, downIdx)];
+                } else {
+                    const downMidi = n1Midi - 8; const downIdx = (n1Idx - 5 + 7) % 7; const upInt = 1 + Math.floor(Math.random() * 7);
+                    const upMidi = downMidi + upInt; const upDeg = (upInt === 6) ? 3 : ({ 1:1, 2:1, 3:2, 4:2, 5:3, 7:4, 8:5, 9:5 }[upInt] || 1);
+                    const upIdx = (downIdx + upDeg) % 7; matchedLyric = patternM6Down[upInt].lyric; currentAns = patternM6Down[upInt].ans;
+                    return [getSimplestNoteInfo(n1Midi, n1Idx), getSimplestNoteInfo(downMidi, downIdx), getSimplestNoteInfo(upMidi, upIdx)];
+                }
             }
         }
 
@@ -222,16 +260,22 @@
             area.innerHTML = "";
             if (isSightReadingMode) { area.style.display = 'none'; guide.innerText = ""; return; }
 
-            if (currentIntervalType === 2) {
+            if (currentIntervalMajor === 2) {
                 area.style.display = 'grid'; guide.innerText = "1.도디레(단2↑+단2↑) 2.미파솔(단2↑+장2↑) 3.라시도 4.도레미\n5.도시세(단2↓+단2↓) 6.솔파미(장2↓+단2↓) 7.도시라 8.미레도";
                 pattern2D.forEach((p, i) => {
                     const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${i+1}.${p.lyric}`;
                     btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn);
                 });
-            } else {
+            } else if (sub6Direction === 'up') {
                 area.style.display = 'grid'; guide.innerText = "1.미도시(단6↑+단2↓) 2.시솔파(단6↑+장2↓) 3.미도라 4.미도솔#\n5.미도솔(단6↑+완4↓) 6.라파시(단6↑+증4↓) 7.시솔도";
-                Object.keys(patternM6).forEach((key) => {
-                    const p = patternM6[key]; const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${key}.${p.lyric}`;
+                Object.keys(patternM6Up).forEach((key) => {
+                    const p = patternM6Up[key]; const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${key}.${p.lyric}`;
+                    btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn);
+                });
+            } else {
+                area.style.display = 'grid'; guide.innerText = "1.시도미(단6↓+단2↑) 2.파솔시(단6↓+장2↑) 3.라도미 4.솔#도미\n5.솔도미(단6↓+완4↑) 6.시파라(단6↓+증4↑) 7.도솔시";
+                Object.keys(patternM6Down).forEach((key) => {
+                    const p = patternM6Down[key]; const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${key}.${p.lyric}`;
                     btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn);
                 });
             }
