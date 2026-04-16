@@ -44,7 +44,6 @@
         #lyric-match { font-size: 18px; color: #E74C3C; font-weight: 800; margin-bottom: 10px; display: none; }
         #score-container { width: 100%; display: none; justify-content: center; }
 
-        /* 퀴즈 버튼 그리드 영역 */
         #options-area { display: none; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
         .opt-btn { background: #fff; border: 1.5px solid #DCDFE6; color: #606266; padding: 12px; font-size: 13px; border-radius: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .opt-btn.correct { background: #E1F3D8; border-color: #67C23A; color: #67C23A; }
@@ -196,7 +195,6 @@
             currentType = type;
             isSightReadingMode = (type === 2);
             
-            // 모드에 따라 퀴즈 버튼 영역 노출 결정
             const optionsArea = document.getElementById('options-area');
             optionsArea.style.display = isSightReadingMode ? 'none' : 'grid';
 
@@ -205,16 +203,26 @@
             document.getElementById('quiz-title').innerText = isSightReadingMode ? "연습 2: 시창 훈련" : "연습 1: 청음 훈련";
             document.getElementById('main-page').classList.remove('active');
             document.getElementById('quiz-page').classList.add('active');
+
+            // [연습 2 자동 재생 로직 추가]
+            if (isSightReadingMode) {
+                setTimeout(() => { handlePlay(false); }, 300); // 페이지 전환 애니메이션 시간 고려
+            }
         }
 
         function nextProblem() {
             resetUI();
             visualNotes = generateProblem(currentType);
             document.getElementById('quiz-status').innerText = isSightReadingMode ? "새 시창 문제가 준비되었습니다!" : "새 청음 문제가 준비되었습니다!";
+            
+            // [연습 2 자동 재생 로직 추가]
+            if (isSightReadingMode) {
+                setTimeout(() => { handlePlay(false); }, 100);
+            }
         }
 
         function resetUI() {
-            document.getElementById('quiz-status').innerText = isSightReadingMode ? "준비되었습니다. 재생 시 첫 음이 들립니다." : "정답을 맞춰보세요!";
+            document.getElementById('quiz-status').innerText = isSightReadingMode ? "준비되었습니다. 첫 음을 들으세요." : "정답을 맞춰보세요!";
             document.getElementById('answer-text').style.display = 'none';
             document.getElementById('lyric-match').style.display = 'none';
             document.getElementById('score-container').style.display = 'none';
