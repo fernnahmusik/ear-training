@@ -23,16 +23,21 @@
             background-origin: border-box; background-clip: padding-box, border-box;
         }
         
-        .app-logo { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 8px; object-fit: cover; pointer-events: none; }
+        /* 로고 레이어 순위 조정 (상자와 겹침 허용) */
+        .app-logo { position: absolute; top: 15px; right: 15px; width: 35px; height: 35px; border-radius: 8px; object-fit: cover; pointer-events: none; z-index: 20; }
+        
         .page { display: none; flex-direction: column; flex-grow: 1; position: relative; z-index: 10; }
         .page.active { display: flex; }
-        h2 { margin: 8px 0 10px 0; color: var(--primary); font-size: 1.15rem; line-height: 1.2; }
         
-        .display-box { background: #F2F4F6; min-height: 80px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 8px; padding: 5px 10px; flex-shrink: 0; }
-        #quiz-status { font-size: 13px; color: #7F8C8D; margin-bottom: 4px; font-weight: 800; }
+        h2 { margin: 15px 0 15px 0; color: var(--primary); font-size: 1.2rem; line-height: 1.2; }
         
-        /* [수정] 가이드 텍스트 줄바꿈 및 가독성 최적화 */
-        #quiz-guide-text { font-size: 13px; color: #2C3E50; line-height: 1.6; margin-bottom: 10px; font-weight: 700; white-space: pre-wrap; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 12px; width: 95%; box-shadow: inset 0 0 5px rgba(0,0,0,0.05); text-align: left; }
+        /* [수정] 회색 상자를 최상단으로 올림 */
+        .display-box { background: #F2F4F6; min-height: 80px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 8px; padding: 10px; flex-shrink: 0; margin-top: 5px; }
+        
+        #quiz-status { font-size: 14px; color: #7F8C8D; margin-bottom: 4px; font-weight: 800; }
+        
+        /* [수정] 가이드 텍스트 최적화 */
+        #quiz-guide-text { font-size: 13.5px; color: #2C3E50; line-height: 1.6; font-weight: 700; white-space: pre-wrap; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 12px; width: 95%; box-shadow: inset 0 0 5px rgba(0,0,0,0.05); text-align: left; box-sizing: border-box; }
         
         #answer-text { font-size: 13px; color: var(--primary); font-weight: bold; margin-bottom: 2px; display: none; }
         #lyric-match { font-size: 14px; color: #E74C3C; font-weight: 800; margin-bottom: 4px; display: none; }
@@ -46,12 +51,13 @@
 
         .tempo-container { background: #fff; padding: 6px 10px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #eee; flex-shrink: 0; }
         .tempo-label { font-size: 10px; color: var(--secondary); font-weight: 600; margin-bottom: 2px; display: flex; justify-content: space-between; }
-        #tempo-slider { width: 100%; cursor: pointer; accent-color: var(--secondary); }
+        #tempo-slider { width: 100%; cursor: pointer; accent-color: var(--secondary); margin: 0; }
 
         .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 4px; }
         button { width: 100%; padding: 12px; border: none; border-radius: 14px; font-size: 13px; font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        button:active { transform: scale(0.97); opacity: 0.9; }
         
-        .btn-category { background: var(--secondary); color: white; padding: 18px; font-size: 1rem; }
+        .btn-category { background: var(--secondary); color: white; padding: 20px; font-size: 1.1rem; }
         .btn-main { background: var(--primary); color: white; }
         .btn-play { background: #27AE60; color: white; } 
         .btn-replay { background: #95A5A6; color: white; } 
@@ -99,7 +105,6 @@
         </div>
 
         <div id="quiz-page" class="page">
-            <h2 id="quiz-title" style="font-size: 1rem;">훈련 중</h2>
             <div class="display-box">
                 <div id="quiz-status"></div> 
                 <div id="answer-text">정답 표시</div>
@@ -107,11 +112,14 @@
                 <div id="score-container"></div>
                 <div id="quiz-guide-text"></div> 
             </div>
+            
             <div id="options-area"></div>
+            
             <div class="tempo-container">
                 <div class="tempo-label"><span>속도</span><span id="tempo-val">BPM 80</span></div>
                 <input type="range" id="tempo-slider" min="50" max="180" value="80" oninput="updateTempo(this.value)">
             </div>
+            
             <div class="btn-group">
                 <div style="display: flex; gap: 6px;">
                     <button id="play-btn" class="btn-play" style="flex: 1;" onclick="handlePlay(false)">재생</button>
@@ -173,7 +181,7 @@
 
         function selectMajor(major) { currentIntervalMajor = major; if (major === 6) { document.getElementById('step1-page').classList.remove('active'); document.getElementById('step1-5-page').classList.add('active'); } else { showStep2(); } }
         function selectSub6(dir) { sub6Direction = dir; showStep2(); }
-        function showStep2() { const title = currentIntervalMajor === 2 ? "2도 훈련" : (sub6Direction === 'up' ? "단6도 상행" : "단6도 하행"); document.getElementById('step2-title').innerText = title; document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById('step2-page').classList.add('active'); }
+        function showStep2() { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById('step2-page').classList.add('active'); }
         function goStep1() { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById('step1-page').classList.add('active'); }
         function goPrevStep() { if (currentIntervalMajor === 6) { document.getElementById('step2-page').classList.remove('active'); document.getElementById('step1-5-page').classList.add('active'); } else { goStep1(); } }
         function goStep2() { document.getElementById('quiz-page').classList.remove('active'); document.getElementById('step2-page').classList.add('active'); document.getElementById('report-overlay').style.display = 'none'; }
@@ -192,90 +200,4 @@
             const n1Idx = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6][n1Midi % 12];
             if (currentIntervalMajor === 2) { 
                 const p = pattern2D[Math.floor(Math.random() * pattern2D.length)];
-                n2Midi = n1Midi + p.iv[0]; n3Midi = n2Midi + p.iv[1];
-                const n2Idx = (n1Idx + (p.iv[0] > 0 ? 1 : -1) + 7) % 7; const n3Idx = (n2Idx + (p.iv[1] > 0 ? 1 : -1) + 7) % 7;
-                matchedLyric = p.lyric; currentAns = p.ans; return [getSimplestNoteInfo(n1Midi, n1Idx), getSimplestNoteInfo(n2Midi, n2Idx), getSimplestNoteInfo(n3Midi, n3Idx)];
-            } else {
-                if (sub6Direction === 'up') {
-                    const upMidi = n1Midi + 8; const upIdx = (n1Idx + 5) % 7; const downInt = 1 + Math.floor(Math.random() * 7);
-                    const downMidi = upMidi - downInt; const downDeg = (downInt === 6) ? 3 : ({ 1:1, 2:1, 3:2, 4:2, 5:3, 7:4, 8:5, 9:5 }[downInt] || 1);
-                    const downIdx = (upIdx - downDeg + 7) % 7; matchedLyric = patternM6Up[downInt].lyric; currentAns = patternM6Up[downInt].ans;
-                    return [getSimplestNoteInfo(n1Midi, n1Idx), getSimplestNoteInfo(upMidi, upIdx), getSimplestNoteInfo(downMidi, downIdx)];
-                } else {
-                    const downMidi = n1Midi - 8; const downIdx = (n1Idx - 5 + 7) % 7; const upInt = 1 + Math.floor(Math.random() * 7);
-                    const upMidi = downMidi + upInt; const upDeg = (upInt === 6) ? 3 : ({ 1:1, 2:1, 3:2, 4:2, 5:3, 7:4, 8:5, 9:5 }[upInt] || 1);
-                    const upIdx = (downIdx + upDeg) % 7; matchedLyric = patternM6Down[upInt].lyric; currentAns = patternM6Down[upInt].ans;
-                    return [getSimplestNoteInfo(n1Midi, n1Idx), getSimplestNoteInfo(downMidi, downIdx), getSimplestNoteInfo(upMidi, upIdx)];
-                }
-            }
-        }
-
-        function updateOptionsArea() {
-            const area = document.getElementById('options-area'); const guide = document.getElementById('quiz-guide-text'); area.innerHTML = "";
-            if (isSightReadingMode) { area.style.display = 'none'; guide.innerText = ""; return; }
-            
-            // [수정] 줄바꿈 가시성 대폭 개선
-            if (currentIntervalMajor === 2) {
-                area.style.display = 'grid'; 
-                guide.innerText = "1. 도디레 (단2↑+단2↑)\n2. 미파솔 (단2↑+장2↑)\n3. 라시도 (장2↑+단2↑)\n4. 도레미 (장2↑+장2↑)\n\n5. 도시세 (단2↓+단2↓)\n6. 솔파미 (장2↓+단2↓)\n7. 도시라 (단2↓+장2↓)\n8. 미레도 (장2↓+장2↓)";
-                pattern2D.forEach((p, i) => { const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${i+1}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
-            } else if (sub6Direction === 'up') {
-                area.style.display = 'grid'; 
-                guide.innerText = "1. 미도시 (단6↑+단2↓)\n2. 시솔파 (단6↑+장2↓)\n3. 미도라 (단6↑+단3↓)\n4. 미도솔# (단6↑+장3↓)\n5. 미도솔 (단6↑+완4↓)\n6. 라파시 (단6↑+증4↓)\n7. 시솔도 (단6↑+완5↓)";
-                Object.keys(patternM6Up).forEach((key) => { const p = patternM6Up[key]; const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${key}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
-            } else {
-                area.style.display = 'grid'; 
-                guide.innerText = "1. 솔시도 (단6↓+단2↑)\n2. 파라시 (단6↓+장2↑)\n3. 도미솔 (단6↓+단3↑)\n4. 도미솔# (단6↓+장3↑)\n5. 도미라 (단6↓+완4↑)\n6. 솔시파 (단6↓+증4↑)\n7. 도미시 (단6↓+완5↑)";
-                Object.keys(patternM6Down).forEach((key) => { const p = patternM6Down[key]; const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${key}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
-            }
-        }
-
-        function nextProblem() { resetUI(); visualNotes = generateProblem(); setTimeout(() => { handlePlay(false); }, 100); }
-        function resetUI() { 
-            document.getElementById('answer-text').style.display = 'none'; 
-            document.getElementById('lyric-match').style.display = 'none'; 
-            document.getElementById('score-container').style.display = 'none'; 
-            document.getElementById('quiz-guide-text').style.display = 'block'; 
-            document.getElementById('play-btn').disabled = false; 
-            document.getElementById('replay-btn').disabled = true; 
-            document.querySelectorAll('.opt-btn').forEach(b => { b.classList.remove('correct', 'wrong'); b.disabled = false; }); 
-            const status = document.getElementById('quiz-status');
-            
-            // [수정] "방금 들은 가사는?" 문구 제거 (비워두거나 심플하게 유지)
-            if (isSightReadingMode) { status.innerText = "첫 음을 듣고 노래하세요!"; } else { status.innerText = ""; }
-        }
-
-        function handlePlay(isReplay) {
-            const bpmSec = 60 / currentBpm; const now = Tone.now();
-            if (isSightReadingMode) { document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`; document.getElementById('lyric-match').style.display = 'block'; sampler.triggerAttackRelease(Tone.Frequency(visualNotes[0].midi, "midi"), 1.0); }
-            else { visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); }); }
-            document.getElementById('play-btn').disabled = true; document.getElementById('replay-btn').disabled = false;
-        }
-
-        function checkChoice(btn, choice) { if (isSightReadingMode) return; trialCount++; if (choice === matchedLyric) { correctCount++; btn.classList.add('correct'); document.getElementById('quiz-status').innerText = "⭕ 정답!"; document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true); showAns(); } else { btn.classList.add('wrong'); document.getElementById('quiz-status').innerText = "❌ 오답!"; if (!wrongList.includes(matchedLyric)) wrongList.push(matchedLyric); } if (trialCount > 0 && trialCount % 10 === 0) showReport(); }
-        function showReport() { const rate = ((trialCount - correctCount) / trialCount * 100).toFixed(1); let html = `<p>✅ 시도: ${trialCount}회</p><p>🎯 정답: ${correctCount}회</p><p>⚠️ 오답률: ${rate}%</p>`; if (wrongList.length > 0) { html += `<p style="margin-top:10px; font-weight:bold;">📉 취약 패턴:</p><div style="font-size:12px;">${wrongList.join(', ')}</div>`; } document.getElementById('report-text').innerHTML = html; document.getElementById('report-overlay').style.display = 'flex'; }
-        function closeReport() { document.getElementById('report-overlay').style.display = 'none'; }
-
-        function showAns() {
-            if (!visualNotes.length) return;
-            document.getElementById('answer-text').innerText = `정답: ${currentAns}`; document.getElementById('answer-text').style.display = 'block';
-            document.getElementById('quiz-guide-text').style.display = 'none'; 
-            document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`; 
-            document.getElementById('lyric-match').style.display = 'block'; 
-            drawScore();
-            const bpmSec = 60 / currentBpm; const now = Tone.now();
-            visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); });
-            document.getElementById('play-btn').disabled = true; document.getElementById('replay-btn').disabled = false;
-        }
-
-        function drawScore() {
-            const container = document.getElementById('score-container'); container.innerHTML = ""; container.style.display = "flex";
-            const renderer = new Renderer(container, Renderer.Backends.SVG); renderer.resize(260, 120);
-            const ctx = renderer.getContext(); const stave = new Stave(0, 20, 250); stave.addClef("treble").setContext(ctx).draw();
-            const notes = visualNotes.map(n => { const sn = new StaveNote({ clef: "treble", keys: [`${n.key}/${n.oct}`], duration: "q" }); if (n.acc) sn.addModifier(new Accidental(n.acc)); return sn; });
-            const voice = new Voice({ num_beats: visualNotes.length, beat_value: 4 }); voice.addTickables(notes);
-            new Formatter().joinVoices([voice]).format([voice], 200); voice.draw(ctx, stave);
-        }
-    </script>
-</body>
-</html>
+                n2Midi = n1Midi + p.iv[0]; n3Midi = n2Midi +
