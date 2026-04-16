@@ -15,7 +15,9 @@
         .page.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        h2 { margin-top: 0; color: var(--primary); margin-bottom: 20px; }
+        /* 타이틀 스타일 수정 */
+        h2 { margin-top: 0; color: var(--primary); margin-bottom: 20px; font-size: 1.4rem; word-break: keep-all; line-height: 1.3; }
+        
         .display-box { background: #F2F4F6; min-height: 180px; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 15px; padding: 15px; }
         
         #quiz-status { font-size: 14px; color: #7F8C8D; font-weight: 500; margin-bottom: 10px; }
@@ -49,7 +51,7 @@
 <body>
     <div class="app-card">
         <div id="main-page" class="page active">
-            <h2>펜나뮤직 이어핏</h2>
+            <h2>펜나뮤직 이어핏<br><span style="font-size: 1.1rem; color: #7F8C8D;">시창/청음 트레이닝</span></h2>
             <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
                 <p style="color: #7F8C8D; font-size: 14px; margin-bottom: 30px;">연습 모드를 선택하세요.</p>
                 <div class="btn-group">
@@ -60,7 +62,7 @@
         </div>
 
         <div id="quiz-page" class="page">
-            <h2 id="quiz-title" style="font-size: 1.1rem;">연습 진행 중</h2>
+            <h2 id="quiz-title">훈련 진행 중</h2>
             
             <div class="display-box">
                 <div id="quiz-status">정답을 맞춰보세요!</div>
