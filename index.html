@@ -93,7 +93,11 @@
         let currentAns = "";
         let matchedLyric = "";
         let visualNotes = [];
-        let rootHistory = [];
+        
+        // 연습 1과 연습 2 각각의 독립적인 히스토리 관리
+        let p1History = [];
+        let p2History = [];
+
         let isSightReadingMode = false;
 
         function updateTempo(val) {
@@ -128,19 +132,20 @@
         function generateProblem(upInt, downInt, mode) {
             let rMidi;
             let attempts = 0;
+            const history = (mode === 1) ? p1History : p2History;
             
-            // 연습 2(시창)의 경우 단6도 상행(8) 후 최고음이 F5(77)를 넘지 않아야 하므로 
-            // 시작음 root는 최대 77 - 8 = 69 (A4) 까지만 가능
-            const minMidi = 55; // G3
+            // 시창(2): 최고음 F5(77) 이하가 되도록 시작음 상한은 69(A4)
+            // 청음(1): G3(55)~C5(72)
+            const minMidi = 55;
             const maxRoot = (mode === 2) ? 69 : 72; 
 
             do {
                 rMidi = minMidi + Math.floor(Math.random() * (maxRoot - minMidi + 1));
                 attempts++;
-            } while (rootHistory.includes(rMidi) && attempts < 20);
+            } while (history.includes(rMidi) && attempts < 20);
 
-            rootHistory.push(rMidi);
-            if (rootHistory.length > 5) rootHistory.shift();
+            history.push(rMidi);
+            if (history.length > 5) history.shift();
 
             const preferredNames = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6];
             const rBaseIdx = preferredNames[rMidi % 12];
