@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>펜나뮤직 이어핏 청음</title>
+    <title>펜나뮤직 이어핏 시창/청음</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
     <style>
@@ -34,7 +34,7 @@
 </head>
 <body>
     <div class="app-card">
-        <h2 style="margin-top:0; color: var(--primary); margin-bottom:20px;">펜나뮤직 이어핏 청음</h2>
+        <h2 style="margin-top:0; color: var(--primary); margin-bottom:20px;">펜나뮤직 이어핏 시창/청음</h2>
         
         <div class="display-box">
             <div id="quiz-status">피아노 소리를 로딩 중입니다...</div>
@@ -52,8 +52,8 @@
         </div>
 
         <div class="btn-group">
-            <button id="p1-btn" class="btn-main" onclick="playQuiz(1)" disabled>단6도 상행 + 하행 연습</button>
-            <button id="p2-btn" class="btn-main" onclick="playQuiz(2)" disabled style="background: var(--secondary);">7도 상행 무작위 연습</button>
+            <button id="p1-btn" class="btn-main" onclick="playQuiz(1)" disabled>연습 1: 단6도 청음 훈련</button>
+            <button id="p2-btn" class="btn-main" onclick="playQuiz(2)" disabled style="background: var(--secondary);">연습 2: 단6도 시창 훈련</button>
             <button id="replay-btn" class="btn-replay" onclick="replaySound()" disabled>다시 듣기</button>
             <button class="btn-sub" onclick="showAns()">정답 및 악보 확인</button>
         </div>
@@ -93,7 +93,8 @@
         let currentAns = "";
         let matchedLyric = "";
         let visualNotes = [];
-        let lastRootMidi = -1;
+        let rootHistory = [];
+        let isSightReadingMode = false;
 
         function updateTempo(val) {
             currentBpm = val;
@@ -108,57 +109,44 @@
             let chroma = midi % 12;
             if (chroma < 0) chroma += 12;
 
-            // 1. 자연음인 경우 바로 반환
             for (let i = 0; i < baseScales.length; i++) {
-                if (baseScales[i].m === chroma) {
-                    return { midi, key: baseScales[i].n, acc: "", oct: octave };
-                }
+                if (baseScales[i].m === chroma) return { midi, key: baseScales[i].n, acc: "", oct: octave };
             }
 
-            // 2. 증4도 등 복잡한 도수 처리: 타겟 도수에서 샵/플랫 하나로 해결 가능한지 체크
             const targetNatural = baseScales[preferredBaseIdx].m;
             let diff = chroma - targetNatural;
             if (diff > 6) diff -= 12;
             if (diff < -6) diff += 12;
 
-            if (Math.abs(diff) === 1) {
-                return { midi, key: baseScales[preferredBaseIdx].n, acc: (diff === 1 ? "#" : "b"), oct: octave };
-            }
+            if (Math.abs(diff) === 1) return { midi, key: baseScales[preferredBaseIdx].n, acc: (diff === 1 ? "#" : "b"), oct: octave };
 
-            // 3. 더블샵/플랫 회피: 가장 가까운 샵/플랫 음이름 찾기
             for (let i = 0; i < baseScales.length; i++) {
                 let newDiff = chroma - baseScales[i].m;
                 if (newDiff > 6) newDiff -= 12;
                 if (newDiff < -6) newDiff += 12;
-                if (Math.abs(newDiff) === 1) {
-                    return { midi, key: baseScales[i].n, acc: (newDiff === 1 ? "#" : "b"), oct: octave };
-                }
+                if (Math.abs(newDiff) === 1) return { midi, key: baseScales[i].n, acc: (newDiff === 1 ? "#" : "b"), oct: octave };
             }
             return { midi, key: baseScales[preferredBaseIdx].n, acc: (diff > 0 ? "#" : "b"), oct: octave };
         }
 
         function generateProblem(upInt, downInt) {
             let rMidi;
+            let attempts = 0;
             do {
                 rMidi = 55 + Math.floor(Math.random() * 19);
-            } while (rMidi === lastRootMidi);
-            lastRootMidi = rMidi;
+                attempts++;
+            } while (rootHistory.includes(rMidi) && attempts < 20);
+
+            rootHistory.push(rMidi);
+            if (rootHistory.length > 5) rootHistory.shift();
 
             const preferredNames = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6];
             const rBaseIdx = preferredNames[rMidi % 12];
-            
             const upMidi = rMidi + upInt;
             const upDeg = (upInt >= 10) ? 6 : 5;
             const upBaseIdx = (rBaseIdx + upDeg) % 7;
-
             const downMidi = upMidi - downInt;
-            // 증4도(6반음) 하행 시 도수 계산 오류 수정: 파(5) -> 시(11)는 4도 차이로 고정
-            let downDeg;
-            if (downInt === 6) downDeg = 3; // 4도 차이 (0,1,2,3)
-            else {
-                const downDegMap = { 1:1, 2:1, 3:2, 4:2, 5:3, 7:4, 8:5, 9:5 };
-                downDeg = downDegMap[downInt] || 1;
-            }
+            let downDeg = (downInt === 6) ? 3 : ({ 1:1, 2:1, 3:2, 4:2, 5:3, 7:4, 8:5, 9:5 }[downInt] || 1);
             const downBaseIdx = (upBaseIdx - downDeg + 7) % 7;
 
             return [
@@ -173,25 +161,26 @@
             document.getElementById('answer-text').style.display = 'none';
             document.getElementById('lyric-match').style.display = 'none';
             document.getElementById('score-container').style.display = 'none';
-            document.getElementById('lyric-guide').style.display = (type === 1) ? 'block' : 'none';
+            document.getElementById('lyric-guide').style.display = 'block';
 
-            let upInt, downInt;
-            if (type === 1) {
-                upInt = 8;
-                downInt = 1 + Math.floor(Math.random() * 7);
-                visualNotes = generateProblem(upInt, downInt);
-                currentAns = `단6도 상행 → ${intervalNames[downInt]} 하행`;
-                const lyrics = { 1: "미-도-시", 2: "시-솔-파", 3: "미-도-라", 4: "미-도-솔#", 5: "미-도-솔", 6: "라-파-시", 7: "시-솔-도" };
-                matchedLyric = lyrics[downInt] || "";
+            isSightReadingMode = (type === 2);
+            
+            let downInt = 1 + Math.floor(Math.random() * 7);
+            visualNotes = generateProblem(8, downInt);
+            currentAns = `[연습 ${type}] 단6도 상행 → ${intervalNames[downInt]} 하행`;
+            const lyrics = { 1: "미-도-시", 2: "시-솔-파", 3: "미-도-라", 4: "미-도-솔#", 5: "미-도-솔", 6: "라-파-시", 7: "시-솔-도" };
+            matchedLyric = lyrics[downInt] || "";
+
+            if (isSightReadingMode) {
+                // 시창 모드: 첫 음만 연주하고 가사 제시
+                document.getElementById('quiz-status').innerText = "가사를 보고 시창하세요! (첫 음 제시)";
+                document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`;
+                document.getElementById('lyric-match').style.display = 'block';
+                sampler.triggerAttackRelease(Tone.Frequency(visualNotes[0].midi, "midi"), 1.0);
             } else {
-                upInt = Math.random() > 0.5 ? 10 : 11;
-                downInt = Math.random() > 0.5 ? 8 : 9;
-                visualNotes = generateProblem(upInt, downInt);
-                currentAns = `${intervalNames[upInt]} 상행 → ${intervalNames[downInt]} 하행`;
-                matchedLyric = "";
+                // 청음 모드: 전체 음 연주
+                executeSound();
             }
-
-            executeSound();
             document.getElementById('replay-btn').disabled = false;
         }
 
@@ -206,7 +195,13 @@
         }
 
         function replaySound() {
-            if (visualNotes.length) executeSound();
+            if (visualNotes.length) {
+                if (isSightReadingMode) {
+                    sampler.triggerAttackRelease(Tone.Frequency(visualNotes[0].midi, "midi"), 1.0);
+                } else {
+                    executeSound();
+                }
+            }
         }
 
         function drawScore() {
@@ -233,9 +228,11 @@
             if (!currentAns) return;
             document.getElementById('answer-text').innerText = currentAns;
             document.getElementById('answer-text').style.display = 'block';
-            if (matchedLyric) {
-                document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`;
-                document.getElementById('lyric-match').style.display = 'block';
+            document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`;
+            document.getElementById('lyric-match').style.display = 'block';
+            
+            if (isSightReadingMode) {
+                executeSound(); // 시창 모드에서 정답 확인 시 소리 들려줌
             }
             drawScore();
         }
