@@ -103,20 +103,40 @@
         const baseScales = [{ n: 'c', m: 0 }, { n: 'd', m: 2 }, { n: 'e', m: 4 }, { n: 'f', m: 5 }, { n: 'g', m: 7 }, { n: 'a', m: 9 }, { n: 'b', m: 11 }];
         const intervalNames = { 1:"단2", 2:"장2", 3:"단3", 4:"장3", 5:"완4", 6:"증4/감5", 7:"완5", 8:"단6", 9:"장6", 10:"단7", 11:"장7" };
 
-        function getNoteInfo(midi, baseIdx) {
+        function getSimplestNoteInfo(midi, preferredBaseIdx) {
             const octave = Math.floor(midi / 12) - 1;
-            const targetNatural = baseScales[baseIdx].m + (octave + 1) * 12;
-            const diff = midi - targetNatural;
-            let acc = "";
-            if (diff === 1) acc = "#";
-            else if (diff === 2) acc = "##";
-            else if (diff === -1) acc = "b";
-            else if (diff === -2) acc = "bb";
-            return { midi, key: baseScales[baseIdx].n, acc, oct: octave };
+            const chroma = midi % 12;
+
+            // 1순위: 임시표가 아예 없는 자연음(Natural)이 가능한지 확인
+            for (let i = 0; i < baseScales.length; i++) {
+                if (baseScales[i].m === chroma) {
+                    return { midi, key: baseScales[i].n, acc: "", oct: octave };
+                }
+            }
+
+            // 2순위: 원래 계산된 도수(BaseIdx)에서 더블샵/더블플랫이 나오는지 확인
+            const targetNatural = baseScales[preferredBaseIdx].m;
+            let diff = chroma - targetNatural;
+            if (diff > 6) diff -= 12;
+            if (diff < -6) diff += 12;
+
+            // 더블샵(2)이나 더블플랫(-2)인 경우, 다른 도수를 찾아 샵(#)이나 플랫(b) 하나로 해결
+            if (Math.abs(diff) >= 2) {
+                for (let i = 0; i < baseScales.length; i++) {
+                    let newDiff = chroma - baseScales[i].m;
+                    if (newDiff > 6) newDiff -= 12;
+                    if (newDiff < -6) newDiff += 12;
+                    if (Math.abs(newDiff) === 1) {
+                        return { midi, key: baseScales[i].n, acc: (newDiff === 1 ? "#" : "b"), oct: octave };
+                    }
+                }
+            }
+
+            // 3순위: 그 외에는 일반적인 방식 사용
+            return { midi, key: baseScales[preferredBaseIdx].n, acc: (diff === 1 ? "#" : "b"), oct: octave };
         }
 
         function generateProblem(upInt, downInt) {
-            // G3(55) ~ C5(72) 사이에서 골고루 시작 (최고음 C6까지 고려)
             let rMidi;
             do {
                 rMidi = 55 + Math.floor(Math.random() * 18);
@@ -136,9 +156,9 @@
             const downBaseIdx = (upBaseIdx - downDeg + 7) % 7;
 
             return [
-                getNoteInfo(rMidi, rBaseIdx),
-                getNoteInfo(upMidi, upBaseIdx),
-                getNoteInfo(downMidi, downBaseIdx)
+                getSimplestNoteInfo(rMidi, rBaseIdx),
+                getSimplestNoteInfo(upMidi, upBaseIdx),
+                getSimplestNoteInfo(downMidi, downBaseIdx)
             ];
         }
 
