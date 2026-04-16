@@ -9,7 +9,7 @@
     <style>
         :root { --primary: #2C3E50; --secondary: #34495E; --bg: #F9F9F9; }
         body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .app-card { background: white; width: 95%; max-width: 420px; padding: 25px 20px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid var(--primary); min-height: 550px; display: flex; flex-direction: column; }
+        .app-card { background: white; width: 95%; max-width: 420px; padding: 25px 20px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid var(--primary); min-height: 580px; display: flex; flex-direction: column; }
         
         .page { display: none; flex-direction: column; flex-grow: 1; animation: fadeIn 0.3s ease-out; }
         .page.active { display: flex; }
@@ -23,9 +23,8 @@
         #lyric-match { font-size: 18px; color: #E74C3C; font-weight: 800; margin-bottom: 10px; display: none; }
         #score-container { width: 100%; display: none; justify-content: center; }
 
-        /* 퀴즈 버튼 그리드 */
         .quiz-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
-        .opt-btn { background: #fff; border: 1.5px solid #DCDFE6; color: #606266; padding: 10px; font-size: 13px; border-radius: 12px; }
+        .opt-btn { background: #fff; border: 1.5px solid #DCDFE6; color: #606266; padding: 10px; font-size: 13px; border-radius: 12px; cursor: pointer; }
         .opt-btn:active { background: #EBEEF5; }
         .opt-btn.correct { background: #E1F3D8; border-color: #67C23A; color: #67C23A; }
         .opt-btn.wrong { background: #FDE2E2; border-color: #F56C6C; color: #F56C6C; }
@@ -40,6 +39,7 @@
         .btn-secondary { background: var(--secondary); color: white; }
         .btn-play { background: #27AE60; color: white; } 
         .btn-replay { background: #95A5A6; color: white; } 
+        .btn-next { background: #E67E22; color: white; } 
         .btn-sub { background: white; color: var(--primary); border: 2px solid var(--primary); }
         .btn-back { background: transparent; color: #95A5A6; font-size: 12px; padding: 5px; margin-top: 5px; border: none; }
         
@@ -53,8 +53,8 @@
             <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
                 <p style="color: #7F8C8D; font-size: 14px; margin-bottom: 30px;">연습 모드를 선택하세요.</p>
                 <div class="btn-group">
-                    <button id="p1-load-btn" class="btn-main" onclick="startQuiz(1)" disabled>연습 1: 단6도 청음 훈련</button>
-                    <button id="p2-load-btn" class="btn-secondary" onclick="startQuiz(2)" disabled>연습 2: 단6도 시창 훈련</button>
+                    <button id="p1-load-btn" class="btn-main" onclick="initQuiz(1)" disabled>연습 1: 단6도 청음 훈련</button>
+                    <button id="p2-load-btn" class="btn-secondary" onclick="startQuiz2()" disabled>연습 2: 단6도 시창 훈련</button>
                 </div>
             </div>
         </div>
@@ -85,9 +85,12 @@
             </div>
 
             <div class="btn-group">
-                <button id="play-btn" class="btn-play" onclick="handlePlay(false)">문제 재생</button>
-                <button id="replay-btn" class="btn-replay" onclick="handlePlay(true)" disabled>다시 듣기</button>
+                <div style="display: flex; gap: 8px;">
+                    <button id="play-btn" class="btn-play" style="flex: 1;" onclick="handlePlay(false)">문제 재생</button>
+                    <button id="replay-btn" class="btn-replay" style="flex: 1;" onclick="handlePlay(true)" disabled>다시 듣기</button>
+                </div>
                 <button id="ans-btn" class="btn-sub" onclick="showAns()">정답 및 악보 확인</button>
+                <button id="next-btn" class="btn-next" onclick="nextProblem()">다음 문제 도전</button>
                 <button class="btn-back" onclick="goBack()">🏠 처음으로 돌아가기</button>
             </div>
         </div>
@@ -117,6 +120,7 @@
         let p1History = [], p2History = [];
         let currentAns = "", matchedLyric = "";
         let isSightReadingMode = false;
+        let currentType = 1;
 
         function updateTempo(val) {
             currentBpm = val;
@@ -166,27 +170,34 @@
             return [ getSimplestNoteInfo(rMidi, rBaseIdx), getSimplestNoteInfo(upMidi, upBaseIdx), getSimplestNoteInfo(downMidi, downBaseIdx) ];
         }
 
-        function startQuiz(type) {
+        function initQuiz(type) {
             Tone.start();
+            currentType = type;
+            resetUI();
             isSightReadingMode = (type === 2);
             visualNotes = generateProblem(type);
             
             document.getElementById('quiz-title').innerText = isSightReadingMode ? "연습 2: 시창 훈련" : "연습 1: 청음 훈련";
+            document.getElementById('main-page').classList.remove('active');
+            document.getElementById('quiz-page').classList.add('active');
+        }
+
+        function nextProblem() {
+            resetUI();
+            visualNotes = generateProblem(currentType);
+            document.getElementById('quiz-status').innerText = "새 문제가 준비되었습니다!";
+        }
+
+        function resetUI() {
             document.getElementById('quiz-status').innerText = "문제가 준비되었습니다.";
             document.getElementById('answer-text').style.display = 'none';
             document.getElementById('lyric-match').style.display = 'none';
             document.getElementById('score-container').style.display = 'none';
-            
-            // 버튼들 초기화
             document.getElementById('play-btn').disabled = false;
             document.getElementById('replay-btn').disabled = true;
             document.querySelectorAll('.opt-btn').forEach(b => {
                 b.classList.remove('correct', 'wrong');
-                b.disabled = false;
             });
-            
-            document.getElementById('main-page').classList.remove('active');
-            document.getElementById('quiz-page').classList.add('active');
         }
 
         function handlePlay(isReplay) {
@@ -211,6 +222,8 @@
             if (choice === matchedLyric) {
                 btn.classList.add('correct');
                 document.getElementById('quiz-status').innerText = "⭕ 정답입니다!";
+                // 정답일 때 바로 악보와 가사 정보 표시
+                showAns();
             } else {
                 btn.classList.add('wrong');
                 document.getElementById('quiz-status').innerText = "❌ 틀렸습니다. 다시 들어보세요!";
@@ -219,13 +232,17 @@
 
         function showAns() {
             if (!visualNotes.length) return;
+            
+            // 아직 재생 전이었다면 소리를 들려줌 (시창 모드 포함)
             if (isSightReadingMode || document.getElementById('play-btn').disabled === false) {
                 const bpmSec = 60 / currentBpm;
                 visualNotes.forEach((n, i) => {
                     sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, Tone.now() + i * bpmSec);
                 });
+                document.getElementById('play-btn').disabled = true;
+                document.getElementById('replay-btn').disabled = false;
             }
-            document.getElementById('quiz-status').innerText = "최종 정답 확인";
+
             document.getElementById('answer-text').innerText = currentAns;
             document.getElementById('answer-text').style.display = 'block';
             document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`;
