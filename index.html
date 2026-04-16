@@ -165,12 +165,18 @@
             { lyric: "도-시-세", ans: "단2↓+단2↓", iv: [-1, -1] }, { lyric: "솔-파-미", ans: "장2↓+단2↓", iv: [-2, -1] }, { lyric: "도-시-라", ans: "단2↓+장2↓", iv: [-1, -2] }, { lyric: "미-레-도", ans: "장2↓+장2↓", iv: [-2, -2] }
         ];
 
+        // [수정] 상행 3, 4번 음정 간격 추가
         const patternM6Up = {
-            1: { lyric: "미-도-시", ans: "단6↑+단2↓" }, 2: { lyric: "시-솔-파", ans: "단6↑+장2↓" }, 3: { lyric: "미-도-라", ans: "단6↑+단3↓" }, 4: { lyric: "미-도-솔#", ans: "단6↑+장3↓" },
-            5: { lyric: "미-도-솔", ans: "단6↑+완4↓" }, 6: { lyric: "라-파-시", ans: "단6↑+증4↓" }, 7: { lyric: "시-솔-도", ans: "단6↑+완5↓" }
+            1: { lyric: "미-도-시", ans: "단6↑+단2↓" }, 
+            2: { lyric: "시-솔-파", ans: "단6↑+장2↓" }, 
+            3: { lyric: "미-도-라", ans: "단6↑+단3↓" }, 
+            4: { lyric: "미-도-솔#", ans: "단6↑+장3↓" },
+            5: { lyric: "미-도-솔", ans: "단6↑+완4↓" }, 
+            6: { lyric: "라-파-시", ans: "단6↑+증4↓" }, 
+            7: { lyric: "시-솔-도", ans: "단6↑+완5↓" }
         };
 
-        // [수정] 요청하신 6도 하행 가사 및 음정 간격 적용
+        // [수정] 하행 3, 4번 음정 간격 추가
         const patternM6Down = {
             1: { lyric: "솔-시-도", ans: "단6↓+단2↑" }, 
             2: { lyric: "파-라-시", ans: "단6↓+장2↑" }, 
@@ -227,10 +233,10 @@
                 area.style.display = 'grid'; guide.innerText = "1.도디레(단2↑+단2↑) 2.미파솔(단2↑+장2↑) 3.라시도 4.도레미\n5.도시세(단2↓+단2↓) 6.솔파미(장2↓+단2↓) 7.도시라 8.미레도";
                 pattern2D.forEach((p, i) => { const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${i+1}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
             } else if (sub6Direction === 'up') {
-                area.style.display = 'grid'; guide.innerText = "1.미도시(단6↑+단2↓) 2.시솔파(단6↑+장2↓) 3.미도라 4.미도솔#\n5.미도솔(단6↑+완4↓) 6.라파시(단6↑+증4↓) 7.시솔도";
+                area.style.display = 'grid'; guide.innerText = "1.미도시(단6↑+단2↓) 2.시솔파(단6↑+장2↓) 3.미도라(단6↑+단3↓)\n4.미도솔#(단6↑+장3↓) 5.미도솔(단6↑+완4↓) 6.라파시 7.시솔도";
                 Object.keys(patternM6Up).forEach((key) => { const p = patternM6Up[key]; const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${key}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
             } else {
-                area.style.display = 'grid'; guide.innerText = "1.솔시도(단6↓+단2↑) 2.파라시(단6↓+장2↑) 3.도미솔 4.도미솔#\n5.도미라(단6↓+완4↑) 6.솔시파(단6↓+증4↑) 7.도미시";
+                area.style.display = 'grid'; guide.innerText = "1.솔시도(단6↓+단2↑) 2.파라시(단6↓+장2↑) 3.도미솔(단6↓+단3↑)\n4.도미솔#(단6↓+장3↑) 5.도미라(단6↓+완4↑) 6.솔시파 7.도미시";
                 Object.keys(patternM6Down).forEach((key) => { const p = patternM6Down[key]; const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${key}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
             }
         }
@@ -251,10 +257,8 @@
 
         function showAns() {
             if (!visualNotes.length) return;
-            document.getElementById('answer-text').innerText = `정답: ${currentAns}`; 
-            document.getElementById('answer-text').style.display = 'block';
-            document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`; 
-            document.getElementById('lyric-match').style.display = 'block';
+            document.getElementById('answer-text').innerText = `정답: ${currentAns}`; document.getElementById('answer-text').style.display = 'block';
+            document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`; document.getElementById('lyric-match').style.display = 'block';
             drawScore();
             const bpmSec = 60 / currentBpm; const now = Tone.now();
             visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); });
