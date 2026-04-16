@@ -9,39 +9,41 @@
     <style>
         :root { --primary: #2C3E50; --secondary: #34495E; --bg: #F9F9F9; }
         body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .app-card { background: white; width: 95%; max-width: 420px; padding: 35px 20px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid var(--primary); min-height: 520px; display: flex; flex-direction: column; }
+        .app-card { background: white; width: 95%; max-width: 420px; padding: 25px 20px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid var(--primary); min-height: 550px; display: flex; flex-direction: column; }
         
         .page { display: none; flex-direction: column; flex-grow: 1; animation: fadeIn 0.3s ease-out; }
         .page.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        h2 { margin-top: 0; color: var(--primary); margin-bottom: 25px; }
-        .display-box { background: #F2F4F6; min-height: 200px; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 20px; padding: 15px; }
+        h2 { margin-top: 0; color: var(--primary); margin-bottom: 20px; }
+        .display-box { background: #F2F4F6; min-height: 180px; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 15px; padding: 15px; }
         
         #quiz-status { font-size: 14px; color: #7F8C8D; font-weight: 500; margin-bottom: 10px; }
         #answer-text { font-size: 16px; color: var(--primary); font-weight: bold; margin-bottom: 5px; display: none; }
         #lyric-match { font-size: 18px; color: #E74C3C; font-weight: 800; margin-bottom: 10px; display: none; }
         #score-container { width: 100%; display: none; justify-content: center; }
 
-        .tempo-container { background: #fff; padding: 15px; border-radius: 20px; margin-bottom: 20px; border: 1px solid #eee; }
-        .tempo-label { font-size: 13px; color: var(--secondary); font-weight: 600; margin-bottom: 8px; display: flex; justify-content: space-between; }
+        /* 퀴즈 버튼 그리드 */
+        .quiz-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
+        .opt-btn { background: #fff; border: 1.5px solid #DCDFE6; color: #606266; padding: 10px; font-size: 13px; border-radius: 12px; }
+        .opt-btn:active { background: #EBEEF5; }
+        .opt-btn.correct { background: #E1F3D8; border-color: #67C23A; color: #67C23A; }
+        .opt-btn.wrong { background: #FDE2E2; border-color: #F56C6C; color: #F56C6C; }
+
+        .tempo-container { background: #fff; padding: 12px; border-radius: 15px; margin-bottom: 15px; border: 1px solid #eee; }
+        .tempo-label { font-size: 12px; color: var(--secondary); font-weight: 600; margin-bottom: 5px; display: flex; justify-content: space-between; }
         #tempo-slider { width: 100%; cursor: pointer; accent-color: var(--primary); }
 
         .btn-group { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
-        button { width: 100%; padding: 16px; border: none; border-radius: 15px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 15px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
         .btn-main { background: var(--primary); color: white; }
         .btn-secondary { background: var(--secondary); color: white; }
         .btn-play { background: #27AE60; color: white; } 
         .btn-replay { background: #95A5A6; color: white; } 
         .btn-sub { background: white; color: var(--primary); border: 2px solid var(--primary); }
-        .btn-back { background: transparent; color: #95A5A6; font-size: 13px; padding: 8px; margin-top: 5px; border: none; }
-
-        #lyric-guide { margin-top: 20px; padding: 15px; background: #fff; border: 1px dashed #BDC3C7; border-radius: 15px; text-align: left; }
-        .guide-title { font-size: 13px; font-weight: bold; color: var(--primary); margin-bottom: 5px; }
-        .guide-list { font-size: 12px; color: #7F8C8D; line-height: 1.5; }
+        .btn-back { background: transparent; color: #95A5A6; font-size: 12px; padding: 5px; margin-top: 5px; border: none; }
         
         button:disabled { background: #BDC3C7; cursor: not-allowed; opacity: 0.6; }
-        button:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
@@ -55,20 +57,26 @@
                     <button id="p2-load-btn" class="btn-secondary" onclick="startQuiz(2)" disabled>연습 2: 단6도 시창 훈련</button>
                 </div>
             </div>
-            <div id="lyric-guide">
-                <div class="guide-title">💡 음정별 가사 참고</div>
-                <div class="guide-list">미-도-시 / 시-솔-파 / 미-도-라 / 미-도-솔#<br>미-도-솔 / 라-파-시 / 시-솔-도</div>
-            </div>
         </div>
 
         <div id="quiz-page" class="page">
-            <h2 id="quiz-title" style="font-size: 1.2rem;">연습 진행 중</h2>
+            <h2 id="quiz-title" style="font-size: 1.1rem;">연습 진행 중</h2>
             
             <div class="display-box">
-                <div id="quiz-status">문제가 준비되었습니다.</div>
+                <div id="quiz-status">정답을 맞춰보세요!</div>
                 <div id="answer-text">정답 표시</div>
                 <div id="lyric-match">가사 매칭</div>
                 <div id="score-container"></div>
+            </div>
+
+            <div class="quiz-options">
+                <button class="opt-btn" onclick="checkChoice(this, '미-도-시')">1. 미-도-시</button>
+                <button class="opt-btn" onclick="checkChoice(this, '시-솔-파')">2. 시-솔-파</button>
+                <button class="opt-btn" onclick="checkChoice(this, '미-도-라')">3. 미-도-라</button>
+                <button class="opt-btn" onclick="checkChoice(this, '미-도-솔#')">4. 미-도-솔#</button>
+                <button class="opt-btn" onclick="checkChoice(this, '미-도-솔')">5. 미-도-솔</button>
+                <button class="opt-btn" onclick="checkChoice(this, '라-파-시')">6. 라-파-시</button>
+                <button class="opt-btn" onclick="checkChoice(this, '시-솔-도')">7. 시-솔-도</button>
             </div>
 
             <div class="tempo-container">
@@ -101,7 +109,6 @@
             onload: () => {
                 document.getElementById('p1-load-btn').disabled = false;
                 document.getElementById('p2-load-btn').disabled = false;
-                document.querySelector('#main-page p').innerText = "준비 완료! 모드를 선택하세요.";
             }
         }).toDestination();
 
@@ -170,8 +177,13 @@
             document.getElementById('lyric-match').style.display = 'none';
             document.getElementById('score-container').style.display = 'none';
             
+            // 버튼들 초기화
             document.getElementById('play-btn').disabled = false;
             document.getElementById('replay-btn').disabled = true;
+            document.querySelectorAll('.opt-btn').forEach(b => {
+                b.classList.remove('correct', 'wrong');
+                b.disabled = false;
+            });
             
             document.getElementById('main-page').classList.remove('active');
             document.getElementById('quiz-page').classList.add('active');
@@ -191,28 +203,33 @@
                 document.getElementById('quiz-status').innerText = "연주 중...";
                 setTimeout(() => { document.getElementById('quiz-status').innerText = "방금 들은 음정은?"; }, (bpmSec * 3) * 1000);
             }
-            
             document.getElementById('play-btn').disabled = true;
             document.getElementById('replay-btn').disabled = false;
         }
 
+        function checkChoice(btn, choice) {
+            if (choice === matchedLyric) {
+                btn.classList.add('correct');
+                document.getElementById('quiz-status').innerText = "⭕ 정답입니다!";
+            } else {
+                btn.classList.add('wrong');
+                document.getElementById('quiz-status').innerText = "❌ 틀렸습니다. 다시 들어보세요!";
+            }
+        }
+
         function showAns() {
             if (!visualNotes.length) return;
-            
-            // 시창 모드이거나 재생 전이면 전체 소리 재생
             if (isSightReadingMode || document.getElementById('play-btn').disabled === false) {
                 const bpmSec = 60 / currentBpm;
                 visualNotes.forEach((n, i) => {
                     sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, Tone.now() + i * bpmSec);
                 });
             }
-
-            document.getElementById('quiz-status').innerText = "정답 확인";
+            document.getElementById('quiz-status').innerText = "최종 정답 확인";
             document.getElementById('answer-text').innerText = currentAns;
             document.getElementById('answer-text').style.display = 'block';
             document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`;
             document.getElementById('lyric-match').style.display = 'block';
-            
             drawScore();
         }
 
