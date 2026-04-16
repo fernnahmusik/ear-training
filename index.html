@@ -21,7 +21,6 @@
         #tempo-slider { width: 100%; cursor: pointer; accent-color: var(--primary); }
 
         .btn-group { display: flex; flex-direction: column; gap: 8px; }
-        .btn-row { display: flex; gap: 8px; width: 100%; }
         button { width: 100%; padding: 16px; border: none; border-radius: 15px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
         .btn-main { background: var(--primary); color: white; }
         .btn-replay { background: #95A5A6; color: white; }
@@ -53,10 +52,8 @@
         </div>
 
         <div class="btn-group">
-            <div class="btn-row">
-                <button id="p1-btn" class="btn-main" onclick="playQuiz(1)" disabled>연습 1</button>
-                <button id="p2-btn" class="btn-main" onclick="playQuiz(2)" disabled style="background: var(--secondary);">연습 2</button>
-            </div>
+            <button id="p1-btn" class="btn-main" onclick="playQuiz(1)" disabled>단6도 상행 + 하행 연습</button>
+            <button id="p2-btn" class="btn-main" onclick="playQuiz(2)" disabled style="background: var(--secondary);">7도 상행 무작위 연습</button>
             <button id="replay-btn" class="btn-replay" onclick="replaySound()" disabled>다시 듣기</button>
             <button class="btn-sub" onclick="showAns()">정답 및 악보 확인</button>
         </div>
@@ -105,7 +102,6 @@
         const intervalNames = { 1:"단2", 2:"장2", 3:"단3", 4:"장3", 5:"완4", 6:"증4/감5", 7:"완5", 8:"단6", 9:"장6", 10:"단7", 11:"장7" };
         const baseScales = [{ n: 'c', m: 0 }, { n: 'd', m: 2 }, { n: 'e', m: 4 }, { n: 'f', m: 5 }, { n: 'g', m: 7 }, { n: 'a', m: 9 }, { n: 'b', m: 11 }];
 
-        // 연습 1용 지정 데이터
         const quiz1Items = [
             { name: "미-도-시", notes: [{k:'e',o:4,a:''}, {k:'c',o:5,a:''}, {k:'b',o:4,a:''}], up:"단6", down:"단2" },
             { name: "시-솔-파", notes: [{k:'b',o:4,a:''}, {k:'g',o:5,a:''}, {k:'f',o:5,a:''}], up:"단6", down:"장2" },
@@ -136,14 +132,13 @@
             if (type === 1) {
                 const item = quiz1Items[Math.floor(Math.random() * quiz1Items.length)];
                 visualNotes = item.notes.map(n => ({ midi: midiFromNote(n), key: n.k, acc: n.a, oct: n.o }));
-                currentAns = `[연습 1] ${item.up} 상행 → ${item.down} 하행`;
+                currentAns = `단6도 상행 → ${item.down} 하행`;
                 matchedLyric = item.name;
             } else {
-                // 연습 2: 7도 상행 무작위
                 const upInt = Math.random() > 0.5 ? 10 : 11;
                 const downInt = Math.random() > 0.5 ? 8 : 9;
                 visualNotes = getRandomNoteData(upInt, downInt);
-                currentAns = `[연습 2] ${intervalNames[upInt]} 상행 → ${intervalNames[downInt]} 하행`;
+                currentAns = `${intervalNames[upInt]} 상행 → ${intervalNames[downInt]} 하행`;
                 matchedLyric = "";
             }
 
@@ -167,16 +162,13 @@
 
         function getRandomNoteData(upInt, downInt) {
             const rMidi = 55 + Math.floor(Math.random() * 12);
-            const preferredNames = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6]; 
-            const rBaseIdx = preferredNames[rMidi % 12];
+            const rBaseIdx = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6][rMidi % 12];
             const rOctave = Math.floor(rMidi / 12) - 1;
-            
             const upDeg = (upInt >= 10) ? 6 : 5;
             const upBaseIdx = (rBaseIdx + upDeg) % 7;
             const upMidi = rMidi + upInt;
             const upOctave = Math.floor(upMidi / 12) - 1;
-
-            const downDeg = (downInt === 6) ? 4 : (downInt <= 7 ? 4 : 5);
+            const downDeg = (downInt <= 7 ? 4 : 5);
             const downBaseIdx = (upBaseIdx - downDeg + 7) % 7;
             const downMidi = upMidi - downInt;
             const downOctave = Math.floor(downMidi / 12) - 1;
