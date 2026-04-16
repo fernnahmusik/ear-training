@@ -177,24 +177,23 @@
         }
 
         const pattern2D = [
-            { lyric: "도-디-레", intervals: [1, 1], ans: "단2↑ + 단2↑" },
-            { lyric: "미-파-솔", intervals: [1, 2], ans: "단2↑ + 장2↑" },
-            { lyric: "라-시-도", intervals: [2, 1], ans: "장2↑ + 단2↑" },
-            { lyric: "도-레-미", intervals: [2, 2], ans: "장2↑ + 장2↑" },
-            { lyric: "도-시-세", intervals: [-1, -1], ans: "단2↓ + 단2↓" },
-            { lyric: "솔-파-미", intervals: [-2, -1], ans: "장2↓ + 단2↓" },
-            { lyric: "도-시-라", intervals: [-1, -2], ans: "단2↓ + 장2↓" },
-            { lyric: "미-레-도", intervals: [-2, -2], ans: "장2↓ + 장2↓" }
+            { lyric: "도-디-레", ans: "단2↑ + 단2↑" },
+            { lyric: "미-파-솔", ans: "단2↑ + 장2↑" },
+            { lyric: "라-시-도", ans: "장2↑ + 단2↑" },
+            { lyric: "도-레-미", ans: "장2↑ + 장2↑" },
+            { lyric: "도-시-세", ans: "단2↓ + 단2↓" },
+            { lyric: "솔-파-미", ans: "장2↓ + 단2↓" },
+            { lyric: "도-시-라", ans: "단2↓ + 장2↓" },
+            { lyric: "미-레-도", ans: "장2↓ + 장2↓" }
         ];
 
-        // 연습 3용 패턴 데이터 (가사 + 음정 관계)
         const patternM6 = {
             1: { lyric: "미-도-시", ans: "단6↑ + 단2↓" },
             2: { lyric: "시-솔-파", ans: "단6↑ + 장2↓" },
             3: { lyric: "미-도-라", ans: "단6↑ + 단3↓" },
             4: { lyric: "미-도-솔#", ans: "단6↑ + 장3↓" },
             5: { lyric: "미-도-솔", ans: "단6↑ + 완4↓" },
-            6: { lyric: "라-파-시", ans: "단6↑ + 증4/감5↓" },
+            6: { lyric: "라-파-시", ans: "단6↑ + 증4↓" },
             7: { lyric: "시-솔-도", ans: "단6↑ + 완5↓" }
         };
 
@@ -209,11 +208,18 @@
             const n1Idx = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6][n1Midi % 12];
 
             if (type === 1 || type === 2) { 
-                const p = pattern2D[Math.floor(Math.random() * pattern2D.length)];
-                n2Midi = n1Midi + p.intervals[0];
-                n3Midi = n2Midi + p.intervals[1];
-                const n2Idx = (n1Idx + (p.intervals[0] > 0 ? 1 : -1) + 7) % 7;
-                const n3Idx = (n2Idx + (p.intervals[1] > 0 ? 1 : -1) + 7) % 7;
+                const pIdx = Math.floor(Math.random() * pattern2D.length);
+                const p = pattern2D[pIdx];
+                // 인터벌 직접 계산
+                const intervals = [
+                    [1, 1], [1, 2], [2, 1], [2, 2],
+                    [-1, -1], [-2, -1], [-1, -2], [-2, -2]
+                ][pIdx];
+
+                n2Midi = n1Midi + intervals[0];
+                n3Midi = n2Midi + intervals[1];
+                const n2Idx = (n1Idx + (intervals[0] > 0 ? 1 : -1) + 7) % 7;
+                const n3Idx = (n2Idx + (intervals[1] > 0 ? 1 : -1) + 7) % 7;
                 matchedLyric = p.lyric;
                 currentAns = p.ans;
                 return [getSimplestNoteInfo(n1Midi, n1Idx), getSimplestNoteInfo(n2Midi, n2Idx), getSimplestNoteInfo(n3Midi, n3Idx)];
@@ -237,7 +243,7 @@
             area.innerHTML = "";
             if (type === 1) {
                 area.style.display = 'grid';
-                guide.innerText = "1.도디레 2.미파솔 3.라시도 4.도레미\n5.도시세 6.솔파미 7.도시라 8.미레도";
+                guide.innerText = "1.도디레(단2↑+단2↑) 2.미파솔(단2↑+장2↑)\n3.라시도(장2↑+단2↑) 4.도레미(장2↑+장2↑)\n5.도시세(단2↓+단2↓) 6.솔파미(장2↓+단2↓)\n7.도시라(단2↓+장2↓) 8.미레도(장2↓+장2↓)";
                 pattern2D.forEach((p, i) => {
                     const btn = document.createElement('button');
                     btn.className = "opt-btn";
