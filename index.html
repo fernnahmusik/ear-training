@@ -62,7 +62,7 @@
         </div>
 
         <div id="lyric-guide">
-            <div class="guide-title">💡 음정별 가사 참고</div>
+            <div class="guide-title">💡 음정별 가사</div>
             <div class="guide-list">
                 1. 미-도-시 (단6↑ 단2↓) &nbsp; 2. 시-솔-파 (단6↑ 장2↓)<br>
                 3. 미-도-라 (단6↑ 단3↓) &nbsp; 4. 미-도-솔# (단6↑ 장3↓)<br>
@@ -105,51 +105,23 @@
         const intervalNames = { 1:"단2", 2:"장2", 3:"단3", 4:"장3", 5:"완4", 6:"증4/감5", 7:"완5", 8:"단6", 9:"장6", 10:"단7", 11:"장7" };
         const baseScales = [{ n: 'c', m: 0 }, { n: 'd', m: 2 }, { n: 'e', m: 4 }, { n: 'f', m: 5 }, { n: 'g', m: 7 }, { n: 'a', m: 9 }, { n: 'b', m: 11 }];
 
-        function calculateAccidental(midi, baseIdx, octave) {
-            // MIDI 값에서 해당 옥타브의 순수 도(C) 값을 뺍니다.
-            const baseMidiValue = baseScales[baseIdx].m;
-            const targetMidiWithOctave = baseMidiValue + (octave + 1) * 12;
-            const diff = midi - targetMidiWithOctave;
-            
-            if (diff === 0) return "";
-            if (diff === 1) return "#";
-            if (diff === 2) return "##";
-            if (diff === -1) return "b";
-            if (diff === -2) return "bb";
-            return "";
-        }
+        // 연습 1용 지정 데이터
+        const quiz1Items = [
+            { name: "미-도-시", notes: [{k:'e',o:4,a:''}, {k:'c',o:5,a:''}, {k:'b',o:4,a:''}], up:"단6", down:"단2" },
+            { name: "시-솔-파", notes: [{k:'b',o:4,a:''}, {k:'g',o:5,a:''}, {k:'f',o:5,a:''}], up:"단6", down:"장2" },
+            { name: "미-도-라", notes: [{k:'e',o:4,a:''}, {k:'c',o:5,a:''}, {k:'a',o:4,a:''}], up:"단6", down:"단3" },
+            { name: "미-도-솔#", notes: [{k:'e',o:4,a:''}, {k:'c',o:5,a:''}, {k:'g',o:4,a:'#'}], up:"단6", down:"장3" },
+            { name: "미-도-솔", notes: [{k:'e',o:4,a:''}, {k:'c',o:5,a:''}, {k:'g',o:4,a:''}], up:"단6", down:"완4" },
+            { name: "라-파-시", notes: [{k:'a',o:4,a:''}, {k:'f',o:5,a:''}, {k:'b',o:4,a:''}], up:"단6", down:"증4" },
+            { name: "시-솔-도", notes: [{k:'b',o:4,a:''}, {k:'g',o:5,a:''}, {k:'c',o:5,a:''}], up:"단6", down:"완5" }
+        ];
 
-        function getNoteData(upInt, downInt) {
-            const rMidi = 55 + Math.floor(Math.random() * 12); // G3~G4 시작
-            const preferredNames = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6]; 
-            const rBaseIdx = preferredNames[rMidi % 12];
-            const rOctave = Math.floor(rMidi / 12) - 1;
-            const rAcc = calculateAccidental(rMidi, rBaseIdx, rOctave);
-
-            const upDeg = (upInt >= 10) ? 6 : 5;
-            const upBaseIdx = (rBaseIdx + upDeg) % 7;
-            const upMidi = rMidi + upInt;
-            const upOctave = Math.floor(upMidi / 12) - 1;
-            const upAcc = calculateAccidental(upMidi, upBaseIdx, upOctave);
-
-            let downDeg;
-            // 증4도(6)는 감5도로 취급해도 무방하므로 유연하게 대처
-            if (downInt === 6) downDeg = 4; 
-            else {
-                const downDegMap = { 1:1, 2:1, 3:2, 4:2, 5:3, 7:4, 8:5, 9:5 };
-                downDeg = downDegMap[downInt] || 1;
-            }
-
-            const downBaseIdx = (upBaseIdx - downDeg + 7) % 7;
-            const downMidi = upMidi - downInt;
-            const downOctave = Math.floor(downMidi / 12) - 1;
-            const downAcc = calculateAccidental(downMidi, downBaseIdx, downOctave);
-
-            return [
-                { midi: rMidi, key: baseScales[rBaseIdx].n, acc: rAcc, oct: rOctave },
-                { midi: upMidi, key: baseScales[upBaseIdx].n, acc: upAcc, oct: upOctave },
-                { midi: downMidi, key: baseScales[downBaseIdx].n, acc: downAcc, oct: downOctave }
-            ];
+        function midiFromNote(note) {
+            const base = { 'c':0, 'd':2, 'e':4, 'f':5, 'g':7, 'a':9, 'b':11 };
+            let m = base[note.k] + (note.o + 1) * 12;
+            if (note.a === '#') m += 1;
+            if (note.a === 'b') m -= 1;
+            return m;
         }
 
         async function playQuiz(type) {
@@ -161,36 +133,22 @@
             const guide = document.getElementById('lyric-guide');
             guide.style.display = (type === 1) ? 'block' : 'none';
 
-            document.getElementById('quiz-status').innerText = `🎶 연습 ${type} 연주 중...`;
-            
-            let upInt, downInt, quizTitle;
             if (type === 1) {
-                upInt = 8; 
-                downInt = 1 + Math.floor(Math.random() * 7); 
-                quizTitle = "[연습 1]";
+                const item = quiz1Items[Math.floor(Math.random() * quiz1Items.length)];
+                visualNotes = item.notes.map(n => ({ midi: midiFromNote(n), key: n.k, acc: n.a, oct: n.o }));
+                currentAns = `[연습 1] ${item.up} 상행 → ${item.down} 하행`;
+                matchedLyric = item.name;
             } else {
-                upInt = Math.random() > 0.5 ? 10 : 11;
-                downInt = Math.random() > 0.5 ? 8 : 9;
-                quizTitle = "[연습 2]";
-            }
-            
-            visualNotes = getNoteData(upInt, downInt);
-            currentAns = `${quizTitle} ${intervalNames[upInt]} 상행 → ${intervalNames[downInt]} 하행`;
-            
-            matchedLyric = "";
-            if (upInt === 8) {
-                const lyrics = { 1: "미-도-시", 2: "시-솔-파", 3: "미-도-라", 4: "미-도-솔#", 5: "미-도-솔", 6: "라-파-시", 7: "시-솔-도" };
-                if (lyrics[downInt]) matchedLyric = lyrics[downInt];
+                // 연습 2: 7도 상행 무작위
+                const upInt = Math.random() > 0.5 ? 10 : 11;
+                const downInt = Math.random() > 0.5 ? 8 : 9;
+                visualNotes = getRandomNoteData(upInt, downInt);
+                currentAns = `[연습 2] ${intervalNames[upInt]} 상행 → ${intervalNames[downInt]} 하행`;
+                matchedLyric = "";
             }
 
             executeSound();
             document.getElementById('replay-btn').disabled = false;
-        }
-
-        function replaySound() {
-            if (visualNotes.length === 0) return;
-            document.getElementById('quiz-status').innerText = `🎶 다시 들려드려요...`;
-            executeSound();
         }
 
         function executeSound() {
@@ -199,9 +157,41 @@
             visualNotes.forEach((n, i) => {
                 sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), secondsPerBeat, now + i * secondsPerBeat);
             });
-            setTimeout(() => { 
-                document.getElementById('quiz-status').innerText = '방금 들은 음정은?'; 
-            }, (secondsPerBeat * 3) * 1000);
+            setTimeout(() => { document.getElementById('quiz-status').innerText = '방금 들은 음정은?'; }, (secondsPerBeat * 3) * 1000);
+        }
+
+        function replaySound() {
+            if (visualNotes.length === 0) return;
+            executeSound();
+        }
+
+        function getRandomNoteData(upInt, downInt) {
+            const rMidi = 55 + Math.floor(Math.random() * 12);
+            const preferredNames = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6]; 
+            const rBaseIdx = preferredNames[rMidi % 12];
+            const rOctave = Math.floor(rMidi / 12) - 1;
+            
+            const upDeg = (upInt >= 10) ? 6 : 5;
+            const upBaseIdx = (rBaseIdx + upDeg) % 7;
+            const upMidi = rMidi + upInt;
+            const upOctave = Math.floor(upMidi / 12) - 1;
+
+            const downDeg = (downInt === 6) ? 4 : (downInt <= 7 ? 4 : 5);
+            const downBaseIdx = (upBaseIdx - downDeg + 7) % 7;
+            const downMidi = upMidi - downInt;
+            const downOctave = Math.floor(downMidi / 12) - 1;
+
+            const calcAcc = (m, bi, ot) => {
+                const target = baseScales[bi].m + (ot + 1) * 12;
+                const d = m - target;
+                return d === 1 ? "#" : (d === -1 ? "b" : "");
+            };
+
+            return [
+                { midi: rMidi, key: baseScales[rBaseIdx].n, acc: calcAcc(rMidi, rBaseIdx, rOctave), oct: rOctave },
+                { midi: upMidi, key: baseScales[upBaseIdx].n, acc: calcAcc(upMidi, upBaseIdx, upOctave), oct: upOctave },
+                { midi: downMidi, key: baseScales[downBaseIdx].n, acc: calcAcc(downMidi, downBaseIdx, downOctave), oct: downOctave }
+            ];
         }
 
         function drawScore() {
@@ -213,13 +203,11 @@
             const context = renderer.getContext();
             const stave = new Stave(10, 80, 260); 
             stave.addClef("treble").setContext(context).draw();
-
             const staveNotes = visualNotes.map(n => {
                 const note = new StaveNote({ clef: "treble", keys: [`${n.key}/${n.oct}`], duration: "q" });
                 if (n.acc) note.addModifier(new Accidental(n.acc));
                 return note;
             });
-
             const voice = new Voice({ num_beats: 3, beat_value: 4 });
             voice.addTickables(staveNotes);
             new Formatter().joinVoices([voice]).format([voice], 200);
@@ -228,15 +216,11 @@
 
         function showAns() {
             if (!currentAns) return;
-            const aText = document.getElementById('answer-text');
-            const lMatch = document.getElementById('lyric-match');
-            aText.innerText = currentAns;
-            aText.style.display = 'block';
+            document.getElementById('answer-text').innerText = currentAns;
+            document.getElementById('answer-text').style.display = 'block';
             if (matchedLyric) {
-                lMatch.innerText = `가사: ${matchedLyric}`;
-                lMatch.style.display = 'block';
-            } else {
-                lMatch.style.display = 'none';
+                document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`;
+                document.getElementById('lyric-match').style.display = 'block';
             }
             drawScore();
         }
