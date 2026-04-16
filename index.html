@@ -108,18 +108,14 @@
             let octave = Math.floor(midi / 12) - 1;
             let chroma = midi % 12;
             if (chroma < 0) chroma += 12;
-
             for (let i = 0; i < baseScales.length; i++) {
                 if (baseScales[i].m === chroma) return { midi, key: baseScales[i].n, acc: "", oct: octave };
             }
-
             const targetNatural = baseScales[preferredBaseIdx].m;
             let diff = chroma - targetNatural;
             if (diff > 6) diff -= 12;
             if (diff < -6) diff += 12;
-
             if (Math.abs(diff) === 1) return { midi, key: baseScales[preferredBaseIdx].n, acc: (diff === 1 ? "#" : "b"), oct: octave };
-
             for (let i = 0; i < baseScales.length; i++) {
                 let newDiff = chroma - baseScales[i].m;
                 if (newDiff > 6) newDiff -= 12;
@@ -129,11 +125,17 @@
             return { midi, key: baseScales[preferredBaseIdx].n, acc: (diff > 0 ? "#" : "b"), oct: octave };
         }
 
-        function generateProblem(upInt, downInt) {
+        function generateProblem(upInt, downInt, mode) {
             let rMidi;
             let attempts = 0;
+            
+            // 연습 2(시창)의 경우 단6도 상행(8) 후 최고음이 F5(77)를 넘지 않아야 하므로 
+            // 시작음 root는 최대 77 - 8 = 69 (A4) 까지만 가능
+            const minMidi = 55; // G3
+            const maxRoot = (mode === 2) ? 69 : 72; 
+
             do {
-                rMidi = 55 + Math.floor(Math.random() * 19);
+                rMidi = minMidi + Math.floor(Math.random() * (maxRoot - minMidi + 1));
                 attempts++;
             } while (rootHistory.includes(rMidi) && attempts < 20);
 
@@ -166,19 +168,17 @@
             isSightReadingMode = (type === 2);
             
             let downInt = 1 + Math.floor(Math.random() * 7);
-            visualNotes = generateProblem(8, downInt);
+            visualNotes = generateProblem(8, downInt, type);
             currentAns = `[연습 ${type}] 단6도 상행 → ${intervalNames[downInt]} 하행`;
             const lyrics = { 1: "미-도-시", 2: "시-솔-파", 3: "미-도-라", 4: "미-도-솔#", 5: "미-도-솔", 6: "라-파-시", 7: "시-솔-도" };
             matchedLyric = lyrics[downInt] || "";
 
             if (isSightReadingMode) {
-                // 시창 모드: 첫 음만 연주하고 가사 제시
                 document.getElementById('quiz-status').innerText = "가사를 보고 시창하세요! (첫 음 제시)";
                 document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`;
                 document.getElementById('lyric-match').style.display = 'block';
                 sampler.triggerAttackRelease(Tone.Frequency(visualNotes[0].midi, "midi"), 1.0);
             } else {
-                // 청음 모드: 전체 음 연주
                 executeSound();
             }
             document.getElementById('replay-btn').disabled = false;
@@ -230,10 +230,7 @@
             document.getElementById('answer-text').style.display = 'block';
             document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`;
             document.getElementById('lyric-match').style.display = 'block';
-            
-            if (isSightReadingMode) {
-                executeSound(); // 시창 모드에서 정답 확인 시 소리 들려줌
-            }
+            if (isSightReadingMode) executeSound();
             drawScore();
         }
     </script>
