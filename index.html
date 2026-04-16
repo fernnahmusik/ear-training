@@ -31,8 +31,8 @@
         button { width: 100%; padding: 16px; border: none; border-radius: 15px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
         .btn-main { background: var(--primary); color: white; }
         .btn-secondary { background: var(--secondary); color: white; }
-        .btn-play { background: #27AE60; color: white; } /* 문제 재생: 초록색 */
-        .btn-replay { background: #95A5A6; color: white; } /* 다시 듣기: 회색 */
+        .btn-play { background: #27AE60; color: white; } 
+        .btn-replay { background: #95A5A6; color: white; } 
         .btn-sub { background: white; color: var(--primary); border: 2px solid var(--primary); }
         .btn-back { background: transparent; color: #95A5A6; font-size: 13px; padding: 8px; margin-top: 5px; border: none; }
 
@@ -79,7 +79,7 @@
             <div class="btn-group">
                 <button id="play-btn" class="btn-play" onclick="handlePlay(false)">문제 재생</button>
                 <button id="replay-btn" class="btn-replay" onclick="handlePlay(true)" disabled>다시 듣기</button>
-                <button class="btn-sub" onclick="showAns()">정답 및 악보 확인</button>
+                <button id="ans-btn" class="btn-sub" onclick="showAns()">정답 및 악보 확인</button>
                 <button class="btn-back" onclick="goBack()">🏠 처음으로 돌아가기</button>
             </div>
         </div>
@@ -170,7 +170,6 @@
             document.getElementById('lyric-match').style.display = 'none';
             document.getElementById('score-container').style.display = 'none';
             
-            // 버튼 초기화
             document.getElementById('play-btn').disabled = false;
             document.getElementById('replay-btn').disabled = true;
             
@@ -199,18 +198,20 @@
 
         function showAns() {
             if (!visualNotes.length) return;
-            document.getElementById('answer-text').innerText = currentAns;
-            document.getElementById('answer-text').style.display = 'block';
-            document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`;
-            document.getElementById('lyric-match').style.display = 'block';
             
-            // 시창 모드이거나 재생을 한 번도 안 했으면 전체 소리 들려줌
+            // 시창 모드이거나 재생 전이면 전체 소리 재생
             if (isSightReadingMode || document.getElementById('play-btn').disabled === false) {
                 const bpmSec = 60 / currentBpm;
                 visualNotes.forEach((n, i) => {
                     sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, Tone.now() + i * bpmSec);
                 });
             }
+
+            document.getElementById('quiz-status').innerText = "정답 확인";
+            document.getElementById('answer-text').innerText = currentAns;
+            document.getElementById('answer-text').style.display = 'block';
+            document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`;
+            document.getElementById('lyric-match').style.display = 'block';
             
             drawScore();
         }
