@@ -31,7 +31,8 @@
         .display-box { background: #F2F4F6; min-height: 80px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 8px; padding: 5px 10px; flex-shrink: 0; }
         #quiz-status { font-size: 13px; color: #7F8C8D; margin-bottom: 4px; font-weight: 800; }
         
-        #quiz-guide-text { font-size: 13.5px; color: #2C3E50; line-height: 1.5; margin-bottom: 10px; font-weight: 700; white-space: pre-wrap; background: rgba(255,255,255,0.8); padding: 8px; border-radius: 12px; width: 95%; box-shadow: inset 0 0 5px rgba(0,0,0,0.05); }
+        /* [수정] 가이드 텍스트 줄바꿈 및 가독성 최적화 */
+        #quiz-guide-text { font-size: 13px; color: #2C3E50; line-height: 1.6; margin-bottom: 10px; font-weight: 700; white-space: pre-wrap; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 12px; width: 95%; box-shadow: inset 0 0 5px rgba(0,0,0,0.05); text-align: left; }
         
         #answer-text { font-size: 13px; color: var(--primary); font-weight: bold; margin-bottom: 2px; display: none; }
         #lyric-match { font-size: 14px; color: #E74C3C; font-weight: 800; margin-bottom: 4px; display: none; }
@@ -161,23 +162,13 @@
         ];
 
         const patternM6Up = {
-            1: { lyric: "미-도-시", ans: "단6↑+단2↓" }, 
-            2: { lyric: "시-솔-파", ans: "단6↑+장2↓" }, 
-            3: { lyric: "미-도-라", ans: "단6↑+단3↓" }, 
-            4: { lyric: "미-도-솔#", ans: "단6↑+장3↓" },
-            5: { lyric: "미-도-솔", ans: "단6↑+완4↓" }, 
-            6: { lyric: "라-파-시", ans: "단6↑+증4/감5↓" }, 
-            7: { lyric: "시-솔-도", ans: "단6↑+완5↓" }
+            1: { lyric: "미-도-시", ans: "단6↑+단2↓" }, 2: { lyric: "시-솔-파", ans: "단6↑+장2↓" }, 3: { lyric: "미-도-라", ans: "단6↑+단3↓" }, 4: { lyric: "미-도-솔#", ans: "단6↑+장3↓" },
+            5: { lyric: "미-도-솔", ans: "단6↑+완4↓" }, 6: { lyric: "라-파-시", ans: "단6↑+증4/감5↓" }, 7: { lyric: "시-솔-도", ans: "단6↑+완5↓" }
         };
 
         const patternM6Down = {
-            1: { lyric: "솔-시-도", ans: "단6↓+단2↑" }, 
-            2: { lyric: "파-라-시", ans: "단6↓+장2↑" }, 
-            3: { lyric: "도-미-솔", ans: "단6↓+단3↑" }, 
-            4: { lyric: "도-미-솔#", ans: "단6↓+장3↑" },
-            5: { lyric: "도-미-라", ans: "단6↓+완4↑" }, 
-            6: { lyric: "솔-시-파", ans: "단6↓+증4/감5↑" }, 
-            7: { lyric: "도-미-시", ans: "단6↓+완5↑" }
+            1: { lyric: "솔-시-도", ans: "단6↓+단2↑" }, 2: { lyric: "파-라-시", ans: "단6↓+장2↑" }, 3: { lyric: "도-미-솔", ans: "단6↓+단3↑" }, 4: { lyric: "도-미-솔#", ans: "단6↓+장3↑" },
+            5: { lyric: "도-미-라", ans: "단6↓+완4↑" }, 6: { lyric: "솔-시-파", ans: "단6↓+증4/감5↑" }, 7: { lyric: "도-미-시", ans: "단6↓+완5↑" }
         };
 
         function selectMajor(major) { currentIntervalMajor = major; if (major === 6) { document.getElementById('step1-page').classList.remove('active'); document.getElementById('step1-5-page').classList.add('active'); } else { showStep2(); } }
@@ -222,14 +213,19 @@
         function updateOptionsArea() {
             const area = document.getElementById('options-area'); const guide = document.getElementById('quiz-guide-text'); area.innerHTML = "";
             if (isSightReadingMode) { area.style.display = 'none'; guide.innerText = ""; return; }
+            
+            // [수정] 줄바꿈 가시성 대폭 개선
             if (currentIntervalMajor === 2) {
-                area.style.display = 'grid'; guide.innerText = "1.도디레(단2↑+단2↑) 2.미파솔(단2↑+장2↑) 3.라시도(장2↑+단2↑) 4.도레미(장2↑+장2↑)\n5.도시세(단2↓+단2↓) 6.솔파미(장2↓+단2↓) 7.도시라(단2↓+장2↓) 8.미레도(장2↓+장2↓)";
+                area.style.display = 'grid'; 
+                guide.innerText = "1. 도디레 (단2↑+단2↑)\n2. 미파솔 (단2↑+장2↑)\n3. 라시도 (장2↑+단2↑)\n4. 도레미 (장2↑+장2↑)\n\n5. 도시세 (단2↓+단2↓)\n6. 솔파미 (장2↓+단2↓)\n7. 도시라 (단2↓+장2↓)\n8. 미레도 (장2↓+장2↓)";
                 pattern2D.forEach((p, i) => { const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${i+1}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
             } else if (sub6Direction === 'up') {
-                area.style.display = 'grid'; guide.innerText = "1.미도시(단6↑+단2↓) 2.시솔파(단6↑+장2↓) 3.미도라(단6↑+단3↓)\n4.미도솔#(단6↑+장3↓) 5.미도솔(단6↑+완4↓) 6.라파시(단6↑+증4/감5↓) 7.시솔도(단6↑+완5↓)";
+                area.style.display = 'grid'; 
+                guide.innerText = "1. 미도시 (단6↑+단2↓)\n2. 시솔파 (단6↑+장2↓)\n3. 미도라 (단6↑+단3↓)\n4. 미도솔# (단6↑+장3↓)\n5. 미도솔 (단6↑+완4↓)\n6. 라파시 (단6↑+증4↓)\n7. 시솔도 (단6↑+완5↓)";
                 Object.keys(patternM6Up).forEach((key) => { const p = patternM6Up[key]; const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${key}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
             } else {
-                area.style.display = 'grid'; guide.innerText = "1.솔시도(단6↓+단2↑) 2.파라시(단6↓+장2↑) 3.도미솔(단6↓+단3↑)\n4.도미솔#(단6↓+장3↑) 5.도미라(단6↓+완4↑) 6.솔시파(단6↓+증4/감5↑) 7.도미시(단6↓+완5↑)";
+                area.style.display = 'grid'; 
+                guide.innerText = "1. 솔시도 (단6↓+단2↑)\n2. 파라시 (단6↓+장2↑)\n3. 도미솔 (단6↓+단3↑)\n4. 도미솔# (단6↓+장3↑)\n5. 도미라 (단6↓+완4↑)\n6. 솔시파 (단6↓+증4↑)\n7. 도미시 (단6↓+완5↑)";
                 Object.keys(patternM6Down).forEach((key) => { const p = patternM6Down[key]; const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${key}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
             }
         }
@@ -239,12 +235,14 @@
             document.getElementById('answer-text').style.display = 'none'; 
             document.getElementById('lyric-match').style.display = 'none'; 
             document.getElementById('score-container').style.display = 'none'; 
-            document.getElementById('quiz-guide-text').style.display = 'block'; // 가이드 텍스트 복구
+            document.getElementById('quiz-guide-text').style.display = 'block'; 
             document.getElementById('play-btn').disabled = false; 
             document.getElementById('replay-btn').disabled = true; 
             document.querySelectorAll('.opt-btn').forEach(b => { b.classList.remove('correct', 'wrong'); b.disabled = false; }); 
             const status = document.getElementById('quiz-status');
-            if (isSightReadingMode) { status.innerText = "첫 음을 듣고 노래하세요!"; } else { status.innerText = "방금 들은 가사는?"; }
+            
+            // [수정] "방금 들은 가사는?" 문구 제거 (비워두거나 심플하게 유지)
+            if (isSightReadingMode) { status.innerText = "첫 음을 듣고 노래하세요!"; } else { status.innerText = ""; }
         }
 
         function handlePlay(isReplay) {
@@ -258,19 +256,12 @@
         function showReport() { const rate = ((trialCount - correctCount) / trialCount * 100).toFixed(1); let html = `<p>✅ 시도: ${trialCount}회</p><p>🎯 정답: ${correctCount}회</p><p>⚠️ 오답률: ${rate}%</p>`; if (wrongList.length > 0) { html += `<p style="margin-top:10px; font-weight:bold;">📉 취약 패턴:</p><div style="font-size:12px;">${wrongList.join(', ')}</div>`; } document.getElementById('report-text').innerHTML = html; document.getElementById('report-overlay').style.display = 'flex'; }
         function closeReport() { document.getElementById('report-overlay').style.display = 'none'; }
 
-        // [수정] 정답 확인 시 오선지 밑 가이드 텍스트(리스트)만 숨기고 붉은 가사(lyric-match)는 유지
         function showAns() {
             if (!visualNotes.length) return;
-            document.getElementById('answer-text').innerText = `정답: ${currentAns}`; 
-            document.getElementById('answer-text').style.display = 'block';
-            
-            // 오선지 밑 가사 리스트(가이드 텍스트)만 숨김
+            document.getElementById('answer-text').innerText = `정답: ${currentAns}`; document.getElementById('answer-text').style.display = 'block';
             document.getElementById('quiz-guide-text').style.display = 'none'; 
-            
-            // 붉은색 가사는 시창 모드나 청음 정답 확인 시에도 보이도록 유지
             document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`; 
             document.getElementById('lyric-match').style.display = 'block'; 
-            
             drawScore();
             const bpmSec = 60 / currentBpm; const now = Tone.now();
             visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); });
