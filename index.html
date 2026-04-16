@@ -9,62 +9,78 @@
     <style>
         :root { --primary: #2C3E50; --secondary: #34495E; --bg: #F9F9F9; }
         body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .app-card { background: white; width: 95%; max-width: 420px; padding: 25px 15px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid var(--primary); margin: 20px; }
-        .display-box { background: #F2F4F6; min-height: 190px; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 20px; padding: 15px; overflow: hidden; }
+        .app-card { background: white; width: 95%; max-width: 420px; padding: 35px 20px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid var(--primary); min-height: 520px; display: flex; flex-direction: column; }
+        
+        .page { display: none; flex-direction: column; flex-grow: 1; animation: fadeIn 0.3s ease-out; }
+        .page.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        h2 { margin-top: 0; color: var(--primary); margin-bottom: 25px; }
+        .display-box { background: #F2F4F6; min-height: 200px; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 20px; padding: 15px; }
+        
         #quiz-status { font-size: 14px; color: #7F8C8D; font-weight: 500; margin-bottom: 10px; }
-        #answer-text { font-size: 16px; color: var(--primary); font-weight: bold; margin-bottom: 5px; display: none; white-space: pre-line; }
+        #answer-text { font-size: 16px; color: var(--primary); font-weight: bold; margin-bottom: 5px; display: none; }
         #lyric-match { font-size: 18px; color: #E74C3C; font-weight: 800; margin-bottom: 10px; display: none; }
         #score-container { width: 100%; display: none; justify-content: center; }
-        
+
         .tempo-container { background: #fff; padding: 15px; border-radius: 20px; margin-bottom: 20px; border: 1px solid #eee; }
-        .tempo-label { font-size: 14px; color: var(--secondary); font-weight: 600; margin-bottom: 10px; display: flex; justify-content: space-between; }
+        .tempo-label { font-size: 13px; color: var(--secondary); font-weight: 600; margin-bottom: 8px; display: flex; justify-content: space-between; }
         #tempo-slider { width: 100%; cursor: pointer; accent-color: var(--primary); }
 
-        .btn-group { display: flex; flex-direction: column; gap: 8px; }
+        .btn-group { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
         button { width: 100%; padding: 16px; border: none; border-radius: 15px; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
         .btn-main { background: var(--primary); color: white; }
-        .btn-replay { background: #95A5A6; color: white; display: none; } /* 초기에는 숨김 */
+        .btn-secondary { background: var(--secondary); color: white; }
+        .btn-play { background: #27AE60; color: white; } /* 문제 재생: 초록색 */
+        .btn-replay { background: #95A5A6; color: white; } /* 다시 듣기: 회색 */
         .btn-sub { background: white; color: var(--primary); border: 2px solid var(--primary); }
-        #lyric-guide { margin-top: 25px; padding: 15px; background: #fff; border: 1px dashed #BDC3C7; border-radius: 15px; text-align: left; display: none; }
-        .guide-title { font-size: 13px; font-weight: bold; color: var(--primary); margin-bottom: 8px; }
-        .guide-list { font-size: 12px; color: #7F8C8D; line-height: 1.6; }
-        button:disabled { background: #BDC3C7; cursor: not-allowed; }
+        .btn-back { background: transparent; color: #95A5A6; font-size: 13px; padding: 8px; margin-top: 5px; border: none; }
+
+        #lyric-guide { margin-top: 20px; padding: 15px; background: #fff; border: 1px dashed #BDC3C7; border-radius: 15px; text-align: left; }
+        .guide-title { font-size: 13px; font-weight: bold; color: var(--primary); margin-bottom: 5px; }
+        .guide-list { font-size: 12px; color: #7F8C8D; line-height: 1.5; }
+        
+        button:disabled { background: #BDC3C7; cursor: not-allowed; opacity: 0.6; }
         button:active { transform: scale(0.98); }
     </style>
 </head>
 <body>
     <div class="app-card">
-        <h2 style="margin-top:0; color: var(--primary); margin-bottom:20px;">펜나뮤직 이어핏 시창/청음</h2>
-        
-        <div class="display-box">
-            <div id="quiz-status">피아노 소리를 로딩 중입니다...</div>
-            <div id="answer-text">정답 표시</div>
-            <div id="lyric-match">가사 매칭</div>
-            <div id="score-container"></div>
-        </div>
-
-        <div class="tempo-container">
-            <div class="tempo-label">
-                <span>재생 속도 (Tempo)</span>
-                <span id="tempo-val">BPM 80</span>
+        <div id="main-page" class="page active">
+            <h2>펜나뮤직 이어핏</h2>
+            <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
+                <p style="color: #7F8C8D; font-size: 14px; margin-bottom: 30px;">연습 모드를 선택하세요.</p>
+                <div class="btn-group">
+                    <button id="p1-load-btn" class="btn-main" onclick="startQuiz(1)" disabled>연습 1: 단6도 청음 훈련</button>
+                    <button id="p2-load-btn" class="btn-secondary" onclick="startQuiz(2)" disabled>연습 2: 단6도 시창 훈련</button>
+                </div>
             </div>
-            <input type="range" id="tempo-slider" min="50" max="180" value="80" oninput="updateTempo(this.value)">
+            <div id="lyric-guide">
+                <div class="guide-title">💡 음정별 가사 참고</div>
+                <div class="guide-list">미-도-시 / 시-솔-파 / 미-도-라 / 미-도-솔#<br>미-도-솔 / 라-파-시 / 시-솔-도</div>
+            </div>
         </div>
 
-        <div class="btn-group">
-            <button id="p1-btn" class="btn-main" onclick="prepareQuiz(1)" disabled>연습 1: 단6도 청음 훈련</button>
-            <button id="p2-btn" class="btn-main" onclick="prepareQuiz(2)" disabled style="background: var(--secondary);">연습 2: 단6도 시창 훈련</button>
-            <button id="replay-btn" class="btn-replay" onclick="replaySound()">문제 재생</button>
-            <button class="btn-sub" onclick="showAns()">정답 및 악보 확인</button>
-        </div>
+        <div id="quiz-page" class="page">
+            <h2 id="quiz-title" style="font-size: 1.2rem;">연습 진행 중</h2>
+            
+            <div class="display-box">
+                <div id="quiz-status">문제가 준비되었습니다.</div>
+                <div id="answer-text">정답 표시</div>
+                <div id="lyric-match">가사 매칭</div>
+                <div id="score-container"></div>
+            </div>
 
-        <div id="lyric-guide">
-            <div class="guide-title">💡 음정별 가사</div>
-            <div class="guide-list">
-                1. 미-도-시 (단6↑ 단2↓) &nbsp; 2. 시-솔-파 (단6↑ 장2↓)<br>
-                3. 미-도-라 (단6↑ 단3↓) &nbsp; 4. 미-도-솔# (단6↑ 장3↓)<br>
-                5. 미-도-솔 (단6↑ 완4↓) &nbsp; 6. 라-파-시 (단6↑ 증4↓)<br>
-                7. 시-솔-도 (단6↑ 완5↓)
+            <div class="tempo-container">
+                <div class="tempo-label"><span>재생 속도 (Tempo)</span><span id="tempo-val">BPM 80</span></div>
+                <input type="range" id="tempo-slider" min="50" max="180" value="80" oninput="updateTempo(this.value)">
+            </div>
+
+            <div class="btn-group">
+                <button id="play-btn" class="btn-play" onclick="handlePlay(false)">문제 재생</button>
+                <button id="replay-btn" class="btn-replay" onclick="handlePlay(true)" disabled>다시 듣기</button>
+                <button class="btn-sub" onclick="showAns()">정답 및 악보 확인</button>
+                <button class="btn-back" onclick="goBack()">🏠 처음으로 돌아가기</button>
             </div>
         </div>
     </div>
@@ -83,20 +99,17 @@
             release: 0.5,
             baseUrl: "https://tonejs.github.io/audio/salamander/",
             onload: () => {
-                document.getElementById('quiz-status').innerText = "준비 완료!";
-                document.getElementById('p1-btn').disabled = false;
-                document.getElementById('p2-btn').disabled = false;
+                document.getElementById('p1-load-btn').disabled = false;
+                document.getElementById('p2-load-btn').disabled = false;
+                document.querySelector('#main-page p').innerText = "준비 완료! 모드를 선택하세요.";
             }
         }).toDestination();
 
         let currentBpm = 80;
-        let currentAns = "";
-        let matchedLyric = "";
         let visualNotes = [];
-        let p1History = [];
-        let p2History = [];
+        let p1History = [], p2History = [];
+        let currentAns = "", matchedLyric = "";
         let isSightReadingMode = false;
-        let hasPlayedOnce = false;
 
         function updateTempo(val) {
             currentBpm = val;
@@ -104,7 +117,6 @@
         }
 
         const baseScales = [{ n: 'c', m: 0 }, { n: 'd', m: 2 }, { n: 'e', m: 4 }, { n: 'f', m: 5 }, { n: 'g', m: 7 }, { n: 'a', m: 9 }, { n: 'b', m: 11 }];
-        const intervalNames = { 1:"단2", 2:"장2", 3:"단3", 4:"장3", 5:"완4", 6:"증4/감5", 7:"완5", 8:"단6", 9:"장6", 10:"단7", 11:"장7" };
 
         function getSimplestNoteInfo(midi, preferredBaseIdx) {
             let octave = Math.floor(midi / 12) - 1;
@@ -115,134 +127,116 @@
             }
             const targetNatural = baseScales[preferredBaseIdx].m;
             let diff = chroma - targetNatural;
-            if (diff > 6) diff -= 12;
-            if (diff < -6) diff += 12;
-            if (Math.abs(diff) === 1) return { midi, key: baseScales[preferredBaseIdx].n, acc: (diff === 1 ? "#" : "b"), oct: octave };
+            if (diff > 6) diff -= 12; else if (diff < -6) diff += 12;
             for (let i = 0; i < baseScales.length; i++) {
-                let newDiff = chroma - baseScales[i].m;
-                if (newDiff > 6) newDiff -= 12;
-                if (newDiff < -6) newDiff += 12;
-                if (Math.abs(newDiff) === 1) return { midi, key: baseScales[i].n, acc: (newDiff === 1 ? "#" : "b"), oct: octave };
+                let nDiff = chroma - baseScales[i].m;
+                if (nDiff > 6) nDiff -= 12; else if (nDiff < -6) nDiff += 12;
+                if (Math.abs(nDiff) === 1) return { midi, key: baseScales[i].n, acc: (nDiff === 1 ? "#" : "b"), oct: octave };
             }
             return { midi, key: baseScales[preferredBaseIdx].n, acc: (diff > 0 ? "#" : "b"), oct: octave };
         }
 
-        function generateProblem(upInt, downInt, mode) {
+        function generateProblem(type) {
             let rMidi;
-            let attempts = 0;
-            const history = (mode === 1) ? p1History : p2History;
+            const history = (type === 1) ? p1History : p2History;
             const minMidi = 55;
-            const maxRoot = (mode === 2) ? 69 : 72; 
-            do {
-                rMidi = minMidi + Math.floor(Math.random() * (maxRoot - minMidi + 1));
-                attempts++;
-            } while (history.includes(rMidi) && attempts < 20);
-            history.push(rMidi);
-            if (history.length > 5) history.shift();
-            const preferredNames = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6];
-            const rBaseIdx = preferredNames[rMidi % 12];
-            const upMidi = rMidi + upInt;
-            const upDeg = (upInt >= 10) ? 6 : 5;
-            const upBaseIdx = (rBaseIdx + upDeg) % 7;
+            const maxRoot = (type === 2) ? 69 : 72; 
+            do { rMidi = minMidi + Math.floor(Math.random() * (maxRoot - minMidi + 1)); } while (history.includes(rMidi));
+            history.push(rMidi); if (history.length > 5) history.shift();
+
+            const rBaseIdx = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6][rMidi % 12];
+            const upMidi = rMidi + 8;
+            const upBaseIdx = (rBaseIdx + 5) % 7;
+            const downInt = 1 + Math.floor(Math.random() * 7);
             const downMidi = upMidi - downInt;
-            let downDeg = (downInt === 6) ? 3 : ({ 1:1, 2:1, 3:2, 4:2, 5:3, 7:4, 8:5, 9:5 }[downInt] || 1);
+            const downDeg = (downInt === 6) ? 3 : ({ 1:1, 2:1, 3:2, 4:2, 5:3, 7:4, 8:5, 9:5 }[downInt] || 1);
             const downBaseIdx = (upBaseIdx - downDeg + 7) % 7;
-            return [
-                getSimplestNoteInfo(rMidi, rBaseIdx),
-                getSimplestNoteInfo(upMidi, upBaseIdx),
-                getSimplestNoteInfo(downMidi, downBaseIdx)
-            ];
+
+            const lyrics = { 1: "미-도-시", 2: "시-솔-파", 3: "미-도-라", 4: "미-도-솔#", 5: "미-도-솔", 6: "라-파-시", 7: "시-솔-도" };
+            matchedLyric = lyrics[downInt] || "";
+            currentAns = `단6도 상행 → ${ {1:"단2", 2:"장2", 3:"단3", 4:"장3", 5:"완4", 6:"증4/감5", 7:"완5"}[downInt] } 하행`;
+
+            return [ getSimplestNoteInfo(rMidi, rBaseIdx), getSimplestNoteInfo(upMidi, upBaseIdx), getSimplestNoteInfo(downMidi, downBaseIdx) ];
         }
 
-        // 문제를 생성하고 버튼 상태를 세팅함
-        async function prepareQuiz(type) {
-            if (Tone.context.state !== 'running') await Tone.start();
+        function startQuiz(type) {
+            Tone.start();
+            isSightReadingMode = (type === 2);
+            visualNotes = generateProblem(type);
             
-            // 초기화
+            document.getElementById('quiz-title').innerText = isSightReadingMode ? "연습 2: 시창 훈련" : "연습 1: 청음 훈련";
+            document.getElementById('quiz-status').innerText = "문제가 준비되었습니다.";
             document.getElementById('answer-text').style.display = 'none';
             document.getElementById('lyric-match').style.display = 'none';
             document.getElementById('score-container').style.display = 'none';
-            document.getElementById('lyric-guide').style.display = 'block';
             
-            isSightReadingMode = (type === 2);
-            hasPlayedOnce = false;
-
-            // 문제 생성
-            let downInt = 1 + Math.floor(Math.random() * 7);
-            visualNotes = generateProblem(8, downInt, type);
-            currentAns = `[연습 ${type}] 단6도 상행 → ${intervalNames[downInt]} 하행`;
-            const lyrics = { 1: "미-도-시", 2: "시-솔-파", 3: "미-도-라", 4: "미-도-솔#", 5: "미-도-솔", 6: "라-파-시", 7: "시-솔-도" };
-            matchedLyric = lyrics[downInt] || "";
-
-            // UI 업데이트: 재생 버튼 노출 및 텍스트 변경
-            const replayBtn = document.getElementById('replay-btn');
-            replayBtn.style.display = 'block';
-            replayBtn.innerText = '문제 재생';
+            // 버튼 초기화
+            document.getElementById('play-btn').disabled = false;
+            document.getElementById('replay-btn').disabled = true;
             
-            if (isSightReadingMode) {
-                document.getElementById('quiz-status').innerText = "연습 2가 준비되었습니다. 재생 버튼을 눌러 첫 음을 들으세요.";
-            } else {
-                document.getElementById('quiz-status').innerText = "연습 1이 준비되었습니다. 재생 버튼을 눌러 소리를 들으세요.";
-            }
+            document.getElementById('main-page').classList.remove('active');
+            document.getElementById('quiz-page').classList.add('active');
         }
 
-        function replaySound() {
-            if (!visualNotes.length) return;
-
+        function handlePlay(isReplay) {
             if (isSightReadingMode) {
-                // 시창 모드: 첫 음만 연주
-                document.getElementById('quiz-status').innerText = "가사를 보고 시창하세요! (첫 음 제시)";
+                document.getElementById('quiz-status').innerText = isReplay ? "다시 노래해보세요!" : "가사를 보고 노래하세요!";
                 document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`;
                 document.getElementById('lyric-match').style.display = 'block';
                 sampler.triggerAttackRelease(Tone.Frequency(visualNotes[0].midi, "midi"), 1.0);
             } else {
-                // 청음 모드: 전체 연주
-                executeSound();
+                const bpmSec = 60 / currentBpm;
+                visualNotes.forEach((n, i) => {
+                    sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, Tone.now() + i * bpmSec);
+                });
+                document.getElementById('quiz-status').innerText = "연주 중...";
+                setTimeout(() => { document.getElementById('quiz-status').innerText = "방금 들은 음정은?"; }, (bpmSec * 3) * 1000);
             }
-
-            // 첫 재생 후 버튼 이름 변경
-            hasPlayedOnce = true;
-            document.getElementById('replay-btn').innerText = '다시 듣기';
-        }
-
-        function executeSound() {
-            const secondsPerBeat = 60 / currentBpm;
-            const now = Tone.now();
-            visualNotes.forEach((n, i) => {
-                sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), secondsPerBeat, now + i * secondsPerBeat);
-            });
-            document.getElementById('quiz-status').innerText = "연주 중...";
-            setTimeout(() => { document.getElementById('quiz-status').innerText = "방금 들은 음정은?"; }, (secondsPerBeat * 3) * 1000);
-        }
-
-        function drawScore() {
-            const container = document.getElementById('score-container');
-            container.innerHTML = "";
-            container.style.display = "flex";
-            const renderer = new Renderer(container, Renderer.Backends.SVG);
-            renderer.resize(300, 200);
-            const context = renderer.getContext();
-            const stave = new Stave(10, 80, 260);
-            stave.addClef("treble").setContext(context).draw();
-            const staveNotes = visualNotes.map(n => {
-                const note = new StaveNote({ clef: "treble", keys: [`${n.key}/${n.oct}`], duration: "q" });
-                if (n.acc) note.addModifier(new Accidental(n.acc));
-                return note;
-            });
-            const voice = new Voice({ num_beats: 3, beat_value: 4 });
-            voice.addTickables(staveNotes);
-            new Formatter().joinVoices([voice]).format([voice], 200);
-            voice.draw(context, stave);
+            
+            document.getElementById('play-btn').disabled = true;
+            document.getElementById('replay-btn').disabled = false;
         }
 
         function showAns() {
-            if (!currentAns) return;
+            if (!visualNotes.length) return;
             document.getElementById('answer-text').innerText = currentAns;
             document.getElementById('answer-text').style.display = 'block';
             document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`;
             document.getElementById('lyric-match').style.display = 'block';
-            if (isSightReadingMode || !hasPlayedOnce) executeSound();
+            
+            // 시창 모드이거나 재생을 한 번도 안 했으면 전체 소리 들려줌
+            if (isSightReadingMode || document.getElementById('play-btn').disabled === false) {
+                const bpmSec = 60 / currentBpm;
+                visualNotes.forEach((n, i) => {
+                    sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, Tone.now() + i * bpmSec);
+                });
+            }
+            
             drawScore();
+        }
+
+        function drawScore() {
+            const container = document.getElementById('score-container');
+            container.innerHTML = ""; container.style.display = "flex";
+            const renderer = new Renderer(container, Renderer.Backends.SVG);
+            renderer.resize(300, 180);
+            const ctx = renderer.getContext();
+            const stave = new Stave(10, 60, 260);
+            stave.addClef("treble").setContext(ctx).draw();
+            const notes = visualNotes.map(n => {
+                const sn = new StaveNote({ clef: "treble", keys: [`${n.key}/${n.oct}`], duration: "q" });
+                if (n.acc) sn.addModifier(new Accidental(n.acc));
+                return sn;
+            });
+            const voice = new Voice({ num_beats: 3, beat_value: 4 });
+            voice.addTickables(notes);
+            new Formatter().joinVoices([voice]).format([voice], 200);
+            voice.draw(ctx, stave);
+        }
+
+        function goBack() {
+            document.getElementById('quiz-page').classList.remove('active');
+            document.getElementById('main-page').classList.add('active');
         }
     </script>
 </body>
