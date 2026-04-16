@@ -7,44 +7,29 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
     <style>
-        /* [색상 변수 정의] 로고에서 추출한 파스텔톤 4색 */
         :root { 
-            --penna-pink: #FF9AA2;    /* 분홍 */
-            --penna-yellow: #FFE39F;  /* 노랑 */
-            --penna-green: #B5EAD7;   /* 연두 */
-            --penna-blue: #C7CEEA;    /* 하늘 */
-            
-            --primary: #2C3E50;       /* 기본 텍스트 색상 */
+            --penna-pink: #FF9AA2;    
+            --penna-yellow: #FFE39F;  
+            --penna-green: #B5EAD7;   
+            --penna-blue: #C7CEEA;    
+            --primary: #2C3E50;       
             --secondary: #34495E;
             --bg: #F9F9F9; 
         }
         
         body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; touch-action: manipulation; }
         
-        /* 앱 카드 스타일 - [4색 그라데이션 테두리 설정] */
         .app-card { 
-            background: white; 
-            width: 95%; 
-            max-width: 420px; 
-            padding: 25px 20px; 
-            border-radius: 30px; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.1); 
-            text-align: center; 
-            min-height: 580px; 
-            display: flex; 
-            flex-direction: column; 
-            position: relative; 
-            box-sizing: border-box;
-            
-            /* [그라데이션 테두리 핵심 로직] */
-            border: 6px solid transparent; /* 테두리 공간 확보 */
-            background-image: linear-gradient(#fff, #fff), /* 내부 흰색 배경 */
-                              linear-gradient(to bottom right, var(--penna-pink), var(--penna-yellow), var(--penna-green), var(--penna-blue)); /* 외곽 그라데이션 */
+            background: white; width: 95%; max-width: 420px; padding: 25px 20px; border-radius: 30px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; min-height: 580px; 
+            display: flex; flex-direction: column; position: relative; box-sizing: border-box;
+            border: 6px solid transparent;
+            background-image: linear-gradient(#fff, #fff), 
+                              linear-gradient(to bottom right, var(--penna-pink), var(--penna-yellow), var(--penna-green), var(--penna-blue));
             background-origin: border-box;
             background-clip: content-box, border-box;
         }
         
-        /* 로고 스타일: 우측 상단 배치 */
         .app-logo { position: absolute; top: 15px; right: 15px; width: 40px; height: 40px; border-radius: 8px; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
         
         .page { display: none; flex-direction: column; flex-grow: 1; animation: fadeIn 0.3s ease-out; }
@@ -59,9 +44,9 @@
         #lyric-match { font-size: 18px; color: #E74C3C; font-weight: 800; margin-bottom: 10px; display: none; }
         #score-container { width: 100%; display: none; justify-content: center; }
 
-        .quiz-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
+        /* 퀴즈 버튼 그리드 영역 */
+        #options-area { display: none; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
         .opt-btn { background: #fff; border: 1.5px solid #DCDFE6; color: #606266; padding: 12px; font-size: 13px; border-radius: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        .opt-btn:active { background: #EBEEF5; }
         .opt-btn.correct { background: #E1F3D8; border-color: #67C23A; color: #67C23A; }
         .opt-btn.wrong { background: #FDE2E2; border-color: #F56C6C; color: #F56C6C; }
 
@@ -100,12 +85,13 @@
         <div id="quiz-page" class="page">
             <h2 id="quiz-title">훈련 진행 중</h2>
             <div class="display-box">
-                <div id="quiz-status">정답을 맞춰보세요!</div>
+                <div id="quiz-status">문제가 준비되었습니다.</div>
                 <div id="answer-text">정답 표시</div>
                 <div id="lyric-match">가사 매칭</div>
                 <div id="score-container"></div>
             </div>
-            <div class="quiz-options">
+
+            <div id="options-area">
                 <button class="opt-btn" onclick="checkChoice(this, '미-도-시')">1. 미-도-시</button>
                 <button class="opt-btn" onclick="checkChoice(this, '시-솔-파')">2. 시-솔-파</button>
                 <button class="opt-btn" onclick="checkChoice(this, '미-도-라')">3. 미-도-라</button>
@@ -114,6 +100,7 @@
                 <button class="opt-btn" onclick="checkChoice(this, '라-파-시')">6. 라-파-시</button>
                 <button class="opt-btn" onclick="checkChoice(this, '시-솔-도')">7. 시-솔-도</button>
             </div>
+
             <div class="tempo-container">
                 <div class="tempo-label"><span>재생 속도 (Tempo)</span><span id="tempo-val">BPM 80</span></div>
                 <input type="range" id="tempo-slider" min="50" max="180" value="80" oninput="updateTempo(this.value)">
@@ -207,8 +194,13 @@
         function initQuiz(type) {
             Tone.start();
             currentType = type;
-            resetUI();
             isSightReadingMode = (type === 2);
+            
+            // 모드에 따라 퀴즈 버튼 영역 노출 결정
+            const optionsArea = document.getElementById('options-area');
+            optionsArea.style.display = isSightReadingMode ? 'none' : 'grid';
+
+            resetUI();
             visualNotes = generateProblem(type);
             document.getElementById('quiz-title').innerText = isSightReadingMode ? "연습 2: 시창 훈련" : "연습 1: 청음 훈련";
             document.getElementById('main-page').classList.remove('active');
@@ -218,11 +210,11 @@
         function nextProblem() {
             resetUI();
             visualNotes = generateProblem(currentType);
-            document.getElementById('quiz-status').innerText = "새 문제가 준비되었습니다!";
+            document.getElementById('quiz-status').innerText = isSightReadingMode ? "새 시창 문제가 준비되었습니다!" : "새 청음 문제가 준비되었습니다!";
         }
 
         function resetUI() {
-            document.getElementById('quiz-status').innerText = "문제가 준비되었습니다.";
+            document.getElementById('quiz-status').innerText = isSightReadingMode ? "준비되었습니다. 재생 시 첫 음이 들립니다." : "정답을 맞춰보세요!";
             document.getElementById('answer-text').style.display = 'none';
             document.getElementById('lyric-match').style.display = 'none';
             document.getElementById('score-container').style.display = 'none';
@@ -245,7 +237,7 @@
                     sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, Tone.now() + i * bpmSec);
                 });
                 document.getElementById('quiz-status').innerText = "연주 중...";
-                setTimeout(() => { document.getElementById('quiz-status').innerText = "방금 들은 음정은?"; }, (bpmSec * 3) * 1000);
+                setTimeout(() => { document.getElementById('quiz-status').innerText = "방금 들은 가사는 무엇일까요?"; }, (bpmSec * 3) * 1000);
             }
             document.getElementById('play-btn').disabled = true;
             document.getElementById('replay-btn').disabled = false;
