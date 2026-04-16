@@ -1,3 +1,10 @@
+기존의 훌륭한 시스템에 **2도 훈련(장2도/단2도)** 과정을 추가하여 총 4단계의 커리큘럼으로 확장했습니다. 
+
+단6도 훈련으로 바로 가기 전에 2도(인접한 음) 사이의 관계를 먼저 익히면 청음과 시창의 기초를 더욱 탄탄하게 다질 수 있습니다. 요청하신 대로 번호를 조정하고 새로운 훈련 과정을 맨 앞에 배치했습니다.
+
+### 업데이트된 소스 코드 (4단계 훈련 시스템)
+
+```html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -21,7 +28,7 @@
         
         .app-card { 
             background: white; width: 95%; max-width: 420px; padding: 25px 20px; border-radius: 30px; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; min-height: 580px; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; min-height: 600px; 
             display: flex; flex-direction: column; position: relative; box-sizing: border-box;
             border: 6px solid transparent;
             background-image: linear-gradient(#fff, #fff), 
@@ -36,7 +43,7 @@
         .page.active { display: flex; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        h2 { margin-top: 10px; color: var(--primary); margin-bottom: 25px; font-size: 1.4rem; word-break: keep-all; line-height: 1.3; }
+        h2 { margin-top: 10px; color: var(--primary); margin-bottom: 20px; font-size: 1.4rem; word-break: keep-all; line-height: 1.3; }
         .display-box { background: #F2F4F6; min-height: 180px; border-radius: 20px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 15px; padding: 15px; }
         
         #quiz-status { font-size: 14px; color: #7F8C8D; font-weight: 500; margin-bottom: 10px; }
@@ -45,7 +52,7 @@
         #score-container { width: 100%; display: none; justify-content: center; }
 
         #options-area { display: none; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
-        .opt-btn { background: #fff; border: 1.5px solid #DCDFE6; color: #606266; padding: 12px; font-size: 13px; border-radius: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .opt-btn { background: #fff; border: 1.5px solid #DCDFE6; color: #606266; padding: 10px; font-size: 13px; border-radius: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .opt-btn.correct { background: #E1F3D8; border-color: #67C23A; color: #67C23A; }
         .opt-btn.wrong { background: #FDE2E2; border-color: #F56C6C; color: #F56C6C; }
 
@@ -54,9 +61,8 @@
         #tempo-slider { width: 100%; cursor: pointer; accent-color: var(--secondary); }
 
         .btn-group { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
-        button { width: 100%; padding: 16px; border: none; border-radius: 15px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 15px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
         .btn-main { background: var(--secondary); color: white; }
-        .btn-secondary { background: #7F8C8D; color: white; }
         .btn-play { background: #27AE60; color: white; } 
         .btn-replay { background: #95A5A6; color: white; } 
         .btn-next { background: #E67E22; color: white; } 
@@ -73,10 +79,12 @@
         <div id="main-page" class="page active">
             <h2>펜나뮤직 이어핏<br><span style="font-size: 1.1rem; color: #7F8C8D;">시창/청음 트레이닝</span></h2>
             <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
-                <p style="color: #7F8C8D; font-size: 14px; margin-bottom: 30px;">연습 모드를 선택하세요.</p>
+                <p style="color: #7F8C8D; font-size: 13px; margin-bottom: 20px;">연습 모드를 선택하세요.</p>
                 <div class="btn-group">
-                    <button id="p1-load-btn" class="btn-main" onclick="initQuiz(1)" disabled>연습 1: 단6도 청음 훈련</button>
-                    <button id="p2-load-btn" class="btn-secondary" onclick="initQuiz(2)" disabled>연습 2: 단6도 시창 훈련</button>
+                    <button id="p1-btn" class="btn-main" onclick="initQuiz(1)" disabled>연습 1: 2도 청음 훈련</button>
+                    <button id="p2-btn" class="btn-main" onclick="initQuiz(2)" disabled style="background: #5D6D7E;">연습 2: 2도 시창 훈련</button>
+                    <button id="p3-btn" class="btn-main" onclick="initQuiz(3)" disabled style="background: #34495E;">연습 3: 단6도 청음 훈련</button>
+                    <button id="p4-btn" class="btn-main" onclick="initQuiz(4)" disabled style="background: #2C3E50;">연습 4: 단6도 시창 훈련</button>
                 </div>
             </div>
         </div>
@@ -90,15 +98,7 @@
                 <div id="score-container"></div>
             </div>
 
-            <div id="options-area">
-                <button class="opt-btn" onclick="checkChoice(this, '미-도-시')">1. 미-도-시</button>
-                <button class="opt-btn" onclick="checkChoice(this, '시-솔-파')">2. 시-솔-파</button>
-                <button class="opt-btn" onclick="checkChoice(this, '미-도-라')">3. 미-도-라</button>
-                <button class="opt-btn" onclick="checkChoice(this, '미-도-솔#')">4. 미-도-솔#</button>
-                <button class="opt-btn" onclick="checkChoice(this, '미-도-솔')">5. 미-도-솔</button>
-                <button class="opt-btn" onclick="checkChoice(this, '라-파-시')">6. 라-파-시</button>
-                <button class="opt-btn" onclick="checkChoice(this, '시-솔-도')">7. 시-솔-도</button>
-            </div>
+            <div id="options-area"></div>
 
             <div class="tempo-container">
                 <div class="tempo-label"><span>재생 속도 (Tempo)</span><span id="tempo-val">BPM 80</span></div>
@@ -130,14 +130,16 @@
             release: 0.5,
             baseUrl: "https://tonejs.github.io/audio/salamander/",
             onload: () => {
-                document.getElementById('p1-load-btn').disabled = false;
-                document.getElementById('p2-load-btn').disabled = false;
+                document.getElementById('p1-btn').disabled = false;
+                document.getElementById('p2-btn').disabled = false;
+                document.getElementById('p3-btn').disabled = false;
+                document.getElementById('p4-btn').disabled = false;
             }
         }).toDestination();
 
         let currentBpm = 80;
         let visualNotes = [];
-        let p1History = [], p2History = [];
+        let historyPool = [];
         let currentAns = "", matchedLyric = "";
         let isSightReadingMode = false;
         let currentType = 1;
@@ -168,39 +170,79 @@
         }
 
         function generateProblem(type) {
-            let rMidi;
-            const history = (type === 1) ? p1History : p2History;
+            let n1Midi, n2Midi, n3Midi;
             const minMidi = 55;
-            const maxRoot = (type === 2) ? 69 : 72; 
-            do { rMidi = minMidi + Math.floor(Math.random() * (maxRoot - minMidi + 1)); } while (history.includes(rMidi));
-            history.push(rMidi); if (history.length > 5) history.shift();
+            const maxMidi = 72;
+            
+            // 중복 방지 로직
+            do { n1Midi = minMidi + Math.floor(Math.random() * (maxMidi - minMidi + 1)); } while (historyPool.includes(n1Midi));
+            historyPool.push(n1Midi); if (historyPool.length > 5) historyPool.shift();
 
-            const rBaseIdx = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6][rMidi % 12];
-            const upMidi = rMidi + 8;
-            const upBaseIdx = (rBaseIdx + 5) % 7;
-            const downInt = 1 + Math.floor(Math.random() * 7);
-            const downMidi = upMidi - downInt;
-            const downDeg = (downInt === 6) ? 3 : ({ 1:1, 2:1, 3:2, 4:2, 5:3, 7:4, 8:5, 9:5 }[downInt] || 1);
-            const downBaseIdx = (upBaseIdx - downDeg + 7) % 7;
+            const n1Idx = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6][n1Midi % 12];
 
-            const lyrics = { 1: "미-도-시", 2: "시-솔-파", 3: "미-도-라", 4: "미-도-솔#", 5: "미-도-솔", 6: "라-파-시", 7: "시-솔-도" };
-            matchedLyric = lyrics[downInt] || "";
-            currentAns = `단6도 상행 → ${ {1:"단2도", 2:"장2도", 3:"단3도", 4:"장2도", 5:"완4도", 6:"증4/감5도", 7:"완5도"}[downInt] } 하행`;
+            if (type === 1 || type === 2) { // 2도 훈련
+                const isMajor = Math.random() > 0.5;
+                const interval = isMajor ? 2 : 1;
+                const isUp = Math.random() > 0.5;
+                n2Midi = isUp ? n1Midi + interval : n1Midi - interval;
+                const n2Idx = (n1Idx + (isUp ? 1 : -1) + 7) % 7;
+                n3Midi = n2Midi; // 2도 훈련은 2개 음만 사용하거나 세 번째 음을 자유롭게 설정 가능 (여기선 2개 음 중심)
+                
+                matchedLyric = isMajor ? "장2도" : "단2도";
+                currentAns = `${matchedLyric} ${isUp ? '상행' : '하행'}`;
+                return [getSimplestNoteInfo(n1Midi, n1Idx), getSimplestNoteInfo(n2Midi, n2Idx)];
+            } else { // 단6도 훈련 (기존 로직)
+                const upMidi = n1Midi + 8;
+                const upIdx = (n1Idx + 5) % 7;
+                const downInt = 1 + Math.floor(Math.random() * 7);
+                const downMidi = upMidi - downInt;
+                const downDeg = (downInt === 6) ? 3 : ({ 1:1, 2:1, 3:2, 4:2, 5:3, 7:4, 8:5, 9:5 }[downInt] || 1);
+                const downIdx = (upIdx - downDeg + 7) % 7;
 
-            return [ getSimplestNoteInfo(rMidi, rBaseIdx), getSimplestNoteInfo(upMidi, upBaseIdx), getSimplestNoteInfo(downMidi, downBaseIdx) ];
+                const lyrics = { 1: "미-도-시", 2: "시-솔-파", 3: "미-도-라", 4: "미-도-솔#", 5: "미-도-솔", 6: "라-파-시", 7: "시-솔-도" };
+                matchedLyric = lyrics[downInt] || "";
+                currentAns = `단6도 상행 → ${ {1:"단2도", 2:"장2도", 3:"단3도", 4:"장2도", 5:"완4도", 6:"증4/감5도", 7:"완5도"}[downInt] } 하행`;
+                return [getSimplestNoteInfo(n1Midi, n1Idx), getSimplestNoteInfo(upMidi, upIdx), getSimplestNoteInfo(downMidi, downIdx)];
+            }
+        }
+
+        function updateOptionsArea(type) {
+            const area = document.getElementById('options-area');
+            area.innerHTML = "";
+            if (type === 1) {
+                area.style.display = 'grid';
+                ["장2도", "단2도"].forEach(text => {
+                    const btn = document.createElement('button');
+                    btn.className = "opt-btn";
+                    btn.innerText = text;
+                    btn.onclick = () => checkChoice(btn, text);
+                    area.appendChild(btn);
+                });
+            } else if (type === 3) {
+                area.style.display = 'grid';
+                ["미-도-시", "시-솔-파", "미-도-라", "미-도-솔#", "미-도-솔", "라-파-시", "시-솔-도"].forEach((text, i) => {
+                    const btn = document.createElement('button');
+                    btn.className = "opt-btn";
+                    btn.innerText = `${i+1}. ${text}`;
+                    btn.onclick = () => checkChoice(btn, text);
+                    area.appendChild(btn);
+                });
+            } else {
+                area.style.display = 'none';
+            }
         }
 
         function initQuiz(type) {
             Tone.start();
             currentType = type;
-            isSightReadingMode = (type === 2);
+            isSightReadingMode = (type === 2 || type === 4);
             
-            const optionsArea = document.getElementById('options-area');
-            optionsArea.style.display = isSightReadingMode ? 'none' : 'grid';
-
+            updateOptionsArea(type);
             resetUI();
+            
             visualNotes = generateProblem(type);
-            document.getElementById('quiz-title').innerText = isSightReadingMode ? "연습 2: 시창 훈련" : "연습 1: 청음 훈련";
+            const titles = ["연습 1: 2도 청음 훈련", "연습 2: 2도 시창 훈련", "연습 3: 단6도 청음 훈련", "연습 4: 단6도 시창 훈련"];
+            document.getElementById('quiz-title').innerText = titles[type-1];
             document.getElementById('main-page').classList.remove('active');
             document.getElementById('quiz-page').classList.add('active');
 
@@ -210,8 +252,7 @@
         function nextProblem() {
             resetUI();
             visualNotes = generateProblem(currentType);
-            document.getElementById('quiz-status').innerText = isSightReadingMode ? "새 시창 문제가 준비되었습니다!" : "새 청음 문제가 준비되었습니다!";
-            
+            document.getElementById('quiz-status').innerText = "새 문제가 준비되었습니다!";
             setTimeout(() => { handlePlay(false); }, 100);
         }
 
@@ -222,25 +263,22 @@
             document.getElementById('score-container').style.display = 'none';
             document.getElementById('play-btn').disabled = false;
             document.getElementById('replay-btn').disabled = true;
-            document.querySelectorAll('.opt-btn').forEach(b => {
-                b.classList.remove('correct', 'wrong');
-            });
         }
 
         function handlePlay(isReplay) {
+            const bpmSec = 60 / currentBpm;
+            const now = Tone.now();
             if (isSightReadingMode) {
                 document.getElementById('quiz-status').innerText = isReplay ? "다시 노래해보세요!" : "가사를 보고 노래하세요!";
                 document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`;
                 document.getElementById('lyric-match').style.display = 'block';
                 sampler.triggerAttackRelease(Tone.Frequency(visualNotes[0].midi, "midi"), 1.0);
             } else {
-                const bpmSec = 60 / currentBpm;
-                const now = Tone.now();
                 visualNotes.forEach((n, i) => {
                     sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec);
                 });
                 document.getElementById('quiz-status').innerText = "연주 중...";
-                setTimeout(() => { document.getElementById('quiz-status').innerText = "방금 들은 가사는 무엇일까요?"; }, (bpmSec * 3) * 1000);
+                setTimeout(() => { document.getElementById('quiz-status').innerText = "방금 들은 음정은 무엇일까요?"; }, (bpmSec * visualNotes.length) * 1000);
             }
             document.getElementById('play-btn').disabled = true;
             document.getElementById('replay-btn').disabled = false;
@@ -253,7 +291,7 @@
                 showAns();
             } else {
                 btn.classList.add('wrong');
-                document.getElementById('quiz-status').innerText = "❌ 틀렸습니다. 다시 들어보세요!";
+                document.getElementById('quiz-status').innerText = "❌ 다시 들어보세요!";
             }
         }
 
@@ -265,12 +303,10 @@
                 visualNotes.forEach((n, i) => {
                     sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec);
                 });
-                document.getElementById('play-btn').disabled = true;
-                document.getElementById('replay-btn').disabled = false;
             }
             document.getElementById('answer-text').innerText = currentAns;
             document.getElementById('answer-text').style.display = 'block';
-            document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`;
+            document.getElementById('lyric-match').innerText = `목표: ${matchedLyric}`;
             document.getElementById('lyric-match').style.display = 'block';
             drawScore();
         }
@@ -288,7 +324,7 @@
                 if (n.acc) sn.addModifier(new Accidental(n.acc));
                 return sn;
             });
-            const voice = new Voice({ num_beats: 3, beat_value: 4 });
+            const voice = new Voice({ num_beats: visualNotes.length, beat_value: 4 });
             voice.addTickables(notes);
             new Formatter().joinVoices([voice]).format([voice], 200);
             voice.draw(ctx, stave);
@@ -301,3 +337,4 @@
     </script>
 </body>
 </html>
+```
