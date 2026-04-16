@@ -19,29 +19,30 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; height: auto; min-height: 520px;
             display: flex; flex-direction: column; position: relative; box-sizing: border-box;
             border: 5px solid transparent;
-            /* background-clip을 padding-box로 설정하여 테두리 영역이 버튼 영역을 덮지 않게 함 */
             background-image: linear-gradient(#fff, #fff), linear-gradient(to bottom right, var(--penna-pink), var(--penna-yellow), var(--penna-green), var(--penna-blue));
             background-origin: border-box; background-clip: padding-box, border-box;
         }
         
-        /* 로고가 클릭을 방해하지 않도록 pointer-events 제거 */
         .app-logo { position: absolute; top: 15px; right: 15px; width: 35px; height: 35px; border-radius: 8px; object-fit: cover; pointer-events: none; z-index: 50; }
-        
-        /* 모든 인터랙티브 요소에 z-index 부여하여 레이어 최상단 배치 */
         .page { display: none; flex-direction: column; flex-grow: 1; position: relative; z-index: 10; }
         .page.active { display: flex; }
         
-        .display-box { background: #F2F4F6; min-height: 80px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 8px; padding: 10px; flex-shrink: 0; margin-top: 5px; }
+        h2 { margin: 15px 0 15px 0; color: var(--primary); font-size: 1.2rem; line-height: 1.2; }
+        
+        .display-box { background: #F2F4F6; min-height: 90px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 8px; padding: 10px; flex-shrink: 0; margin-top: 5px; position: relative; overflow: hidden; }
+        
+        /* [수정] 정답과 가사를 한 줄로 배치 */
+        .ans-header { display: none; width: 100%; justify-content: center; gap: 15px; margin-bottom: 5px; z-index: 30; }
+        #answer-text { font-size: 13px; color: var(--primary); font-weight: bold; margin: 0; }
+        #lyric-match { font-size: 14px; color: #E74C3C; font-weight: 800; margin: 0; }
+        
+        /* [수정] 악보 컨테이너를 더 위로 밀어 올림 */
+        #score-container { width: 100%; display: none; justify-content: center; transform: scale(0.85); margin-top: -35px; margin-bottom: -15px; z-index: 20; }
+        
         #quiz-status { font-size: 14px; color: #7F8C8D; margin-bottom: 4px; font-weight: 800; }
         #quiz-guide-text { font-size: 13.5px; color: #2C3E50; line-height: 1.6; font-weight: 700; white-space: pre-wrap; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 12px; width: 95%; box-shadow: inset 0 0 5px rgba(0,0,0,0.05); text-align: left; box-sizing: border-box; }
         
-        #answer-text { font-size: 13px; color: var(--primary); font-weight: bold; margin-bottom: 2px; display: none; }
-        #lyric-match { font-size: 14px; color: #E74C3C; font-weight: 800; margin-bottom: 4px; display: none; }
-        #score-container { width: 100%; display: none; justify-content: center; transform: scale(0.75); margin-top: -30px; margin-bottom: -10px; }
-
         #options-area { display: none; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; position: relative; z-index: 20; }
-        
-        /* 모바일 터치 하이라이트 제거 및 클릭 감도 향상 */
         .opt-btn, button { cursor: pointer; -webkit-tap-highlight-color: transparent; position: relative; z-index: 30; }
         .opt-btn { background: #fff; border: 1.5px solid #DCDFE6; color: #606266; padding: 12px 2px; font-size: 13.5px; border-radius: 12px; font-weight: 700; }
         .opt-btn.correct { background: #E1F3D8; border-color: #67C23A; color: #67C23A; }
@@ -104,9 +105,11 @@
 
         <div id="quiz-page" class="page">
             <div class="display-box">
-                <div id="quiz-status"></div> 
-                <div id="answer-text">정답 표시</div>
-                <div id="lyric-match">가사 매칭</div>
+                <div id="quiz-status"></div>
+                <div class="ans-header" id="ans-header">
+                    <p id="answer-text"></p>
+                    <p id="lyric-match"></p>
+                </div>
                 <div id="score-container"></div>
                 <div id="quiz-guide-text"></div> 
             </div>
@@ -179,7 +182,7 @@
 
         function selectMajor(major) { currentIntervalMajor = major; if (major === 6) { document.getElementById('step1-page').classList.remove('active'); document.getElementById('step1-5-page').classList.add('active'); } else { showStep2(); } }
         function selectSub6(dir) { sub6Direction = dir; showStep2(); }
-        function showStep2() { const title = currentIntervalMajor === 2 ? "2도 훈련" : (sub6Direction === 'up' ? "단6도 상행" : "단6도 하행"); document.getElementById('step2-title').innerText = title; document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById('step2-page').classList.add('active'); }
+        function showStep2() { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById('step2-page').classList.add('active'); }
         function goStep1() { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById('step1-page').classList.add('active'); }
         function goPrevStep() { if (currentIntervalMajor === 6) { document.getElementById('step2-page').classList.remove('active'); document.getElementById('step1-5-page').classList.add('active'); } else { goStep1(); } }
         function goStep2() { document.getElementById('quiz-page').classList.remove('active'); document.getElementById('step2-page').classList.add('active'); document.getElementById('report-overlay').style.display = 'none'; }
@@ -236,8 +239,7 @@
 
         function nextProblem() { resetUI(); visualNotes = generateProblem(); setTimeout(() => { handlePlay(false); }, 100); }
         function resetUI() { 
-            document.getElementById('answer-text').style.display = 'none'; 
-            document.getElementById('lyric-match').style.display = 'none'; 
+            document.getElementById('ans-header').style.display = 'none';
             document.getElementById('score-container').style.display = 'none'; 
             document.getElementById('quiz-guide-text').style.display = 'block'; 
             document.getElementById('play-btn').disabled = false; 
@@ -249,7 +251,13 @@
 
         function handlePlay(isReplay) {
             const bpmSec = 60 / currentBpm; const now = Tone.now();
-            if (isSightReadingMode) { document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`; document.getElementById('lyric-match').style.display = 'block'; sampler.triggerAttackRelease(Tone.Frequency(visualNotes[0].midi, "midi"), 1.0); }
+            if (isSightReadingMode) { 
+                document.getElementById('ans-header').style.display = 'flex';
+                document.getElementById('answer-text').style.display = 'none'; // 시창시 정답텍스트는 숨김
+                document.getElementById('lyric-match').innerText = `가사 : ${matchedLyric}`; 
+                document.getElementById('lyric-match').style.display = 'block'; 
+                sampler.triggerAttackRelease(Tone.Frequency(visualNotes[0].midi, "midi"), 1.0); 
+            }
             else { visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); }); }
             document.getElementById('play-btn').disabled = true; document.getElementById('replay-btn').disabled = false;
         }
@@ -260,10 +268,12 @@
 
         function showAns() {
             if (!visualNotes.length) return;
-            document.getElementById('answer-text').innerText = `정답: ${currentAns}`; document.getElementById('answer-text').style.display = 'block';
-            document.getElementById('quiz-guide-text').style.display = 'none'; 
-            document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`; 
+            document.getElementById('ans-header').style.display = 'flex';
+            document.getElementById('answer-text').innerText = `정답 : ${currentAns}`; 
+            document.getElementById('answer-text').style.display = 'block';
+            document.getElementById('lyric-match').innerText = `가사 : ${matchedLyric}`; 
             document.getElementById('lyric-match').style.display = 'block'; 
+            document.getElementById('quiz-guide-text').style.display = 'none'; 
             drawScore();
             const bpmSec = 60 / currentBpm; const now = Tone.now();
             visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); });
