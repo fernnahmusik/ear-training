@@ -8,36 +8,29 @@
     <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
     <style>
         :root { 
-            --penna-pink: #FF9AA2;    
-            --penna-yellow: #FFE39F;  
-            --penna-green: #B5EAD7;   
-            --penna-blue: #C7CEEA;    
-            --primary: #2C3E50;       
-            --secondary: #34495E;
-            --bg: #F9F9F9; 
+            --penna-pink: #FF9AA2; --penna-yellow: #FFE39F; --penna-green: #B5EAD7; --penna-blue: #C7CEEA;    
+            --primary: #2C3E50; --secondary: #34495E; --bg: #F9F9F9; 
         }
         
-        /* 모바일에서 스크롤이 튀지 않게 body 설정 */
         body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; touch-action: pan-x pan-y; }
         
         .app-card { 
             background: white; width: 92%; max-width: 400px; padding: 15px; border-radius: 25px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; height: auto; min-height: 550px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; height: auto; min-height: 520px;
             display: flex; flex-direction: column; position: relative; box-sizing: border-box;
-            /* 테두리 구현 방식 변경 (버튼 클릭 방해 방지) */
             border: 5px solid transparent;
             background-image: linear-gradient(#fff, #fff), linear-gradient(to bottom right, var(--penna-pink), var(--penna-yellow), var(--penna-green), var(--penna-blue));
             background-origin: border-box;
             background-clip: padding-box, border-box;
         }
         
-        /* 로고 클릭 방해 안 되게 pointer-events 조절 */
         .app-logo { position: absolute; top: 12px; right: 12px; width: 35px; height: 35px; border-radius: 8px; object-fit: cover; pointer-events: none; }
         
         .page { display: none; flex-direction: column; flex-grow: 1; position: relative; z-index: 10; }
         .page.active { display: flex; }
 
-        h2 { margin: 5px 0 15px 0; color: var(--primary); font-size: 1.2rem; line-height: 1.2; }
+        h2 { margin: 10px 0 20px 0; color: var(--primary); font-size: 1.3rem; line-height: 1.2; }
+        h3 { font-size: 1rem; color: #7F8C8D; margin-bottom: 25px; font-weight: 500; }
         
         .display-box { background: #F2F4F6; min-height: 130px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 10px; padding: 10px; flex-shrink: 0; }
         
@@ -49,11 +42,7 @@
         #score-container { width: 100%; display: none; justify-content: center; transform: scale(0.85); margin-top: -10px; }
 
         #options-area { display: none; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-bottom: 10px; }
-        
-        /* 버튼 터치 감도 개선 */
-        .opt-btn, button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
-        .opt-btn { background: #fff; border: 1.2px solid #DCDFE6; color: #606266; padding: 10px 2px; font-size: 11px; border-radius: 10px; font-weight: 600; }
-        .opt-btn:active { background: #F2F4F6; }
+        .opt-btn { background: #fff; border: 1.2px solid #DCDFE6; color: #606266; padding: 10px 2px; font-size: 11px; border-radius: 10px; font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .opt-btn.correct { background: #E1F3D8; border-color: #67C23A; color: #67C23A; }
         .opt-btn.wrong { background: #FDE2E2; border-color: #F56C6C; color: #F56C6C; }
 
@@ -61,16 +50,18 @@
         .tempo-label { font-size: 10px; color: var(--secondary); font-weight: 600; margin-bottom: 3px; display: flex; justify-content: space-between; }
         #tempo-slider { width: 100%; cursor: pointer; accent-color: var(--secondary); }
 
-        .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 5px; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 12px; font-size: 13px; font-weight: 600; transition: transform 0.1s; }
+        .btn-group { display: flex; flex-direction: column; gap: 8px; margin-top: auto; padding-bottom: 10px; }
+        button { width: 100%; padding: 14px; border: none; border-radius: 15px; font-size: 14px; font-weight: 600; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         button:active { transform: scale(0.98); opacity: 0.9; }
-        
-        .btn-main { background: var(--secondary); color: white; margin-bottom: 5px; }
+        button:disabled { background: #BDC3C7; cursor: not-allowed; }
+
+        .btn-category { background: var(--secondary); color: white; font-size: 1.1rem; padding: 25px; }
+        .btn-main { background: var(--primary); color: white; }
         .btn-play { background: #27AE60; color: white; } 
         .btn-replay { background: #95A5A6; color: white; } 
         .btn-next { background: #E67E22; color: white; } 
         .btn-sub { background: white; color: var(--primary); border: 1.5px solid #DCDFE6; }
-        .btn-back { background: transparent; color: #95A5A6; font-size: 11px; padding: 5px; }
+        .btn-back { background: transparent; color: #95A5A6; font-size: 12px; padding: 5px; }
         
         #report-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:white; border-radius: 25px; display:none; flex-direction:column; justify-content:center; align-items:center; z-index:1000; padding:20px; box-sizing:border-box; }
     </style>
@@ -85,13 +76,21 @@
             <button class="btn-play" style="margin-top:20px; width:80%;" onclick="closeReport()">계속하기</button>
         </div>
 
-        <div id="main-page" class="page active">
-            <h2>펜나뮤직 이어핏<br><span style="font-size: 1rem; color: #7F8C8D;">시창/청음 트레이닝</span></h2>
-            <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center;">
-                <button id="p1-btn" class="btn-main" onclick="initQuiz(1)" disabled>연습 1: 2도 청음</button>
-                <button id="p2-btn" class="btn-main" onclick="initQuiz(2)" disabled style="background: #5D6D7E;">연습 2: 2도 시창</button>
-                <button id="p3-btn" class="btn-main" onclick="initQuiz(3)" disabled style="background: #34495E;">연습 3: 단6도 청음</button>
-                <button id="p4-btn" class="btn-main" onclick="initQuiz(4)" disabled style="background: #2C3E50;">연습 4: 단6도 시창</button>
+        <div id="step1-page" class="page active">
+            <h2>펜나뮤직 이어핏</h2>
+            <h3>훈련할 음정을 선택하세요</h3>
+            <div class="btn-group" style="justify-content: center; flex-grow: 1;">
+                <button class="btn-category" onclick="showStep2(2)">2도 훈련</button>
+                <button class="btn-category" onclick="showStep2(6)" style="background: #2C3E50;">6도 훈련</button>
+            </div>
+        </div>
+
+        <div id="step2-page" class="page">
+            <h2 id="step2-title">훈련 모드 선택</h2>
+            <div class="btn-group" style="justify-content: center; flex-grow: 1;">
+                <button id="mode-ear-btn" class="btn-main" onclick="startQuiz('ear')" disabled>청음 훈련 (Ear Training)</button>
+                <button id="mode-sight-btn" class="btn-main" onclick="startQuiz('sight')" disabled style="background: #5D6D7E;">시창 훈련 (Sight Singing)</button>
+                <button class="btn-back" onclick="goStep1()">⬅ 뒤로 가기</button>
             </div>
         </div>
 
@@ -119,7 +118,7 @@
                 </div>
                 <button id="ans-btn" class="btn-sub" onclick="showAns()">정답/악보 확인</button>
                 <button id="next-btn" class="btn-next" onclick="nextProblem()">다음 문제</button>
-                <button class="btn-back" onclick="goBack()">🏠 처음으로</button>
+                <button class="btn-back" onclick="goStep2()">🏠 모드 선택으로</button>
             </div>
         </div>
     </div>
@@ -129,11 +128,15 @@
         const sampler = new Tone.Sampler({
             urls: { "A0": "A0.mp3", "C1": "C1.mp3", "D#1": "Ds1.mp3", "F#1": "Fs1.mp3", "A1": "A1.mp3", "C2": "C2.mp3", "D#2": "Ds2.mp3", "F#2": "Fs2.mp3", "A2": "A2.mp3", "C3": "C3.mp3", "D#3": "Ds3.mp3", "F#3": "Fs3.mp3", "A3": "A3.mp3", "C4": "C4.mp3", "D#4": "Ds4.mp3", "F#4": "Fs4.mp3", "A4": "A4.mp3", "C5": "C5.mp3", "D#5": "Ds5.mp3", "F#5": "Fs5.mp3", "A5": "A5.mp3", "C6": "C6.mp3" },
             release: 0.5, baseUrl: "https://tonejs.github.io/audio/salamander/",
-            onload: () => { document.querySelectorAll('.btn-main').forEach(b => b.disabled = false); }
+            onload: () => { 
+                document.getElementById('mode-ear-btn').disabled = false; 
+                document.getElementById('mode-sight-btn').disabled = false;
+            }
         }).toDestination();
 
         let currentBpm = 80; let visualNotes = []; let historyPool = []; let currentAns = "", matchedLyric = "";
-        let isSightReadingMode = false; let currentType = 1; let trialCount = 0; let correctCount = 0; let wrongList = [];
+        let isSightReadingMode = false; let currentIntervalType = 2; // 2 또는 6
+        let trialCount = 0; let correctCount = 0; let wrongList = [];
 
         function updateTempo(val) { currentBpm = val; document.getElementById('tempo-val').innerText = `BPM ${val}`; }
 
@@ -160,12 +163,48 @@
             5: { lyric: "미-도-솔", ans: "단6↑+완4↓" }, 6: { lyric: "라-파-시", ans: "단6↑+증4↓" }, 7: { lyric: "시-솔-도", ans: "단6↑+완5↓" }
         };
 
-        function generateProblem(type) {
+        function showStep2(interval) {
+            currentIntervalType = interval;
+            document.getElementById('step2-title').innerText = `${interval}도 훈련 모드 선택`;
+            document.getElementById('step1-page').classList.remove('active');
+            document.getElementById('step2-page').classList.add('active');
+        }
+
+        function goStep1() {
+            document.getElementById('step2-page').classList.remove('active');
+            document.getElementById('step1-page').classList.add('active');
+        }
+
+        function goStep2() {
+            document.getElementById('quiz-page').classList.remove('active');
+            document.getElementById('step2-page').classList.add('active');
+            document.getElementById('report-overlay').style.display = 'none';
+        }
+
+        function startQuiz(mode) {
+            Tone.start();
+            isSightReadingMode = (mode === 'sight');
+            trialCount = 0; correctCount = 0; wrongList = [];
+            
+            updateOptionsArea();
+            resetUI();
+            
+            visualNotes = generateProblem();
+            const modeText = isSightReadingMode ? "시창" : "청음";
+            document.getElementById('quiz-title').innerText = `${currentIntervalType}도 ${modeText} 훈련`;
+            
+            document.getElementById('step2-page').classList.remove('active');
+            document.getElementById('quiz-page').classList.add('active');
+            setTimeout(() => { handlePlay(false); }, 300);
+        }
+
+        function generateProblem() {
             let n1Midi, n2Midi, n3Midi; const minMidi = 55; const maxMidi = 72;
             do { n1Midi = minMidi + Math.floor(Math.random() * (maxMidi - minMidi + 1)); } while (historyPool.includes(n1Midi));
             historyPool.push(n1Midi); if (historyPool.length > 5) historyPool.shift();
             const n1Idx = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6][n1Midi % 12];
-            if (type === 1 || type === 2) { 
+
+            if (currentIntervalType === 2) { 
                 const p = pattern2D[Math.floor(Math.random() * pattern2D.length)];
                 n2Midi = n1Midi + p.iv[0]; n3Midi = n2Midi + p.iv[1];
                 const n2Idx = (n1Idx + (p.iv[0] > 0 ? 1 : -1) + 7) % 7; const n3Idx = (n2Idx + (p.iv[1] > 0 ? 1 : -1) + 7) % 7;
@@ -178,33 +217,27 @@
             }
         }
 
-        function updateOptionsArea(type) {
+        function updateOptionsArea() {
             const area = document.getElementById('options-area'); const guide = document.getElementById('quiz-guide-text');
             area.innerHTML = "";
-            if (type === 1) {
-                area.style.display = 'grid'; guide.innerText = "1.도디레(단2↑+단2↑) 2.미파솔(단2↑+장2↑)\n3.라시도(장2↑+단2↑) 4.도레미(장2↑+장2↑)\n5.도시세(단2↓+단2↓) 6.솔파미(장2↓+단2↓)\n7.도시라(단2↓+장2↓) 8.미레도(장2↓+장2↓)";
+            if (isSightReadingMode) { area.style.display = 'none'; guide.innerText = ""; return; }
+
+            if (currentIntervalType === 2) {
+                area.style.display = 'grid'; guide.innerText = "1.도디레(단2↑+단2↑) 2.미파솔(단2↑+장2↑) 3.라시도 4.도레미\n5.도시세(단2↓+단2↓) 6.솔파미(장2↓+단2↓) 7.도시라 8.미레도";
                 pattern2D.forEach((p, i) => {
                     const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${i+1}.${p.lyric}`;
                     btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn);
                 });
-            } else if (type === 3) {
-                area.style.display = 'grid'; guide.innerText = "1.미도시(단6↑+단2↓) 2.시솔파(단6↑+장2↓)\n3.미도라(단6↑+단3↓) 4.미도솔#(단6↑+장3↓)\n5.미도솔(단6↑+완4↓) 6.라파시(단6↑+증4↓)\n7.시솔도(단6↑+완5↓)";
+            } else {
+                area.style.display = 'grid'; guide.innerText = "1.미도시(단6↑+단2↓) 2.시솔파(단6↑+장2↓) 3.미도라 4.미도솔#\n5.미도솔(단6↑+완4↓) 6.라파시(단6↑+증4↓) 7.시솔도";
                 Object.keys(patternM6).forEach((key) => {
                     const p = patternM6[key]; const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${key}.${p.lyric}`;
                     btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn);
                 });
-            } else { area.style.display = 'none'; guide.innerText = ""; }
+            }
         }
 
-        function initQuiz(type) {
-            Tone.start(); currentType = type; isSightReadingMode = (type === 2 || type === 4);
-            trialCount = 0; correctCount = 0; wrongList = []; updateOptionsArea(type); resetUI();
-            visualNotes = generateProblem(type); const titles = ["연습 1: 2도 청음", "연습 2: 2도 시창", "연습 3: 단6도 청음", "연습 4: 단6도 시창"];
-            document.getElementById('quiz-title').innerText = titles[type-1]; document.getElementById('main-page').classList.remove('active');
-            document.getElementById('quiz-page').classList.add('active'); setTimeout(() => { handlePlay(false); }, 300); 
-        }
-
-        function nextProblem() { resetUI(); visualNotes = generateProblem(currentType); document.getElementById('quiz-status').innerText = "준비되었습니다."; setTimeout(() => { handlePlay(false); }, 100); }
+        function nextProblem() { resetUI(); visualNotes = generateProblem(); document.getElementById('quiz-status').innerText = "준비되었습니다."; setTimeout(() => { handlePlay(false); }, 100); }
 
         function resetUI() {
             document.getElementById('answer-text').style.display = 'none'; document.getElementById('lyric-match').style.display = 'none';
@@ -254,8 +287,6 @@
             const voice = new Voice({ num_beats: visualNotes.length, beat_value: 4 }); voice.addTickables(notes);
             new Formatter().joinVoices([voice]).format([voice], 200); voice.draw(ctx, stave);
         }
-
-        function goBack() { document.getElementById('quiz-page').classList.remove('active'); document.getElementById('main-page').classList.add('active'); document.getElementById('report-overlay').style.display = 'none'; }
     </script>
 </body>
 </html>
