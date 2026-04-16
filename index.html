@@ -8,7 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/vexflow@4.2.2/build/cjs/vexflow.js"></script>
     <style>
         :root { --primary: #2C3E50; --secondary: #34495E; --bg: #F9F9F9; }
-        body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; touch-action: manipulation; }
         .app-card { background: white; width: 95%; max-width: 420px; padding: 25px 20px; border-radius: 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); text-align: center; border-top: 5px solid var(--primary); min-height: 580px; display: flex; flex-direction: column; }
         
         .page { display: none; flex-direction: column; flex-grow: 1; animation: fadeIn 0.3s ease-out; }
@@ -24,7 +24,7 @@
         #score-container { width: 100%; display: none; justify-content: center; }
 
         .quiz-options { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 20px; }
-        .opt-btn { background: #fff; border: 1.5px solid #DCDFE6; color: #606266; padding: 10px; font-size: 13px; border-radius: 12px; cursor: pointer; }
+        .opt-btn { background: #fff; border: 1.5px solid #DCDFE6; color: #606266; padding: 12px; font-size: 13px; border-radius: 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
         .opt-btn:active { background: #EBEEF5; }
         .opt-btn.correct { background: #E1F3D8; border-color: #67C23A; color: #67C23A; }
         .opt-btn.wrong { background: #FDE2E2; border-color: #F56C6C; color: #F56C6C; }
@@ -34,7 +34,7 @@
         #tempo-slider { width: 100%; cursor: pointer; accent-color: var(--primary); }
 
         .btn-group { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
-        button { width: 100%; padding: 14px; border: none; border-radius: 15px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
+        button { width: 100%; padding: 16px; border: none; border-radius: 15px; font-size: 14px; font-weight: 600; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
         .btn-main { background: var(--primary); color: white; }
         .btn-secondary { background: var(--secondary); color: white; }
         .btn-play { background: #27AE60; color: white; } 
@@ -54,7 +54,7 @@
                 <p style="color: #7F8C8D; font-size: 14px; margin-bottom: 30px;">연습 모드를 선택하세요.</p>
                 <div class="btn-group">
                     <button id="p1-load-btn" class="btn-main" onclick="initQuiz(1)" disabled>연습 1: 단6도 청음 훈련</button>
-                    <button id="p2-load-btn" class="btn-secondary" onclick="startQuiz2()" disabled>연습 2: 단6도 시창 훈련</button>
+                    <button id="p2-load-btn" class="btn-secondary" onclick="initQuiz(2)" disabled>연습 2: 단6도 시창 훈련</button>
                 </div>
             </div>
         </div>
@@ -222,7 +222,6 @@
             if (choice === matchedLyric) {
                 btn.classList.add('correct');
                 document.getElementById('quiz-status').innerText = "⭕ 정답입니다!";
-                // 정답일 때 바로 악보와 가사 정보 표시
                 showAns();
             } else {
                 btn.classList.add('wrong');
@@ -232,8 +231,6 @@
 
         function showAns() {
             if (!visualNotes.length) return;
-            
-            // 아직 재생 전이었다면 소리를 들려줌 (시창 모드 포함)
             if (isSightReadingMode || document.getElementById('play-btn').disabled === false) {
                 const bpmSec = 60 / currentBpm;
                 visualNotes.forEach((n, i) => {
@@ -242,7 +239,6 @@
                 document.getElementById('play-btn').disabled = true;
                 document.getElementById('replay-btn').disabled = false;
             }
-
             document.getElementById('answer-text').innerText = currentAns;
             document.getElementById('answer-text').style.display = 'block';
             document.getElementById('lyric-match').innerText = `가사: ${matchedLyric}`;
