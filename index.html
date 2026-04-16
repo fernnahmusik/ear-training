@@ -51,7 +51,6 @@
         .opt-btn.correct { background: #E1F3D8; border-color: #67C23A; color: #67C23A; }
         .opt-btn.wrong { background: #FDE2E2; border-color: #F56C6C; color: #F56C6C; }
 
-        /* 리포트 오버레이 스타일 */
         #report-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:white; border-radius: 30px; display:none; flex-direction:column; justify-content:center; align-items:center; z-index:100; padding:20px; box-sizing:border-box; }
         .report-content { width:100%; text-align:left; font-size:14px; color: var(--primary); }
         .report-title { font-size:18px; font-weight:bold; margin-bottom:20px; text-align:center; color: var(--primary); }
@@ -148,7 +147,6 @@
         let isSightReadingMode = false;
         let currentType = 1;
 
-        // 통계용 변수
         let trialCount = 0;
         let correctCount = 0;
         let wrongList = [];
@@ -189,6 +187,17 @@
             { lyric: "미-레-도", intervals: [-2, -2], ans: "장2↓ + 장2↓" }
         ];
 
+        // 연습 3용 패턴 데이터 (가사 + 음정 관계)
+        const patternM6 = {
+            1: { lyric: "미-도-시", ans: "단6↑ + 단2↓" },
+            2: { lyric: "시-솔-파", ans: "단6↑ + 장2↓" },
+            3: { lyric: "미-도-라", ans: "단6↑ + 단3↓" },
+            4: { lyric: "미-도-솔#", ans: "단6↑ + 장3↓" },
+            5: { lyric: "미-도-솔", ans: "단6↑ + 완4↓" },
+            6: { lyric: "라-파-시", ans: "단6↑ + 증4/감5↓" },
+            7: { lyric: "시-솔-도", ans: "단6↑ + 완5↓" }
+        };
+
         function generateProblem(type) {
             let n1Midi, n2Midi, n3Midi;
             const minMidi = 55;
@@ -215,9 +224,9 @@
                 const downMidi = upMidi - downInt;
                 const downDeg = (downInt === 6) ? 3 : ({ 1:1, 2:1, 3:2, 4:2, 5:3, 7:4, 8:5, 9:5 }[downInt] || 1);
                 const downIdx = (upIdx - downDeg + 7) % 7;
-                const lyrics = { 1: "미-도-시", 2: "시-솔-파", 3: "미-도-라", 4: "미-도-솔#", 5: "미-도-솔", 6: "라-파-시", 7: "시-솔-도" };
-                matchedLyric = lyrics[downInt] || "";
-                currentAns = `단6도 상행 → ${ {1:"단2도", 2:"장2도", 3:"단3도", 4:"장2도", 5:"완4도", 6:"증4/감5도", 7:"완5도"}[downInt] } 하행`;
+                
+                matchedLyric = patternM6[downInt].lyric;
+                currentAns = patternM6[downInt].ans;
                 return [getSimplestNoteInfo(n1Midi, n1Idx), getSimplestNoteInfo(upMidi, upIdx), getSimplestNoteInfo(downMidi, downIdx)];
             }
         }
@@ -238,12 +247,13 @@
                 });
             } else if (type === 3) {
                 area.style.display = 'grid';
-                guide.innerText = "미-도-시 / 시-솔-파 / 미-도-라 / 미-도-솔#\n미-도-솔 / 라-파-시 / 시-솔-도";
-                ["미-도-시", "시-솔-파", "미-도-라", "미-도-솔#", "미-도-솔", "라-파-시", "시-솔-도"].forEach((text, i) => {
+                guide.innerText = "1.미도시(단6↑+단2↓) 2.시솔파(단6↑+장2↓)\n3.미도라(단6↑+단3↓) 4.미도솔#(단6↑+장3↓)\n5.미도솔(단6↑+완4↓) 6.라파시(단6↑+증4↓)\n7.시솔도(단6↑+완5↓)";
+                Object.keys(patternM6).forEach((key) => {
+                    const p = patternM6[key];
                     const btn = document.createElement('button');
                     btn.className = "opt-btn";
-                    btn.innerText = `${i+1}.${text}`;
-                    btn.onclick = () => checkChoice(btn, text);
+                    btn.innerText = `${key}.${p.lyric}`;
+                    btn.onclick = () => checkChoice(btn, p.lyric);
                     area.appendChild(btn);
                 });
             } else {
@@ -256,12 +266,9 @@
             Tone.start();
             currentType = type;
             isSightReadingMode = (type === 2 || type === 4);
-            
-            // 통계 초기화 (연습 모드 진입 시)
             trialCount = 0;
             correctCount = 0;
             wrongList = [];
-
             updateOptionsArea(type);
             resetUI();
             visualNotes = generateProblem(type);
@@ -313,27 +320,20 @@
 
         function checkChoice(btn, choice) {
             if (isSightReadingMode) return;
-
-            trialCount++; // 시도 횟수 증가
-
+            trialCount++; 
             if (choice === matchedLyric) {
                 correctCount++;
                 btn.classList.add('correct');
                 document.getElementById('quiz-status').innerText = "⭕ 정답입니다!";
-                
-                // 모든 옵션 버튼 비활성화 (한 번 정답 맞히면 끝)
                 document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
                 showAns();
             } else {
                 btn.classList.add('wrong');
                 document.getElementById('quiz-status').innerText = "❌ 다시 들어보세요!";
-                // 오답 패턴 기록 (중복 제외)
                 if (!wrongList.includes(matchedLyric)) {
                     wrongList.push(matchedLyric);
                 }
             }
-
-            // 10회마다 리포트 출력
             if (trialCount > 0 && trialCount % 10 === 0) {
                 showReport();
             }
@@ -346,7 +346,6 @@
                 <p>🎯 <b>정답 횟수:</b> ${correctCount}회</p>
                 <p>⚠️ <b>오답률:</b> ${errorRate}%</p>
             `;
-
             if (wrongList.length > 0) {
                 reportHtml += `<p style="margin-top:15px; font-weight:bold;">📉 취약한 패턴:</p><ul>`;
                 wrongList.forEach(item => {
@@ -356,7 +355,6 @@
             } else {
                 reportHtml += `<p style="margin-top:15px; color:#27AE60;">✨ 완벽합니다! 모든 패턴을 맞히셨어요.</p>`;
             }
-
             document.getElementById('report-text').innerHTML = reportHtml;
             document.getElementById('report-overlay').style.display = 'flex';
         }
