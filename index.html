@@ -36,11 +36,7 @@
         #answer-text { font-size: 13px; color: var(--primary); font-weight: bold; margin: 0; }
         #lyric-match { font-size: 14px; color: #E74C3C; font-weight: 800; margin: 0; }
         
-        #score-container { 
-            width: 100%; display: none; justify-content: center; 
-            transform: scale(0.85); margin-top: -10px; margin-bottom: -40px; 
-            z-index: 20; overflow: visible;
-        }
+        #score-container { width: 100%; display: none; justify-content: center; transform: scale(0.85); margin-top: -10px; margin-bottom: -40px; z-index: 20; overflow: visible; }
         
         #quiz-status { font-size: 14px; color: #7F8C8D; margin-bottom: 4px; font-weight: 800; }
         #quiz-guide-text { font-size: 13.5px; color: #2C3E50; line-height: 1.6; font-weight: 700; white-space: pre-wrap; background: rgba(255,255,255,0.8); padding: 10px; border-radius: 12px; width: 95%; box-shadow: inset 0 0 5px rgba(0,0,0,0.05); text-align: left; box-sizing: border-box; }
@@ -137,54 +133,52 @@
             onload: () => { document.querySelectorAll('.btn-main').forEach(b => b.disabled = false); }
         }).toDestination();
 
-        let currentBpm = 80; let visualNotes = []; let historyPool = []; let currentAns = "", matchedLyric = "";
+        let currentBpm = 80; let visualNotes = []; let currentAns = "", matchedLyric = "";
         let isSightReadingMode = false; let currentIntervalMajor = 2; let sub6Direction = 'up'; 
         let patternQueue = [];
 
         const baseScales = [{ n: 'c', m: 0 }, { n: 'd', m: 2 }, { n: 'e', m: 4 }, { n: 'f', m: 5 }, { n: 'g', m: 7 }, { n: 'a', m: 9 }, { n: 'b', m: 11 }];
 
-        // [수정] 도수를 고려하여 정확한 음정(예: 단6도)을 반환하는 함수
-        function getNoteWithDegree(midi, baseNoteInfo, intervalDegree) {
-            let chroma = midi % 12; if (chroma < 0) chroma += 12;
-            let octave = Math.floor(midi / 12) - 1;
+        // 정확한 음정(도수)에 따른 노표 정보 반환
+        function getNoteByDegree(midi, baseNote, degreeDiff) {
+            const chroma = (midi % 12 + 12) % 12;
+            const octave = Math.floor(midi / 12) - 1;
+            const baseIdx = baseScales.findIndex(s => s.n === baseNote.key);
+            // degreeDiff: 상행이면 (+), 하행이면 (-)
+            const targetIdx = (baseIdx + degreeDiff + 70) % 7;
+            const targetScale = baseScales[targetIdx];
             
-            // 기준 음의 이름 인덱스 찾기
-            const baseNameIdx = baseScales.findIndex(s => s.n === baseNoteInfo.key);
-            // 목표 음의 이름 인덱스 계산 (intervalDegree: 2도면 +1, 6도면 +5 등)
-            const targetNameIdx = (baseNameIdx + (intervalDegree - 1)) % 7;
-            const targetScale = baseScales[targetNameIdx];
-            
-            // 자연음과의 차이 계산 (임시표 결정)
             let diff = chroma - targetScale.m;
             if (diff > 6) diff -= 12; else if (diff < -6) diff += 12;
             
             let acc = "";
-            if (diff === 1) acc = "#";
-            else if (diff === 2) acc = "##";
-            else if (diff === -1) acc = "b";
-            else if (diff === -2) acc = "bb";
+            if (diff === 1) acc = "#"; else if (diff === 2) acc = "##";
+            else if (diff === -1) acc = "b"; else if (diff === -2) acc = "bb";
             
             return { midi, key: targetScale.n, acc: acc, oct: octave };
         }
 
-        // 초기음(n1)은 가장 심플한 형태로 생성
-        function getSimplestNoteInfo(midi) {
-            let octave = Math.floor(midi / 12) - 1; let chroma = midi % 12; if (chroma < 0) chroma += 12;
-            const res = baseScales.find(s => s.m === chroma);
-            if (res) return { midi, key: res.n, acc: "", oct: octave };
-            const flatRes = baseScales.find(s => s.m === (chroma + 1) % 12);
-            if (flatRes) return { midi, key: flatRes.n, acc: "b", oct: octave };
-            return { midi, key: 'c', acc: "#", oct: octave };
+        // 특정 Midi 번호에 대해 가능한 모든 표기법 (C# vs Db 등) 반환
+        function getAllNotationOptions(midi) {
+            const chroma = (midi % 12 + 12) % 12;
+            const options = [];
+            baseScales.forEach((s, idx) => {
+                let diff = chroma - s.m;
+                if (diff > 6) diff -= 12; else if (diff < -6) diff += 12;
+                if (Math.abs(diff) <= 1) { // 샵이나 플랫 하나까지만 허용하는 시작음
+                    options.push({ midi, key: s.n, acc: diff === 1 ? "#" : (diff === -1 ? "b" : ""), oct: Math.floor(midi / 12) - 1 });
+                }
+            });
+            return options;
         }
 
         const pattern2D = [
-            { lyric: "도-디-레", ans: "단2↑+단2↑", iv: [1, 1], deg: [2, 2] }, { lyric: "미-파-솔", ans: "단2↑+장2↑", iv: [1, 2], deg: [2, 2] }, { lyric: "라-시-도", ans: "장2↑+단2↑", iv: [2, 1], deg: [2, 2] }, { lyric: "도-레-미", ans: "장2↑+장2↑", iv: [2, 2], deg: [2, 2] },
-            { lyric: "도-시-세", ans: "단2↓+단2↓", iv: [-1, -1], deg: [7, 7] }, { lyric: "솔-파-미", ans: "장2↓+단2↓", iv: [-2, -1], deg: [7, 7] }, { lyric: "도-시-라", ans: "단2↓+장2↓", iv: [-1, -2], deg: [7, 7] }, { lyric: "미-레-도", ans: "장2↓+장2↓", iv: [-2, -2], deg: [7, 7] }
+            { lyric: "도-디-레", ans: "단2↑+단2↑", iv: [1, 1], deg: [1, 1] }, { lyric: "미-파-솔", ans: "단2↑+장2↑", iv: [1, 2], deg: [1, 1] }, { lyric: "라-시-도", ans: "장2↑+단2↑", iv: [2, 1], deg: [1, 1] }, { lyric: "도-레-미", ans: "장2↑+장2↑", iv: [2, 2], deg: [1, 1] },
+            { lyric: "도-시-세", ans: "단2↓+단2↓", iv: [-1, -1], deg: [-1, -1] }, { lyric: "솔-파-미", ans: "장2↓+단2↓", iv: [-2, -1], deg: [-1, -1] }, { lyric: "도-시-라", ans: "단2↓+장2↓", iv: [-1, -2], deg: [-1, -1] }, { lyric: "미-레-도", ans: "장2↓+장2↓", iv: [-2, -2], deg: [-1, -1] }
         ];
 
-        // deg: 음정 도수 (단6도는 6도, 단2도는 2도 등)
-        const patternM6Up = { 1: { lyric: "미-도-시", ans: "단6↑+단2↓", iv: [8, -1], deg: [6, 7] }, 2: { lyric: "시-솔-파", ans: "단6↑+장2↓", iv: [8, -2], deg: [6, 7] }, 3: { lyric: "미-도-라", ans: "단6↑+단3↓", iv: [8, -3], deg: [6, 6] }, 4: { lyric: "미-도-솔#", ans: "단6↑+장3↓", iv: [8, -4], deg: [6, 6] }, 5: { lyric: "미-도-솔", ans: "단6↑+완4↓", iv: [8, -5], deg: [6, 5] }, 6: { lyric: "라-파-시", ans: "단6↑+증4/감5↓", iv: [8, -6], deg: [6, 5] }, 7: { lyric: "시-솔-도", ans: "단6↑+완5↓", iv: [8, -7], deg: [6, 4] } };
-        const patternM6Down = { 1: { lyric: "솔-시-도", ans: "단6↓+단2↑", iv: [-8, 1], deg: [3, 2] }, 2: { lyric: "파-라-시", ans: "단6↓+장2↑", iv: [-8, 2], deg: [3, 2] }, 3: { lyric: "도-미-솔", ans: "단6↓+단3↑", iv: [-8, 3], deg: [3, 3] }, 4: { lyric: "도-미-솔#", ans: "단6↓+장3↑", iv: [-8, 4], deg: [3, 3] }, 5: { lyric: "도-미-라", ans: "단6↓+완4↑", iv: [-8, 5], deg: [3, 4] }, 6: { lyric: "솔-시-파", ans: "단6↓+증4/감5↑", iv: [-8, 6], deg: [3, 5] }, 7: { lyric: "도-미-시", ans: "단6↓+완5↑", iv: [-8, 7], deg: [3, 6] } };
+        const patternM6Up = { 1: { lyric: "미-도-시", ans: "단6↑+단2↓", iv: [8, -1], deg: [5, -1] }, 2: { lyric: "시-솔-파", ans: "단6↑+장2↓", iv: [8, -2], deg: [5, -1] }, 3: { lyric: "미-도-라", ans: "단6↑+단3↓", iv: [8, -3], deg: [5, -2] }, 4: { lyric: "미-도-솔#", ans: "단6↑+장3↓", iv: [8, -4], deg: [5, -2] }, 5: { lyric: "미-도-솔", ans: "단6↑+완4↓", iv: [8, -5], deg: [5, -3] }, 6: { lyric: "라-파-시", ans: "단6↑+증4/감5↓", iv: [8, -6], deg: [5, -4] }, 7: { lyric: "시-솔-도", ans: "단6↑+완5↓", iv: [8, -7], deg: [5, -4] } };
+        const patternM6Down = { 1: { lyric: "솔-시-도", ans: "단6↓+단2↑", iv: [-8, 1], deg: [-5, 1] }, 2: { lyric: "파-라-시", ans: "단6↓+장2↑", iv: [-8, 2], deg: [-5, 1] }, 3: { lyric: "도-미-솔", ans: "단6↓+단3↑", iv: [-8, 3], deg: [-5, 2] }, 4: { lyric: "도-미-솔#", ans: "단6↓+장3↑", iv: [-8, 4], deg: [-5, 2] }, 5: { lyric: "도-미-라", ans: "단6↓+완4↑", iv: [-8, 5], deg: [-5, 3] }, 6: { lyric: "솔-시-파", ans: "단6↓+증4/감5↑", iv: [-8, 6], deg: [-5, 4] }, 7: { lyric: "도-미-시", ans: "단6↓+완5↑", iv: [-8, 7], deg: [-5, 5] } };
 
         function updateTempo(val) { currentBpm = val; document.getElementById('tempo-val').innerText = `BPM ${val}`; }
         function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
@@ -202,6 +196,7 @@
             setTimeout(() => { handlePlay(false); }, 300);
         }
 
+        // [핵심] 경제적인 표기를 고려한 문제 생성 로직
         function generateProblem() {
             if (patternQueue.length === 0) {
                 if (currentIntervalMajor === 2) patternQueue = shuffle([...pattern2D]);
@@ -209,17 +204,29 @@
             }
             const p = patternQueue.shift();
             const minMidi = 55; const maxMidi = isSightReadingMode ? 77 : 84; 
-            let isValid = false;
-            while (!isValid) {
+            
+            while (true) {
                 let n1Midi = minMidi + Math.floor(Math.random() * (maxMidi - minMidi - 8));
                 let n2Midi = n1Midi + p.iv[0];
                 let n3Midi = n2Midi + p.iv[1];
-                if (n1Midi >= minMidi && n1Midi <= maxMidi && n2Midi >= minMidi && n2Midi <= maxMidi && n3Midi >= minMidi && n3Midi <= maxMidi) {
-                    isValid = true; matchedLyric = p.lyric; currentAns = p.ans;
-                    const n1 = getSimplestNoteInfo(n1Midi);
-                    const n2 = getNoteWithDegree(n2Midi, n1, p.deg[0]);
-                    const n3 = getNoteWithDegree(n3Midi, n2, p.deg[1]);
-                    return [n1, n2, n3];
+                
+                if (n1Midi < minMidi || n3Midi > maxMidi) continue;
+
+                // 시작할 수 있는 모든 표기법 후보들을 검사 (예: Db으로 시작할지 C#으로 시작할지)
+                const n1Options = getAllNotationOptions(n1Midi);
+                for (let n1 of n1Options) {
+                    const n2 = getNoteByDegree(n2Midi, n1, p.deg[0]);
+                    const n3 = getNoteByDegree(n3Midi, n2, p.deg[1]);
+                    
+                    // 모든 음표에 겹임시표(##, bb)가 없는지 확인
+                    if (!n1.acc.includes('##') && !n1.acc.includes('bb') &&
+                        !n2.acc.includes('##') && !n2.acc.includes('bb') &&
+                        !n3.acc.includes('##') && !n3.acc.includes('bb')) {
+                        
+                        matchedLyric = p.lyric; 
+                        currentAns = p.ans;
+                        return [n1, n2, n3];
+                    }
                 }
             }
         }
