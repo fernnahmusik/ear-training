@@ -18,12 +18,23 @@
         .page.active { display: flex; }
         h2 { margin: 15px 0 5px 0; color: var(--primary); font-size: 1.2rem; line-height: 1.2; }
         .sub-title { font-size: 0.9rem; color: #7F8C8D; margin-bottom: 20px; font-weight: 500; }
+        
         .display-box { background: #ffffff; border: none; min-height: 90px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 8px; padding: 10px; flex-shrink: 0; margin-top: 5px; position: relative; overflow: visible; z-index: 5; }
         .ans-header { display: none; width: 100%; justify-content: center; gap: 15px; margin-bottom: 2px; }
         #answer-text { font-size: 13px; color: var(--primary); font-weight: bold; margin: 0; }
         #lyric-match { font-size: 14px; color: #E74C3C; font-weight: 800; margin: 0; }
         #score-container { width: 100%; display: none; justify-content: center; transform: scale(0.85); margin-top: -10px; margin-bottom: -40px; overflow: visible; }
-        #quiz-guide-text { font-size: 13px; color: #2C3E50; line-height: 1.5; font-weight: 700; white-space: pre-wrap; background: rgba(242, 244, 246, 0.6); padding: 12px; border-radius: 12px; width: 95%; box-shadow: inset 0 0 5px rgba(0,0,0,0.05); text-align: left; box-sizing: border-box; height: auto; max-height: 250px; overflow-y: auto; }
+        
+        /* [수정] 6도 훈련 가사가 잘리지 않도록 높이 제한 상향 및 스크롤 최적화 */
+        #quiz-guide-text { 
+            font-size: 13px; color: #2C3E50; line-height: 1.6; font-weight: 700; 
+            white-space: pre-wrap; background: rgba(242, 244, 246, 0.6); 
+            padding: 15px; border-radius: 12px; width: 98%; 
+            box-shadow: inset 0 0 5px rgba(0,0,0,0.05); text-align: left; 
+            box-sizing: border-box; height: auto; max-height: 320px; 
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+        }
+        
         #options-area { display: none; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; position: relative; z-index: 20; }
         .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 4px; position: relative; z-index: 50; }
         button, .opt-btn { width: 100%; padding: 12px; border: none; border-radius: 14px; font-size: 13px; font-weight: 600; cursor: pointer; position: relative; z-index: 60; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -185,6 +196,7 @@
         const pattern3D2Down = [{ lyric: "미도레", ans: "장3↓+장2↑", iv: [-4, 2], deg: [-2, 1] }, { lyric: "미도디", ans: "장3↓+단2↑", iv: [-4, 1], deg: [-2, 1] }, { lyric: "레시도", ans: "단3↓+단2↑", iv: [-3, 1], deg: [-2, 1] }, { lyric: "도라시", ans: "단3↓+장2↑", iv: [-3, 2], deg: [-2, 1] }, { lyric: "레b시도", ans: "감3↓+단2↑", iv: [-2, 1], deg: [-2, 1] }];
         const pattern3D3Up = [{ lyric: "도미솔", ans: "장3↑+단3↑ (장3화음)", iv: [4, 3], deg: [2, 2] }, { lyric: "도미솔#", ans: "장3↑+장3↑ (증3화음)", iv: [4, 4], deg: [2, 2] }, { lyric: "라도미", ans: "단3↑+장3↑ (단3화음)", iv: [3, 4], deg: [2, 2] }, { lyric: "시레파", ans: "단3↑+단3↑ (감3화음)", iv: [3, 3], deg: [2, 2] }];
         const pattern3D3Down = [{ lyric: "솔미도", ans: "단3↓+장3↓ (장3화음)", iv: [-3, -4], deg: [-2, -2] }, { lyric: "도솔#미", ans: "장3↓+장3↓ (증3화음)", iv: [-4, -4], deg: [-2, -2] }, { lyric: "미도라", ans: "장3↓+단3↓ (단3화음)", iv: [-4, -3], deg: [-2, -2] }, { lyric: "파레시", ans: "단3↓+단3↓ (감3화음)", iv: [-3, -3], deg: [-2, -2] }];
+        
         const patternM6Up = { 1: { lyric: "미-도-시", ans: "단6↑+단2↓", iv: [8, -1], deg: [5, -1] }, 2: { lyric: "시-솔-파", ans: "단6↑+장2↓", iv: [8, -2], deg: [5, -1] }, 3: { lyric: "미-도-라", ans: "단6↑+단3↓", iv: [8, -3], deg: [5, -2] }, 4: { lyric: "미-도-솔#", ans: "단6↑+장3↓", iv: [8, -4], deg: [5, -2] }, 5: { lyric: "미-도-솔", ans: "단6↑+완4↓", iv: [8, -5], deg: [5, -3] }, 6: { lyric: "라-파-시", ans: "단6↑+증4/감5↓", iv: [8, -6], deg: [5, -4] }, 7: { lyric: "시-솔-도", ans: "단6↑+완5↓", iv: [8, -7], deg: [5, -4] } };
         const patternM6Down = { 1: { lyric: "솔-시-도", ans: "단6↓+단2↑", iv: [-8, 1], deg: [-5, 1] }, 2: { lyric: "파-라-시", ans: "단6↓+장2↑", iv: [-8, 2], deg: [-5, 1] }, 3: { lyric: "도-미-솔", ans: "단6↓+단3↑", iv: [-8, 3], deg: [-5, 2] }, 4: { lyric: "도-미-솔#", ans: "단6↓+장3↑", iv: [-8, 4], deg: [-5, 2] }, 5: { lyric: "도-미-라", ans: "단6↓+완4↑", iv: [-8, 5], deg: [-5, 3] }, 6: { lyric: "솔-시-파", ans: "단6↓+증4/감5↑", iv: [-8, 6], deg: [-5, 4] }, 7: { lyric: "도-미-시", ans: "단6↓+완5↑", iv: [-8, 7], deg: [-5, 5] } };
 
@@ -232,65 +244,24 @@
                 else if (sub3Type === '3down') { list = pattern3D3Down; guide.innerText = "1. 솔미도 (장3화음)\n2. 도솔#미 (증3화음)\n3. 미도라 (단3화음)\n4. 파레시 (감3화음)"; }
                 list.forEach((p, i) => { const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${i+1}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
             } else if (sub6Direction === 'up') {
-                guide.innerText = "1. 미도시 (단6↑+단2↓)...";
+                guide.innerText = "1. 미도시 (단6↑+단2↓)\n2. 시솔파 (단6↑+장2↓)\n3. 미도라 (단6↑+단3↓)\n4. 미도솔# (단6↑+장3↓)\n5. 미도솔 (단6↑+완4↓)\n6. 라파시 (단6↑+증4/감5↓)\n7. 시솔도 (단6↑+완5↓)";
                 Object.keys(patternM6Up).forEach((key) => { const p = patternM6Up[key]; const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${key}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
             } else {
-                guide.innerText = "1. 솔시도 (단6↓+단2↑)...";
+                guide.innerText = "1. 솔시도 (단6↓+단2↑)\n2. 파라시 (단6↓+장2↑)\n3. 도미솔 (단6↓+단3↑)\n4. 도미솔# (단6↓+장3↑)\n5. 도미라 (단6↓+완4↑)\n6. 솔시파 (단6↓+증4/감5↑)\n7. 도미시 (단6↓+완5↑)";
                 Object.keys(patternM6Down).forEach((key) => { const p = patternM6Down[key]; const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${key}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
             }
         }
 
         function checkChoice(btn, choice) { if (isSightReadingMode || btn.disabled) return; stats.sessionCount++; if (choice === matchedLyric) { btn.classList.add('correct'); stats.correct++; document.getElementById('quiz-status').innerText = "⭕ 정답!"; document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true); showAns(); } else { btn.classList.add('wrong'); stats.wrong++; errorTracker[matchedLyric] = (errorTracker[matchedLyric] || 0) + 1; document.getElementById('quiz-status').innerText = "❌ 오답!"; } }
-        
-        // [수정] 다음 문제로 넘길 때 오디오 재활성화
-        async function nextProblem() { 
-            await Tone.start(); 
-            if (!isSightReadingMode && stats.sessionCount >= 10) { showResults(); return; } 
-            resetUI(); 
-            visualNotes = generateProblem(); 
-            setTimeout(() => { handlePlay(false); }, 150); 
-        }
-
+        async function nextProblem() { await Tone.start(); if (!isSightReadingMode && stats.sessionCount >= 10) { showResults(); return; } resetUI(); visualNotes = generateProblem(); setTimeout(() => { handlePlay(false); }, 150); }
         function showResults() { hideAllPages(); document.getElementById('result-page').classList.add('active'); document.getElementById('res-counts').innerText = `(정답: ${stats.correct} / 오답: ${stats.wrong})`; const rate = Math.round((stats.correct / (stats.correct + stats.wrong)) * 100); document.getElementById('res-rate').innerText = `정답률: ${rate}%`; let worstPattern = "없음 (완벽합니다!)"; let maxErrors = 0; for (let lyric in errorTracker) { if (errorTracker[lyric] > maxErrors) { maxErrors = errorTracker[lyric]; worstPattern = `${lyric} (${maxErrors}회 오답)`; } } document.getElementById('worst-pattern-text').innerText = worstPattern; }
         function continueQuiz() { stats.sessionCount = 0; hideAllPages(); document.getElementById('quiz-page').classList.add('active'); nextProblem(); }
         function resetStats() { stats = { correct: 0, wrong: 0, sessionCount: 0 }; errorTracker = {}; }
         function resetUI() { document.getElementById('ans-header').style.display = 'none'; document.getElementById('score-container').style.display = 'none'; document.getElementById('quiz-guide-text').style.display = 'block'; document.getElementById('play-btn').disabled = false; document.getElementById('replay-btn').disabled = true; document.querySelectorAll('.opt-btn').forEach(b => { b.classList.remove('correct', 'wrong'); b.disabled = false; }); const status = document.getElementById('quiz-status'); if (isSightReadingMode) status.innerText = "첫 음을 듣고 노래하세요!"; else status.innerText = ""; }
-        
-        // [수정] 재생 시 context 체크
-        async function handlePlay(isReplay) { 
-            await Tone.start(); 
-            const bpmSec = 60 / currentBpm; 
-            const now = Tone.now(); 
-            if (isSightReadingMode) { 
-                document.getElementById('ans-header').style.display = 'flex'; 
-                document.getElementById('answer-text').style.display = 'none'; 
-                document.getElementById('lyric-match').innerText = `가사 : ${matchedLyric}`; 
-                document.getElementById('lyric-match').style.display = 'block'; 
-                sampler.triggerAttackRelease(Tone.Frequency(visualNotes[0].midi, "midi"), 1.0); 
-            } else { 
-                visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); }); 
-            } 
-            document.getElementById('play-btn').disabled = true; 
-            document.getElementById('replay-btn').disabled = false; 
-        }
-
+        async function handlePlay(isReplay) { await Tone.start(); const bpmSec = 60 / currentBpm; const now = Tone.now(); if (isSightReadingMode) { document.getElementById('ans-header').style.display = 'flex'; document.getElementById('answer-text').style.display = 'none'; document.getElementById('lyric-match').innerText = `가사 : ${matchedLyric}`; document.getElementById('lyric-match').style.display = 'block'; sampler.triggerAttackRelease(Tone.Frequency(visualNotes[0].midi, "midi"), 1.0); } else { visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); }); } document.getElementById('play-btn').disabled = true; document.getElementById('replay-btn').disabled = false; }
         function updateTempo(val) { currentBpm = val; document.getElementById('tempo-val').innerText = `BPM ${val}`; }
         function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-        
-        function showAns() { 
-            if (!visualNotes.length) return; 
-            document.getElementById('ans-header').style.display = 'flex'; 
-            document.getElementById('answer-text').innerText = `정답 : ${currentAns}`; 
-            document.getElementById('answer-text').style.display = 'block'; 
-            document.getElementById('lyric-match').innerText = `가사 : ${matchedLyric}`; 
-            document.getElementById('quiz-guide-text').style.display = 'none'; 
-            if (isSightReadingMode) { document.getElementById('quiz-status').innerText = ""; } 
-            drawScore(); 
-            const bpmSec = 60 / currentBpm; 
-            const now = Tone.now(); 
-            visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); }); 
-        }
-
+        function showAns() { if (!visualNotes.length) return; document.getElementById('ans-header').style.display = 'flex'; document.getElementById('answer-text').innerText = `정답 : ${currentAns}`; document.getElementById('answer-text').style.display = 'block'; document.getElementById('lyric-match').innerText = `가사 : ${matchedLyric}`; document.getElementById('quiz-guide-text').style.display = 'none'; if (isSightReadingMode) { document.getElementById('quiz-status').innerText = ""; } drawScore(); const bpmSec = 60 / currentBpm; const now = Tone.now(); visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); }); }
         function drawScore() { const container = document.getElementById('score-container'); container.innerHTML = ""; container.style.display = "flex"; const renderer = new Renderer(container, Renderer.Backends.SVG); renderer.resize(260, 150); const ctx = renderer.getContext(); const stave = new Stave(0, 0, 250); stave.addClef("treble").setContext(ctx).draw(); const accTracker = {}; const notes = visualNotes.map(n => { const sn = new StaveNote({ clef: "treble", keys: [`${n.key}/${n.oct}`], duration: "q" }); const currentAcc = n.acc || ""; const prevAcc = accTracker[n.key]; if (currentAcc === "") { if (prevAcc !== undefined && prevAcc !== "") sn.addModifier(new Accidental("n")); } else { if (prevAcc !== currentAcc) sn.addModifier(new Accidental(currentAcc)); } accTracker[n.key] = currentAcc; return sn; }); const voice = new Voice({ num_beats: visualNotes.length, beat_value: 4 }); voice.addTickables(notes); new Formatter().joinVoices([voice]).format([voice], 200); voice.draw(ctx, stave); }
     </script>
 </body>
