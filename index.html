@@ -139,19 +139,21 @@
 
         const baseScales = [{ n: 'c', m: 0 }, { n: 'd', m: 2 }, { n: 'e', m: 4 }, { n: 'f', m: 5 }, { n: 'g', m: 7 }, { n: 'a', m: 9 }, { n: 'b', m: 11 }];
 
-        // [핵심] 음정 간격과 방향을 강제하는 정밀 노표 계산기
+        // [근본적 해결] 도약 방향에 맞춰 옥타브를 수동으로 제어하는 노표 계산기
         function getNoteByDegree(midi, baseNote, degreeDiff) {
             const chroma = (midi % 12 + 12) % 12;
             const baseIdx = baseScales.findIndex(s => s.n === baseNote.key);
             
-            // degreeDiff: 6도 상행이면 +5, 2도 하행이면 -1
+            // 1. 도수(음 이름) 결정
             let targetIdx = (baseIdx + degreeDiff) % 7;
             if (targetIdx < 0) targetIdx += 7;
             const targetScale = baseScales[targetIdx];
             
-            // [개선] 옥타브를 수동으로 계산하여 음역대 및 간격 보장
-            let octave = Math.floor(midi / 12) - 1;
+            // 2. 옥타브(Octave) 결정 로직 수정
+            // 이전 음의 이름 인덱스 + 도수 차이를 통해 옥타브가 변했는지 감지
+            let octave = baseNote.oct + Math.floor((baseIdx + degreeDiff) / 7);
             
+            // 3. 임시표 계산
             let diff = chroma - targetScale.m;
             if (diff > 6) diff -= 12; else if (diff < -6) diff += 12;
             
@@ -175,12 +177,13 @@
             return options;
         }
 
-        // 도수 간격 정의 (2도는 deg:1, 6도는 deg:5)
+        // 도수 간격 정의 (상행은 양수, 하행은 음수)
         const pattern2D = [
             { lyric: "도-디-레", ans: "단2↑+단2↑", iv: [1, 1], deg: [1, 1] }, { lyric: "미-파-솔", ans: "단2↑+장2↑", iv: [1, 2], deg: [1, 1] }, { lyric: "라-시-도", ans: "장2↑+단2↑", iv: [2, 1], deg: [1, 1] }, { lyric: "도-레-미", ans: "장2↑+장2↑", iv: [2, 2], deg: [1, 1] },
             { lyric: "도-시-세", ans: "단2↓+단2↓", iv: [-1, -1], deg: [-1, -1] }, { lyric: "솔-파-미", ans: "장2↓+단2↓", iv: [-2, -1], deg: [-1, -1] }, { lyric: "도-시-라", ans: "단2↓+장2↓", iv: [-1, -2], deg: [-1, -1] }, { lyric: "미-레-도", ans: "장2↓+장2↓", iv: [-2, -2], deg: [-1, -1] }
         ];
 
+        // deg: 상행 단6도는 +5 (도->라), 하행 장2도는 -1 (라->솔)
         const patternM6Up = { 1: { lyric: "미-도-시", ans: "단6↑+단2↓", iv: [8, -1], deg: [5, -1] }, 2: { lyric: "시-솔-파", ans: "단6↑+장2↓", iv: [8, -2], deg: [5, -1] }, 3: { lyric: "미-도-라", ans: "단6↑+단3↓", iv: [8, -3], deg: [5, -2] }, 4: { lyric: "미-도-솔#", ans: "단6↑+장3↓", iv: [8, -4], deg: [5, -2] }, 5: { lyric: "미-도-솔", ans: "단6↑+완4↓", iv: [8, -5], deg: [5, -3] }, 6: { lyric: "라-파-시", ans: "단6↑+증4/감5↓", iv: [8, -6], deg: [5, -4] }, 7: { lyric: "시-솔-도", ans: "단6↑+완5↓", iv: [8, -7], deg: [5, -4] } };
         const patternM6Down = { 1: { lyric: "솔-시-도", ans: "단6↓+단2↑", iv: [-8, 1], deg: [-5, 1] }, 2: { lyric: "파-라-시", ans: "단6↓+장2↑", iv: [-8, 2], deg: [-5, 1] }, 3: { lyric: "도-미-솔", ans: "단6↓+단3↑", iv: [-8, 3], deg: [-5, 2] }, 4: { lyric: "도-미-솔#", ans: "단6↓+장3↑", iv: [-8, 4], deg: [-5, 2] }, 5: { lyric: "도-미-라", ans: "단6↓+완4↑", iv: [-8, 5], deg: [-5, 3] }, 6: { lyric: "솔-시-파", ans: "단6↓+증4/감5↑", iv: [-8, 6], deg: [-5, 4] }, 7: { lyric: "도-미-시", ans: "단6↓+완5↑", iv: [-8, 7], deg: [-5, 5] } };
 
@@ -200,7 +203,6 @@
             setTimeout(() => { handlePlay(false); }, 300);
         }
 
-        // [엄격] 음역대와 경제성, 정확한 간격을 결합한 문제 생성
         function generateProblem() {
             if (patternQueue.length === 0) {
                 if (currentIntervalMajor === 2) patternQueue = shuffle([...pattern2D]);
@@ -215,7 +217,7 @@
                 let n2Midi = n1Midi + p.iv[0];
                 let n3Midi = n2Midi + p.iv[1];
                 
-                // 모든 음이 설정된 음역대 안에 있는지 검증
+                // 음역대 검증
                 if (n1Midi < RANGE_MIN || n2Midi < RANGE_MIN || n3Midi < RANGE_MIN || 
                     n1Midi > RANGE_MAX || n2Midi > RANGE_MAX || n3Midi > RANGE_MAX) continue;
 
@@ -224,7 +226,7 @@
                     const n2 = getNoteByDegree(n2Midi, n1, p.deg[0]);
                     const n3 = getNoteByDegree(n3Midi, n2, p.deg[1]);
                     
-                    // 겹임시표 필터링
+                    // 겹임시표 제거 및 옥타브 도약이 정상 Midi 범위 내에 있는지 교차 검증
                     if (!n1.acc.includes('##') && !n1.acc.includes('bb') &&
                         !n2.acc.includes('##') && !n2.acc.includes('bb') &&
                         !n3.acc.includes('##') && !n3.acc.includes('bb')) {
