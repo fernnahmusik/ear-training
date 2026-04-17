@@ -11,39 +11,51 @@
             --penna-pink: #FF9AA2; --penna-yellow: #FFE39F; --penna-green: #B5EAD7; --penna-blue: #C7CEEA;    
             --primary: #2C3E50; --secondary: #34495E; --bg: #F9F9F9; 
         }
-        body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; touch-action: pan-x pan-y; overflow-x: hidden; }
-        .app-card { background: white; width: 94%; max-width: 400px; padding: 12px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; height: auto; min-height: 520px; display: flex; flex-direction: column; position: relative; z-index: 10; box-sizing: border-box; border: 5px solid transparent; background-image: linear-gradient(#fff, #fff), linear-gradient(to bottom right, var(--penna-pink), var(--penna-yellow), var(--penna-green), var(--penna-blue)); background-origin: border-box; background-clip: padding-box, border-box; }
-        .app-logo { position: absolute; top: 15px; right: 15px; width: 35px; height: 35px; border-radius: 8px; object-fit: cover; pointer-events: none; z-index: 50; }
+        body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; touch-action: manipulation; overflow-x: hidden; }
+        
+        /* 카드 레이아웃 및 터치 간섭 방지 */
+        .app-card { background: white; width: 94%; max-width: 400px; padding: 12px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; height: auto; min-height: 520px; display: flex; flex-direction: column; position: relative; z-index: 1; box-sizing: border-box; border: 5px solid transparent; background-image: linear-gradient(#fff, #fff), linear-gradient(to bottom right, var(--penna-pink), var(--penna-yellow), var(--penna-green), var(--penna-blue)); background-origin: border-box; background-clip: padding-box, border-box; }
+        
+        .app-logo { position: absolute; top: 15px; right: 15px; width: 35px; height: 35px; border-radius: 8px; object-fit: cover; pointer-events: none; z-index: 100; }
         .page { display: none; flex-direction: column; flex-grow: 1; position: relative; z-index: 10; }
         .page.active { display: flex; }
+        
         h2 { margin: 15px 0 5px 0; color: var(--primary); font-size: 1.2rem; line-height: 1.2; }
         .sub-title { font-size: 0.9rem; color: #7F8C8D; margin-bottom: 20px; font-weight: 500; }
-        .display-box { background: #F2F4F6; min-height: 90px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 8px; padding: 10px; flex-shrink: 0; margin-top: 5px; position: relative; overflow: visible; }
-        .ans-header { display: none; width: 100%; justify-content: center; gap: 15px; margin-bottom: 2px; z-index: 30; }
+        
+        .display-box { background: #F2F4F6; min-height: 90px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 8px; padding: 10px; flex-shrink: 0; margin-top: 5px; position: relative; overflow: visible; z-index: 5; }
+        .ans-header { display: none; width: 100%; justify-content: center; gap: 15px; margin-bottom: 2px; }
         #answer-text { font-size: 13px; color: var(--primary); font-weight: bold; margin: 0; }
         #lyric-match { font-size: 14px; color: #E74C3C; font-weight: 800; margin: 0; }
-        #score-container { width: 100%; display: none; justify-content: center; transform: scale(0.85); margin-top: -10px; margin-bottom: -40px; z-index: 20; overflow: visible; }
-        #quiz-status { font-size: 14px; color: #7F8C8D; margin-bottom: 4px; font-weight: 800; }
+        #score-container { width: 100%; display: none; justify-content: center; transform: scale(0.85); margin-top: -10px; margin-bottom: -40px; overflow: visible; }
+        
         #quiz-guide-text { font-size: 13px; color: #2C3E50; line-height: 1.5; font-weight: 700; white-space: pre-wrap; background: rgba(255,255,255,0.8); padding: 12px; border-radius: 12px; width: 95%; box-shadow: inset 0 0 5px rgba(0,0,0,0.05); text-align: left; box-sizing: border-box; height: auto; max-height: 250px; overflow-y: auto; }
+        
         #options-area { display: none; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; position: relative; z-index: 20; }
-        .opt-btn { background: #fff; border: 1.5px solid #DCDFE6; color: #606266; padding: 12px 2px; font-size: 13.5px; border-radius: 12px; font-weight: 700; cursor: pointer; }
-        .opt-btn.correct { background: var(--penna-green); color: white; border-color: #27AE60; }
-        .opt-btn.wrong { background: #FFD1D1; color: #E74C3C; border-color: #E74C3C; }
-        .tempo-container { background: #fff; padding: 6px 10px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #eee; flex-shrink: 0; }
-        .tempo-label { font-size: 10px; color: var(--secondary); font-weight: 600; margin-bottom: 2px; display: flex; justify-content: space-between; }
-        #tempo-slider { width: 100%; cursor: pointer; accent-color: var(--secondary); margin: 0; }
-        .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 4px; }
-        button { width: 100%; padding: 12px; border: none; border-radius: 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        
+        /* 버튼 클릭 감도 및 레이어 우선순위 강화 */
+        .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 4px; position: relative; z-index: 50; }
+        button, .opt-btn { 
+            width: 100%; padding: 12px; border: none; border-radius: 14px; font-size: 13px; font-weight: 600; 
+            cursor: pointer; position: relative; z-index: 60; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+        }
         button:active { transform: scale(0.97); opacity: 0.9; }
+        
         .btn-category { background: var(--secondary); color: white; padding: 14px; font-size: 0.95rem; }
         .btn-main { background: var(--primary); color: white; }
         .btn-play { background: #27AE60; color: white; } 
         .btn-replay { background: #95A5A6; color: white; } 
         .btn-next { background: #E67E22; color: white; } 
         .btn-sub { background: white; color: var(--primary); border: 1.5px solid #DCDFE6; }
-        .btn-back { background: transparent; color: #95A5A6; font-size: 11px; padding: 4px; }
-        .result-stat { font-size: 1.1rem; margin: 8px 0; color: #34495E; font-weight: 700; }
-        .worst-pattern-box { background: #FFF0F0; border: 1px dashed #FF9AA2; padding: 12px; border-radius: 15px; margin-top: 10px; text-align: left; }
+        .btn-back { background: transparent; color: #95A5A6; font-size: 11px; padding: 4px; z-index: 70; }
+        
+        .opt-btn { background: #fff; border: 1.5px solid #DCDFE6; color: #606266; }
+        .opt-btn.correct { background: var(--penna-green); color: white; border-color: #27AE60; }
+        .opt-btn.wrong { background: #FFD1D1; color: #E74C3C; border-color: #E74C3C; }
+        
+        .tempo-container { background: #fff; padding: 6px 10px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #eee; flex-shrink: 0; position: relative; z-index: 40; }
+        .tempo-label { font-size: 10px; color: var(--secondary); font-weight: 600; margin-bottom: 2px; display: flex; justify-content: space-between; }
+        #tempo-slider { width: 100%; cursor: pointer; accent-color: var(--secondary); margin: 0; }
     </style>
 </head>
 <body>
@@ -85,7 +97,7 @@
             <div class="btn-group">
                 <button id="mode-ear-btn" class="btn-main" onclick="startQuiz('ear')" disabled>청음 훈련 (Ear Training)</button>
                 <button id="mode-sight-btn" class="btn-main" onclick="startQuiz('sight')" disabled style="background: #5D6D7E;">시창 훈련 (Sight Singing)</button>
-                <button class="btn-back" id="back-to-prev" onclick="goPrevStep()">⬅ 뒤로 가기</button>
+                <button class="btn-back" onclick="goPrevStep()">⬅ 뒤로 가기</button>
             </div>
         </div>
 
@@ -113,18 +125,18 @@
                     <button id="ans-btn" class="btn-sub" style="flex: 1.2;" onclick="showAns()">정답/악보 확인</button>
                     <button id="next-btn" class="btn-next" style="flex: 1;" onclick="nextProblem()">다음 문제</button>
                 </div>
-                <button class="btn-back" onclick="resetStats(); goStep2();">🏠 모드 선택으로</button>
+                <button class="btn-back" onclick="resetStats(); showStep2();">🏠 모드 선택으로</button>
             </div>
         </div>
 
         <div id="result-page" class="page">
             <h2 style="margin-top:20px;">🎯 중간 점검</h2>
             <div class="display-box" style="min-height: 150px; padding: 15px;">
-                <div class="result-stat" id="res-rate" style="font-size: 1.4rem; color: #27AE60;">정답률: 0%</div>
-                <div class="result-stat" id="res-counts" style="font-size: 0.9rem;">(정답: 0 / 오답: 0)</div>
-                <div class="worst-pattern-box" id="worst-box">
+                <div id="res-rate" style="font-size: 1.4rem; color: #27AE60; font-weight: 700;">정답률: 0%</div>
+                <div id="res-counts" style="font-size: 0.9rem; font-weight: 700;">(정답: 0 / 오답: 0)</div>
+                <div class="worst-pattern-box">
                     <div style="font-size: 11px; color: #E74C3C; font-weight: 800; margin-bottom: 5px;">⚠️ 취약 패턴 분석</div>
-                    <div id="worst-pattern-text" style="font-size: 13px; font-weight: 700; color: #2C3E50;">분석 중...</div>
+                    <div id="worst-pattern-text" style="font-size: 13px; font-weight: 700;">분석 중...</div>
                 </div>
             </div>
             <div class="btn-group" style="margin-top: 20px;">
@@ -186,21 +198,8 @@
         const pattern2D = [{ lyric: "도-디-레", ans: "단2↑+단2↑", iv: [1, 1], deg: [1, 1] }, { lyric: "미-파-솔", ans: "단2↑+장2↑", iv: [1, 2], deg: [1, 1] }, { lyric: "라-시-도", ans: "장2↑+단2↑", iv: [2, 1], deg: [1, 1] }, { lyric: "도-레-미", ans: "장2↑+장2↑", iv: [2, 2], deg: [1, 1] }, { lyric: "도-시-세", ans: "단2↓+단2↓", iv: [-1, -1], deg: [-1, -1] }, { lyric: "솔-파-미", ans: "장2↓+단2↓", iv: [-2, -1], deg: [-1, -1] }, { lyric: "도-시-라", ans: "단2↓+장2↓", iv: [-1, -2], deg: [-1, -1] }, { lyric: "미-레-도", ans: "장2↓+장2↓", iv: [-2, -2], deg: [-1, -1] }];
         const pattern3D2Up = [{ lyric: "도미레", ans: "장3↑+장2↓", iv: [4, -2], deg: [2, -1] }, { lyric: "도미메", ans: "장3↑+단2↓", iv: [4, -1], deg: [2, -1] }, { lyric: "시레도", ans: "단3↑+장2↓", iv: [3, -2], deg: [2, -1] }, { lyric: "라도시", ans: "단3↑+단2↓", iv: [3, -1], deg: [2, -1] }, { lyric: "시레b도", ans: "감3↑+단2↓", iv: [2, -1], deg: [2, -1] }];
         const pattern3D2Down = [{ lyric: "미도레", ans: "장3↓+장2↑", iv: [-4, 2], deg: [-2, 1] }, { lyric: "미도디", ans: "장3↓+단2↑", iv: [-4, 1], deg: [-2, 1] }, { lyric: "레시도", ans: "단3↓+단2↑", iv: [-3, 1], deg: [-2, 1] }, { lyric: "도라시", ans: "단3↓+장2↑", iv: [-3, 2], deg: [-2, 1] }, { lyric: "레b시도", ans: "감3↓+단2↑", iv: [-2, 1], deg: [-2, 1] }];
-        
-        // [수정된 3도 3도 데이터 - 요청하신 순서 및 명칭 반영]
-        const pattern3D3Up = [
-            { lyric: "도미솔", ans: "장3↑+단3↑ (장3화음)", iv: [4, 3], deg: [2, 2] },
-            { lyric: "도미솔#", ans: "장3↑+장3↑ (증3화음)", iv: [4, 4], deg: [2, 2] },
-            { lyric: "라도미", ans: "단3↑+장3↑ (단3화음)", iv: [3, 4], deg: [2, 2] },
-            { lyric: "시레파", ans: "단3↑+단3↑ (감3화음)", iv: [3, 3], deg: [2, 2] }
-        ];
-        const pattern3D3Down = [
-            { lyric: "솔미도", ans: "단3↓+장3↓ (장3화음)", iv: [-3, -4], deg: [-2, -2] },
-            { lyric: "도솔#미", ans: "장3↓+장3↓ (증3화음)", iv: [-4, -4], deg: [-2, -2] },
-            { lyric: "미도라", ans: "장3↓+단3↓ (단3화음)", iv: [-4, -3], deg: [-2, -2] },
-            { lyric: "파레시", ans: "단3↓+단3↓ (감3화음)", iv: [-3, -3], deg: [-2, -2] }
-        ];
-
+        const pattern3D3Up = [{ lyric: "도미솔", ans: "장3↑+단3↑ (장3화음)", iv: [4, 3], deg: [2, 2] }, { lyric: "도미솔#", ans: "장3↑+장3↑ (증3화음)", iv: [4, 4], deg: [2, 2] }, { lyric: "라도미", ans: "단3↑+장3↑ (단3화음)", iv: [3, 4], deg: [2, 2] }, { lyric: "시레파", ans: "단3↑+단3↑ (감3화음)", iv: [3, 3], deg: [2, 2] }];
+        const pattern3D3Down = [{ lyric: "솔미도", ans: "단3↓+장3↓ (장3화음)", iv: [-3, -4], deg: [-2, -2] }, { lyric: "도솔#미", ans: "장3↓+장3↓ (증3화음)", iv: [-4, -4], deg: [-2, -2] }, { lyric: "미도라", ans: "장3↓+단3↓ (단3화음)", iv: [-4, -3], deg: [-2, -2] }, { lyric: "파레시", ans: "단3↓+단3↓ (감3화음)", iv: [-3, -3], deg: [-2, -2] }];
         const patternM6Up = { 1: { lyric: "미-도-시", ans: "단6↑+단2↓", iv: [8, -1], deg: [5, -1] }, 2: { lyric: "시-솔-파", ans: "단6↑+장2↓", iv: [8, -2], deg: [5, -1] }, 3: { lyric: "미-도-라", ans: "단6↑+단3↓", iv: [8, -3], deg: [5, -2] }, 4: { lyric: "미-도-솔#", ans: "단6↑+장3↓", iv: [8, -4], deg: [5, -2] }, 5: { lyric: "미-도-솔", ans: "단6↑+완4↓", iv: [8, -5], deg: [5, -3] }, 6: { lyric: "라-파-시", ans: "단6↑+증4/감5↓", iv: [8, -6], deg: [5, -4] }, 7: { lyric: "시-솔-도", ans: "단6↑+완5↓", iv: [8, -7], deg: [5, -4] } };
         const patternM6Down = { 1: { lyric: "솔-시-도", ans: "단6↓+단2↑", iv: [-8, 1], deg: [-5, 1] }, 2: { lyric: "파-라-시", ans: "단6↓+장2↑", iv: [-8, 2], deg: [-5, 1] }, 3: { lyric: "도-미-솔", ans: "단6↓+단3↑", iv: [-8, 3], deg: [-5, 2] }, 4: { lyric: "도-미-솔#", ans: "단6↓+장3↑", iv: [-8, 4], deg: [-5, 2] }, 5: { lyric: "도-미-라", ans: "단6↓+완4↑", iv: [-8, 5], deg: [-5, 3] }, 6: { lyric: "솔-시-파", ans: "단6↓+증4/감5↑", iv: [-8, 6], deg: [-5, 4] }, 7: { lyric: "도-미-시", ans: "단6↓+완5↑", iv: [-8, 7], deg: [-5, 5] } };
 
