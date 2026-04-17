@@ -276,23 +276,34 @@
             visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); });
         }
 
-        // [핵심 수정] 제자리표 및 임시표 변화를 감지하여 정확히 렌더링
+        // [최종 수정] 변화가 있는 경우에만 제자리표를 표시하도록 로직 정교화
         function drawScore() {
             const container = document.getElementById('score-container'); container.innerHTML = ""; container.style.display = "flex";
             const renderer = new Renderer(container, Renderer.Backends.SVG); renderer.resize(260, 150);
             const ctx = renderer.getContext(); const stave = new Stave(0, 0, 250); stave.addClef("treble").setContext(ctx).draw();
             
-            // 현재 마디 안에서 음 이름별 임시표 상태를 추적
             const accTracker = {}; 
             const notes = visualNotes.map(n => { 
                 const sn = new StaveNote({ clef: "treble", keys: [`${n.key}/${n.oct}`], duration: "q" }); 
-                const currentAcc = n.acc || "n"; // 임시표가 없으면 내추럴(n)로 간주
+                const currentAcc = n.acc || ""; // 현재 음의 임시표 (#, b, 혹은 없음)
                 
-                // 이전 음의 동일한 음 이름과 임시표 상태가 다를 경우에만 임시표 추가
-                if (accTracker[n.key] !== currentAcc) {
-                    sn.addModifier(new Accidental(currentAcc === "n" ? "n" : currentAcc));
-                    accTracker[n.key] = currentAcc;
+                // 이전 음 이름의 임시표 상태와 비교
+                const prevAcc = accTracker[n.key];
+                
+                if (currentAcc === "") {
+                    // 현재 내추럴인데 이전에 #이나 b이 붙었었다면 제자리표 표시
+                    if (prevAcc !== undefined && prevAcc !== "") {
+                        sn.addModifier(new Accidental("n"));
+                    }
+                } else {
+                    // 현재 #이나 b인데 이전 상태와 다르다면 표시
+                    if (prevAcc !== currentAcc) {
+                        sn.addModifier(new Accidental(currentAcc));
+                    }
                 }
+                
+                // 상태 업데이트
+                accTracker[n.key] = currentAcc;
                 return sn; 
             });
             const voice = new Voice({ num_beats: visualNotes.length, beat_value: 4 }); voice.addTickables(notes);
