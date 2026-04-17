@@ -139,18 +139,14 @@
 
         const baseScales = [{ n: 'c', m: 0 }, { n: 'd', m: 2 }, { n: 'e', m: 4 }, { n: 'f', m: 5 }, { n: 'g', m: 7 }, { n: 'a', m: 9 }, { n: 'b', m: 11 }];
 
-        // [수정] 도수와 옥타브를 정확히 계산하여 상/하행 방향 보장
         function getNoteByDegree(midi, baseNote, degreeDiff) {
             const chroma = (midi % 12 + 12) % 12;
             const baseIdx = baseScales.findIndex(s => s.n === baseNote.key);
-            
-            // degreeDiff가 양수면 상행 인덱스, 음수면 하행 인덱스
             let targetIdx = (baseIdx + degreeDiff) % 7;
             if (targetIdx < 0) targetIdx += 7;
-            
             const targetScale = baseScales[targetIdx];
             
-            // 옥타브 계산: midi 값으로부터 직접 도출 (정확한 위치 보장)
+            // [수정] 옥타브를 수동 계산하여 튀어오름 방지
             const octave = Math.floor(midi / 12) - 1;
             
             let diff = chroma - targetScale.m;
@@ -213,19 +209,13 @@
                 let n1Midi = RANGE_MIN + Math.floor(Math.random() * (RANGE_MAX - RANGE_MIN));
                 let n2Midi = n1Midi + p.iv[0];
                 let n3Midi = n2Midi + p.iv[1];
-                
-                if (n1Midi < RANGE_MIN || n2Midi < RANGE_MIN || n3Midi < RANGE_MIN || 
-                    n1Midi > RANGE_MAX || n2Midi > RANGE_MAX || n3Midi > RANGE_MAX) continue;
+                if (n1Midi < RANGE_MIN || n2Midi < RANGE_MIN || n3Midi < RANGE_MIN || n1Midi > RANGE_MAX || n2Midi > RANGE_MAX || n3Midi > RANGE_MAX) continue;
 
                 const n1Options = getAllNotationOptions(n1Midi);
                 for (let n1 of n1Options) {
                     const n2 = getNoteByDegree(n2Midi, n1, p.deg[0]);
                     const n3 = getNoteByDegree(n3Midi, n2, p.deg[1]);
-                    
-                    if (!n1.acc.includes('##') && !n1.acc.includes('bb') &&
-                        !n2.acc.includes('##') && !n2.acc.includes('bb') &&
-                        !n3.acc.includes('##') && !n3.acc.includes('bb')) {
-                        
+                    if (!n1.acc.includes('##') && !n1.acc.includes('bb') && !n2.acc.includes('##') && !n2.acc.includes('bb') && !n3.acc.includes('##') && !n3.acc.includes('bb')) {
                         matchedLyric = p.lyric; currentAns = p.ans;
                         return [n1, n2, n3];
                     }
