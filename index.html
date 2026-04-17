@@ -149,63 +149,15 @@
         const RANGE_MIN = 55; const SIGHT_MAX = 77; const EAR_MAX = 84;
         const baseScales = [{ n: 'c', m: 0 }, { n: 'd', m: 2 }, { n: 'e', m: 4 }, { n: 'f', m: 5 }, { n: 'g', m: 7 }, { n: 'a', m: 9 }, { n: 'b', m: 11 }];
 
-        // [수정] 페이지 전환 시 무조건 모든 페이지 숨김 처리 로직 강화
-        function hideAllPages() { 
-            const pages = document.querySelectorAll('.page');
-            pages.forEach(p => p.classList.remove('active')); 
-        }
+        function hideAllPages() { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); }
+        function goStep1() { hideAllPages(); document.getElementById('step1-page').classList.add('active'); }
+        function goToStep1_3() { hideAllPages(); document.getElementById('step1-3-main-page').classList.add('active'); }
+        function selectMajor(major) { hideAllPages(); currentIntervalMajor = major; patternQueue = []; if (major === 6) document.getElementById('step1-5-page').classList.add('active'); else showStep2(); }
+        function selectSub6(dir) { sub6Direction = dir; patternQueue = []; showStep2(); }
+        function selectSub3(type) { currentIntervalMajor = 3; sub3Type = type; patternQueue = []; showStep2(); }
+        function showStep2() { hideAllPages(); document.getElementById('step2-page').classList.add('active'); }
+        function goPrevStep() { hideAllPages(); if (currentIntervalMajor === 6) document.getElementById('step1-5-page').classList.add('active'); else if (currentIntervalMajor === 3) document.getElementById('step1-3-main-page').classList.add('active'); else goStep1(); }
 
-        function goStep1() { 
-            hideAllPages(); 
-            document.getElementById('step1-page').classList.add('active'); 
-        }
-
-        function goToStep1_3() { 
-            hideAllPages(); 
-            document.getElementById('step1-3-main-page').classList.add('active'); 
-        }
-
-        function selectMajor(major) { 
-            hideAllPages();
-            currentIntervalMajor = major; 
-            patternQueue = []; 
-            if (major === 6) {
-                document.getElementById('step1-5-page').classList.add('active');
-            } else {
-                showStep2();
-            }
-        }
-
-        function selectSub6(dir) { 
-            sub6Direction = dir; 
-            patternQueue = []; 
-            showStep2(); 
-        }
-
-        function selectSub3(type) { 
-            currentIntervalMajor = 3; 
-            sub3Type = type; 
-            patternQueue = []; 
-            showStep2(); 
-        }
-
-        function showStep2() { 
-            hideAllPages(); 
-            document.getElementById('step2-page').classList.add('active'); 
-        }
-
-        function goPrevStep() { 
-            hideAllPages();
-            if (currentIntervalMajor === 6) {
-                document.getElementById('step1-5-page').classList.add('active');
-            } else if (currentIntervalMajor === 3) {
-                document.getElementById('step1-3-main-page').classList.add('active');
-            } else {
-                goStep1();
-            }
-        }
-
-        // [기존 퀴즈 로직 유지]
         function getNoteByDegree(midi, baseNote, degreeDiff) {
             const chroma = (midi % 12 + 12) % 12;
             const baseIdx = baseScales.findIndex(s => s.n === baseNote.key);
@@ -289,15 +241,56 @@
         }
 
         function checkChoice(btn, choice) { if (isSightReadingMode || btn.disabled) return; stats.sessionCount++; if (choice === matchedLyric) { btn.classList.add('correct'); stats.correct++; document.getElementById('quiz-status').innerText = "⭕ 정답!"; document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true); showAns(); } else { btn.classList.add('wrong'); stats.wrong++; errorTracker[matchedLyric] = (errorTracker[matchedLyric] || 0) + 1; document.getElementById('quiz-status').innerText = "❌ 오답!"; } }
-        function nextProblem() { if (!isSightReadingMode && stats.sessionCount >= 10) { showResults(); return; } resetUI(); visualNotes = generateProblem(); setTimeout(() => { handlePlay(false); }, 100); }
+        
+        // [수정] 다음 문제로 넘길 때 오디오 재활성화
+        async function nextProblem() { 
+            await Tone.start(); 
+            if (!isSightReadingMode && stats.sessionCount >= 10) { showResults(); return; } 
+            resetUI(); 
+            visualNotes = generateProblem(); 
+            setTimeout(() => { handlePlay(false); }, 150); 
+        }
+
         function showResults() { hideAllPages(); document.getElementById('result-page').classList.add('active'); document.getElementById('res-counts').innerText = `(정답: ${stats.correct} / 오답: ${stats.wrong})`; const rate = Math.round((stats.correct / (stats.correct + stats.wrong)) * 100); document.getElementById('res-rate').innerText = `정답률: ${rate}%`; let worstPattern = "없음 (완벽합니다!)"; let maxErrors = 0; for (let lyric in errorTracker) { if (errorTracker[lyric] > maxErrors) { maxErrors = errorTracker[lyric]; worstPattern = `${lyric} (${maxErrors}회 오답)`; } } document.getElementById('worst-pattern-text').innerText = worstPattern; }
         function continueQuiz() { stats.sessionCount = 0; hideAllPages(); document.getElementById('quiz-page').classList.add('active'); nextProblem(); }
         function resetStats() { stats = { correct: 0, wrong: 0, sessionCount: 0 }; errorTracker = {}; }
         function resetUI() { document.getElementById('ans-header').style.display = 'none'; document.getElementById('score-container').style.display = 'none'; document.getElementById('quiz-guide-text').style.display = 'block'; document.getElementById('play-btn').disabled = false; document.getElementById('replay-btn').disabled = true; document.querySelectorAll('.opt-btn').forEach(b => { b.classList.remove('correct', 'wrong'); b.disabled = false; }); const status = document.getElementById('quiz-status'); if (isSightReadingMode) status.innerText = "첫 음을 듣고 노래하세요!"; else status.innerText = ""; }
-        function handlePlay(isReplay) { const bpmSec = 60 / currentBpm; const now = Tone.now(); if (isSightReadingMode) { document.getElementById('ans-header').style.display = 'flex'; document.getElementById('answer-text').style.display = 'none'; document.getElementById('lyric-match').innerText = `가사 : ${matchedLyric}`; document.getElementById('lyric-match').style.display = 'block'; sampler.triggerAttackRelease(Tone.Frequency(visualNotes[0].midi, "midi"), 1.0); } else { visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); }); } document.getElementById('play-btn').disabled = true; document.getElementById('replay-btn').disabled = false; }
+        
+        // [수정] 재생 시 context 체크
+        async function handlePlay(isReplay) { 
+            await Tone.start(); 
+            const bpmSec = 60 / currentBpm; 
+            const now = Tone.now(); 
+            if (isSightReadingMode) { 
+                document.getElementById('ans-header').style.display = 'flex'; 
+                document.getElementById('answer-text').style.display = 'none'; 
+                document.getElementById('lyric-match').innerText = `가사 : ${matchedLyric}`; 
+                document.getElementById('lyric-match').style.display = 'block'; 
+                sampler.triggerAttackRelease(Tone.Frequency(visualNotes[0].midi, "midi"), 1.0); 
+            } else { 
+                visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); }); 
+            } 
+            document.getElementById('play-btn').disabled = true; 
+            document.getElementById('replay-btn').disabled = false; 
+        }
+
         function updateTempo(val) { currentBpm = val; document.getElementById('tempo-val').innerText = `BPM ${val}`; }
-        function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], i]; [a[j], a[i]] = [a[i], a[j]]; } return a; }
-        function showAns() { if (!visualNotes.length) return; document.getElementById('ans-header').style.display = 'flex'; document.getElementById('answer-text').innerText = `정답 : ${currentAns}`; document.getElementById('answer-text').style.display = 'block'; document.getElementById('lyric-match').innerText = `가사 : ${matchedLyric}`; document.getElementById('quiz-guide-text').style.display = 'none'; if (isSightReadingMode) { document.getElementById('quiz-status').innerText = ""; } drawScore(); const bpmSec = 60 / currentBpm; const now = Tone.now(); visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); }); }
+        function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+        
+        function showAns() { 
+            if (!visualNotes.length) return; 
+            document.getElementById('ans-header').style.display = 'flex'; 
+            document.getElementById('answer-text').innerText = `정답 : ${currentAns}`; 
+            document.getElementById('answer-text').style.display = 'block'; 
+            document.getElementById('lyric-match').innerText = `가사 : ${matchedLyric}`; 
+            document.getElementById('quiz-guide-text').style.display = 'none'; 
+            if (isSightReadingMode) { document.getElementById('quiz-status').innerText = ""; } 
+            drawScore(); 
+            const bpmSec = 60 / currentBpm; 
+            const now = Tone.now(); 
+            visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); }); 
+        }
+
         function drawScore() { const container = document.getElementById('score-container'); container.innerHTML = ""; container.style.display = "flex"; const renderer = new Renderer(container, Renderer.Backends.SVG); renderer.resize(260, 150); const ctx = renderer.getContext(); const stave = new Stave(0, 0, 250); stave.addClef("treble").setContext(ctx).draw(); const accTracker = {}; const notes = visualNotes.map(n => { const sn = new StaveNote({ clef: "treble", keys: [`${n.key}/${n.oct}`], duration: "q" }); const currentAcc = n.acc || ""; const prevAcc = accTracker[n.key]; if (currentAcc === "") { if (prevAcc !== undefined && prevAcc !== "") sn.addModifier(new Accidental("n")); } else { if (prevAcc !== currentAcc) sn.addModifier(new Accidental(currentAcc)); } accTracker[n.key] = currentAcc; return sn; }); const voice = new Voice({ num_beats: visualNotes.length, beat_value: 4 }); voice.addTickables(notes); new Formatter().joinVoices([voice]).format([voice], 200); voice.draw(ctx, stave); }
     </script>
 </body>
