@@ -27,7 +27,8 @@
         .page { display: none; flex-direction: column; flex-grow: 1; position: relative; z-index: 10; }
         .page.active { display: flex; }
         
-        h2 { margin: 15px 0 15px 0; color: var(--primary); font-size: 1.2rem; line-height: 1.2; }
+        h2 { margin: 15px 0 5px 0; color: var(--primary); font-size: 1.2rem; line-height: 1.2; }
+        .sub-title { font-size: 0.9rem; color: #7F8C8D; margin-bottom: 20px; font-weight: 500; }
         
         .display-box { background: #F2F4F6; min-height: 90px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 8px; padding: 10px; flex-shrink: 0; margin-top: 5px; position: relative; overflow: visible; }
         
@@ -47,9 +48,7 @@
         #options-area { display: none; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; position: relative; z-index: 20; }
         .opt-btn, button { cursor: pointer; -webkit-tap-highlight-color: transparent; position: relative; z-index: 30; }
         .opt-btn { background: #fff; border: 1.5px solid #DCDFE6; color: #606266; padding: 12px 2px; font-size: 13.5px; border-radius: 12px; font-weight: 700; }
-        .opt-btn.correct { background: #E1F3D8; border-color: #67C23A; color: #67C23A; }
-        .opt-btn.wrong { background: #FDE2E2; border-color: #F56C6C; color: #F56C6C; }
-
+        
         .tempo-container { background: #fff; padding: 6px 10px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #eee; flex-shrink: 0; }
         .tempo-label { font-size: 10px; color: var(--secondary); font-weight: 600; margin-bottom: 2px; display: flex; justify-content: space-between; }
         #tempo-slider { width: 100%; cursor: pointer; accent-color: var(--secondary); margin: 0; }
@@ -73,7 +72,8 @@
 
         <div id="step1-page" class="page active">
             <h2 style="margin-top:20px;">펜나뮤직 이어핏</h2>
-            <div class="btn-group" style="margin-top:20px;">
+            <div class="sub-title">시창/청음 트레이닝</div>
+            <div class="btn-group">
                 <button class="btn-category" onclick="selectMajor(2)">2도 훈련</button>
                 <button class="btn-category" onclick="selectMajor(6)" style="background: #2C3E50;">6도 훈련</button>
             </div>
@@ -139,32 +139,55 @@
 
         let currentBpm = 80; let visualNotes = []; let historyPool = []; let currentAns = "", matchedLyric = "";
         let isSightReadingMode = false; let currentIntervalMajor = 2; let sub6Direction = 'up'; 
-
-        // [추가] 중복 출제 방지용 큐
         let patternQueue = [];
 
-        function updateTempo(val) { currentBpm = val; document.getElementById('tempo-val').innerText = `BPM ${val}`; }
-
         const baseScales = [{ n: 'c', m: 0 }, { n: 'd', m: 2 }, { n: 'e', m: 4 }, { n: 'f', m: 5 }, { n: 'g', m: 7 }, { n: 'a', m: 9 }, { n: 'b', m: 11 }];
-        function getSimplestNoteInfo(midi, preferredBaseIdx) {
-            let octave = Math.floor(midi / 12) - 1; let chroma = midi % 12; if (chroma < 0) chroma += 12;
-            for (let i = 0; i < baseScales.length; i++) { if (baseScales[i].m === chroma) return { midi, key: baseScales[i].n, acc: "", oct: octave }; }
-            const targetNatural = baseScales[preferredBaseIdx].m; let diff = chroma - targetNatural;
+
+        // [수정] 도수를 고려하여 정확한 음정(예: 단6도)을 반환하는 함수
+        function getNoteWithDegree(midi, baseNoteInfo, intervalDegree) {
+            let chroma = midi % 12; if (chroma < 0) chroma += 12;
+            let octave = Math.floor(midi / 12) - 1;
+            
+            // 기준 음의 이름 인덱스 찾기
+            const baseNameIdx = baseScales.findIndex(s => s.n === baseNoteInfo.key);
+            // 목표 음의 이름 인덱스 계산 (intervalDegree: 2도면 +1, 6도면 +5 등)
+            const targetNameIdx = (baseNameIdx + (intervalDegree - 1)) % 7;
+            const targetScale = baseScales[targetNameIdx];
+            
+            // 자연음과의 차이 계산 (임시표 결정)
+            let diff = chroma - targetScale.m;
             if (diff > 6) diff -= 12; else if (diff < -6) diff += 12;
-            for (let i = 0; i < baseScales.length; i++) {
-                let nDiff = chroma - baseScales[i].m; if (nDiff > 6) nDiff -= 12; else if (nDiff < -6) nDiff += 12;
-                if (Math.abs(nDiff) === 1) return { midi, key: baseScales[i].n, acc: (nDiff === 1 ? "#" : "b"), oct: octave };
-            }
-            return { midi, key: baseScales[preferredBaseIdx].n, acc: (diff > 0 ? "#" : "b"), oct: octave };
+            
+            let acc = "";
+            if (diff === 1) acc = "#";
+            else if (diff === 2) acc = "##";
+            else if (diff === -1) acc = "b";
+            else if (diff === -2) acc = "bb";
+            
+            return { midi, key: targetScale.n, acc: acc, oct: octave };
+        }
+
+        // 초기음(n1)은 가장 심플한 형태로 생성
+        function getSimplestNoteInfo(midi) {
+            let octave = Math.floor(midi / 12) - 1; let chroma = midi % 12; if (chroma < 0) chroma += 12;
+            const res = baseScales.find(s => s.m === chroma);
+            if (res) return { midi, key: res.n, acc: "", oct: octave };
+            const flatRes = baseScales.find(s => s.m === (chroma + 1) % 12);
+            if (flatRes) return { midi, key: flatRes.n, acc: "b", oct: octave };
+            return { midi, key: 'c', acc: "#", oct: octave };
         }
 
         const pattern2D = [
-            { id: 1, lyric: "도-디-레", ans: "단2↑+단2↑", iv: [1, 1] }, { id: 2, lyric: "미-파-솔", ans: "단2↑+장2↑", iv: [1, 2] }, { id: 3, lyric: "라-시-도", ans: "장2↑+단2↑", iv: [2, 1] }, { id: 4, lyric: "도-레-미", ans: "장2↑+장2↑", iv: [2, 2] },
-            { id: 5, lyric: "도-시-세", ans: "단2↓+단2↓", iv: [-1, -1] }, { id: 6, lyric: "솔-파-미", ans: "장2↓+단2↓", iv: [-2, -1] }, { id: 7, lyric: "도-시-라", ans: "단2↓+장2↓", iv: [-1, -2] }, { id: 8, lyric: "미-레-도", ans: "장2↓+장2↓", iv: [-2, -2] }
+            { lyric: "도-디-레", ans: "단2↑+단2↑", iv: [1, 1], deg: [2, 2] }, { lyric: "미-파-솔", ans: "단2↑+장2↑", iv: [1, 2], deg: [2, 2] }, { lyric: "라-시-도", ans: "장2↑+단2↑", iv: [2, 1], deg: [2, 2] }, { lyric: "도-레-미", ans: "장2↑+장2↑", iv: [2, 2], deg: [2, 2] },
+            { lyric: "도-시-세", ans: "단2↓+단2↓", iv: [-1, -1], deg: [7, 7] }, { lyric: "솔-파-미", ans: "장2↓+단2↓", iv: [-2, -1], deg: [7, 7] }, { lyric: "도-시-라", ans: "단2↓+장2↓", iv: [-1, -2], deg: [7, 7] }, { lyric: "미-레-도", ans: "장2↓+장2↓", iv: [-2, -2], deg: [7, 7] }
         ];
 
-        const patternM6Up = { 1: { id: 1, lyric: "미-도-시", ans: "단6↑+단2↓", iv: [8, -1] }, 2: { id: 2, lyric: "시-솔-파", ans: "단6↑+장2↓", iv: [8, -2] }, 3: { id: 3, lyric: "미-도-라", ans: "단6↑+단3↓", iv: [8, -3] }, 4: { id: 4, lyric: "미-도-솔#", ans: "단6↑+장3↓", iv: [8, -4] }, 5: { id: 5, lyric: "미-도-솔", ans: "단6↑+완4↓", iv: [8, -5] }, 6: { id: 6, lyric: "라-파-시", ans: "단6↑+증4/감5↓", iv: [8, -6] }, 7: { id: 7, lyric: "시-솔-도", ans: "단6↑+완5↓", iv: [8, -7] } };
-        const patternM6Down = { 1: { id: 1, lyric: "솔-시-도", ans: "단6↓+단2↑", iv: [-8, 1] }, 2: { id: 2, lyric: "파-라-시", ans: "단6↓+장2↑", iv: [-8, 2] }, 3: { id: 3, lyric: "도-미-솔", ans: "단6↓+단3↑", iv: [-8, 3] }, 4: { id: 4, lyric: "도-미-솔#", ans: "단6↓+장3↑", iv: [-8, 4] }, 5: { id: 5, lyric: "도-미-라", ans: "단6↓+완4↑", iv: [-8, 5] }, 6: { id: 6, lyric: "솔-시-파", ans: "단6↓+증4/감5↑", iv: [-8, 6] }, 7: { id: 7, lyric: "도-미-시", ans: "단6↓+완5↑", iv: [-8, 7] } };
+        // deg: 음정 도수 (단6도는 6도, 단2도는 2도 등)
+        const patternM6Up = { 1: { lyric: "미-도-시", ans: "단6↑+단2↓", iv: [8, -1], deg: [6, 7] }, 2: { lyric: "시-솔-파", ans: "단6↑+장2↓", iv: [8, -2], deg: [6, 7] }, 3: { lyric: "미-도-라", ans: "단6↑+단3↓", iv: [8, -3], deg: [6, 6] }, 4: { lyric: "미-도-솔#", ans: "단6↑+장3↓", iv: [8, -4], deg: [6, 6] }, 5: { lyric: "미-도-솔", ans: "단6↑+완4↓", iv: [8, -5], deg: [6, 5] }, 6: { lyric: "라-파-시", ans: "단6↑+증4/감5↓", iv: [8, -6], deg: [6, 5] }, 7: { lyric: "시-솔-도", ans: "단6↑+완5↓", iv: [8, -7], deg: [6, 4] } };
+        const patternM6Down = { 1: { lyric: "솔-시-도", ans: "단6↓+단2↑", iv: [-8, 1], deg: [3, 2] }, 2: { lyric: "파-라-시", ans: "단6↓+장2↑", iv: [-8, 2], deg: [3, 2] }, 3: { lyric: "도-미-솔", ans: "단6↓+단3↑", iv: [-8, 3], deg: [3, 3] }, 4: { lyric: "도-미-솔#", ans: "단6↓+장3↑", iv: [-8, 4], deg: [3, 3] }, 5: { lyric: "도-미-라", ans: "단6↓+완4↑", iv: [-8, 5], deg: [3, 4] }, 6: { lyric: "솔-시-파", ans: "단6↓+증4/감5↑", iv: [-8, 6], deg: [3, 5] }, 7: { lyric: "도-미-시", ans: "단6↓+완5↑", iv: [-8, 7], deg: [3, 6] } };
+
+        function updateTempo(val) { currentBpm = val; document.getElementById('tempo-val').innerText = `BPM ${val}`; }
+        function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
         function selectMajor(major) { currentIntervalMajor = major; patternQueue = []; if (major === 6) { document.getElementById('step1-page').classList.remove('active'); document.getElementById('step1-5-page').classList.add('active'); } else { showStep2(); } }
         function selectSub6(dir) { sub6Direction = dir; patternQueue = []; showStep2(); }
@@ -179,50 +202,24 @@
             setTimeout(() => { handlePlay(false); }, 300);
         }
 
-        // 셔플 함수 (Fisher-Yates)
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
-
         function generateProblem() {
-            // 패턴 큐가 비었을 경우 새로 생성 및 셔플
             if (patternQueue.length === 0) {
-                if (currentIntervalMajor === 2) {
-                    patternQueue = shuffle([...pattern2D]);
-                } else {
-                    const dict = (sub6Direction === 'up') ? patternM6Up : patternM6Down;
-                    patternQueue = shuffle(Object.values(dict));
-                }
+                if (currentIntervalMajor === 2) patternQueue = shuffle([...pattern2D]);
+                else patternQueue = shuffle(Object.values((sub6Direction === 'up') ? patternM6Up : patternM6Down));
             }
-
-            const p = patternQueue.shift(); // 큐에서 하나 꺼냄
-            const ivs = p.iv;
-            
-            let n1Midi, n2Midi, n3Midi;
-            const minMidi = 55; 
-            const maxMidi = isSightReadingMode ? 77 : 84; 
-
+            const p = patternQueue.shift();
+            const minMidi = 55; const maxMidi = isSightReadingMode ? 77 : 84; 
             let isValid = false;
             while (!isValid) {
-                n1Midi = minMidi + Math.floor(Math.random() * (maxMidi - minMidi - 8)); 
-                const n1Idx = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6][n1Midi % 12];
-                n2Midi = n1Midi + ivs[0];
-                n3Midi = n2Midi + ivs[1];
-
-                if (n1Midi >= minMidi && n1Midi <= maxMidi &&
-                    n2Midi >= minMidi && n2Midi <= maxMidi &&
-                    n3Midi >= minMidi && n3Midi <= maxMidi) {
-                    isValid = true;
-                    matchedLyric = p.lyric;
-                    currentAns = p.ans;
-                    
-                    const n2Idx = (n1Idx + (ivs[0] > 0 ? 5 : -5) + 7) % 7; 
-                    const n3Idx = (n2Idx + (ivs[1] > 0 ? 1 : -1) + 7) % 7;
-                    return [getSimplestNoteInfo(n1Midi, n1Idx), getSimplestNoteInfo(n2Midi, n2Idx), getSimplestNoteInfo(n3Midi, n3Idx)];
+                let n1Midi = minMidi + Math.floor(Math.random() * (maxMidi - minMidi - 8));
+                let n2Midi = n1Midi + p.iv[0];
+                let n3Midi = n2Midi + p.iv[1];
+                if (n1Midi >= minMidi && n1Midi <= maxMidi && n2Midi >= minMidi && n2Midi <= maxMidi && n3Midi >= minMidi && n3Midi <= maxMidi) {
+                    isValid = true; matchedLyric = p.lyric; currentAns = p.ans;
+                    const n1 = getSimplestNoteInfo(n1Midi);
+                    const n2 = getNoteWithDegree(n2Midi, n1, p.deg[0]);
+                    const n3 = getNoteWithDegree(n3Midi, n2, p.deg[1]);
+                    return [n1, n2, n3];
                 }
             }
         }
@@ -245,8 +242,7 @@
 
         function nextProblem() { resetUI(); visualNotes = generateProblem(); setTimeout(() => { handlePlay(false); }, 100); }
         function resetUI() { 
-            document.getElementById('ans-header').style.display = 'none';
-            document.getElementById('score-container').style.display = 'none'; 
+            document.getElementById('ans-header').style.display = 'none'; document.getElementById('score-container').style.display = 'none'; 
             document.getElementById('quiz-guide-text').style.display = 'block'; 
             document.getElementById('play-btn').disabled = false; document.getElementById('replay-btn').disabled = true; 
             document.querySelectorAll('.opt-btn').forEach(b => { b.classList.remove('correct', 'wrong'); b.disabled = false; }); 
@@ -262,8 +258,7 @@
                 document.getElementById('lyric-match').innerText = `가사 : ${matchedLyric}`; 
                 document.getElementById('lyric-match').style.display = 'block'; 
                 sampler.triggerAttackRelease(Tone.Frequency(visualNotes[0].midi, "midi"), 1.0); 
-            }
-            else { visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); }); }
+            } else { visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); }); }
             document.getElementById('play-btn').disabled = true; document.getElementById('replay-btn').disabled = false;
         }
 
@@ -283,14 +278,11 @@
 
         function drawScore() {
             const container = document.getElementById('score-container'); container.innerHTML = ""; container.style.display = "flex";
-            const renderer = new Renderer(container, Renderer.Backends.SVG); 
-            renderer.resize(260, 150);
-            const ctx = renderer.getContext(); 
-            const stave = new Stave(0, 0, 250); stave.addClef("treble").setContext(ctx).draw();
+            const renderer = new Renderer(container, Renderer.Backends.SVG); renderer.resize(260, 150);
+            const ctx = renderer.getContext(); const stave = new Stave(0, 0, 250); stave.addClef("treble").setContext(ctx).draw();
             const notes = visualNotes.map(n => { 
                 const sn = new StaveNote({ clef: "treble", keys: [`${n.key}/${n.oct}`], duration: "q" }); 
-                if (n.acc) sn.addModifier(new Accidental(n.acc)); 
-                return sn; 
+                if (n.acc) sn.addModifier(new Accidental(n.acc)); return sn; 
             });
             const voice = new Voice({ num_beats: visualNotes.length, beat_value: 4 }); voice.addTickables(notes);
             new Formatter().joinVoices([voice]).format([voice], 200); voice.draw(ctx, stave);
