@@ -140,11 +140,12 @@
         let currentBpm = 80; let visualNotes = []; let historyPool = []; let currentAns = "", matchedLyric = "";
         let isSightReadingMode = false; let currentIntervalMajor = 2; let sub6Direction = 'up'; 
 
+        // [추가] 중복 출제 방지용 큐
+        let patternQueue = [];
+
         function updateTempo(val) { currentBpm = val; document.getElementById('tempo-val').innerText = `BPM ${val}`; }
 
         const baseScales = [{ n: 'c', m: 0 }, { n: 'd', m: 2 }, { n: 'e', m: 4 }, { n: 'f', m: 5 }, { n: 'g', m: 7 }, { n: 'a', m: 9 }, { n: 'b', m: 11 }];
-        
-        // [복구] 정확한 음표 정보 생성 로직
         function getSimplestNoteInfo(midi, preferredBaseIdx) {
             let octave = Math.floor(midi / 12) - 1; let chroma = midi % 12; if (chroma < 0) chroma += 12;
             for (let i = 0; i < baseScales.length; i++) { if (baseScales[i].m === chroma) return { midi, key: baseScales[i].n, acc: "", oct: octave }; }
@@ -158,15 +159,15 @@
         }
 
         const pattern2D = [
-            { lyric: "도-디-레", ans: "단2↑+단2↑", iv: [1, 1] }, { lyric: "미-파-솔", ans: "단2↑+장2↑", iv: [1, 2] }, { lyric: "라-시-도", ans: "장2↑+단2↑", iv: [2, 1] }, { lyric: "도-레-미", ans: "장2↑+장2↑", iv: [2, 2] },
-            { lyric: "도-시-세", ans: "단2↓+단2↓", iv: [-1, -1] }, { lyric: "솔-파-미", ans: "장2↓+단2↓", iv: [-2, -1] }, { lyric: "도-시-라", ans: "단2↓+장2↓", iv: [-1, -2] }, { lyric: "미-레-도", ans: "장2↓+장2↓", iv: [-2, -2] }
+            { id: 1, lyric: "도-디-레", ans: "단2↑+단2↑", iv: [1, 1] }, { id: 2, lyric: "미-파-솔", ans: "단2↑+장2↑", iv: [1, 2] }, { id: 3, lyric: "라-시-도", ans: "장2↑+단2↑", iv: [2, 1] }, { id: 4, lyric: "도-레-미", ans: "장2↑+장2↑", iv: [2, 2] },
+            { id: 5, lyric: "도-시-세", ans: "단2↓+단2↓", iv: [-1, -1] }, { id: 6, lyric: "솔-파-미", ans: "장2↓+단2↓", iv: [-2, -1] }, { id: 7, lyric: "도-시-라", ans: "단2↓+장2↓", iv: [-1, -2] }, { id: 8, lyric: "미-레-도", ans: "장2↓+장2↓", iv: [-2, -2] }
         ];
 
-        const patternM6Up = { 1: { lyric: "미-도-시", ans: "단6↑+단2↓", iv: [8, -1] }, 2: { lyric: "시-솔-파", ans: "단6↑+장2↓", iv: [8, -2] }, 3: { lyric: "미-도-라", ans: "단6↑+단3↓", iv: [8, -3] }, 4: { lyric: "미-도-솔#", ans: "단6↑+장3↓", iv: [8, -4] }, 5: { lyric: "미-도-솔", ans: "단6↑+완4↓", iv: [8, -5] }, 6: { lyric: "라-파-시", ans: "단6↑+증4/감5↓", iv: [8, -6] }, 7: { lyric: "시-솔-도", ans: "단6↑+완5↓", iv: [8, -7] } };
-        const patternM6Down = { 1: { lyric: "솔-시-도", ans: "단6↓+단2↑", iv: [-8, 1] }, 2: { lyric: "파-라-시", ans: "단6↓+장2↑", iv: [-8, 2] }, 3: { lyric: "도-미-솔", ans: "단6↓+단3↑", iv: [-8, 3] }, 4: { lyric: "도-미-솔#", ans: "단6↓+장3↑", iv: [-8, 4] }, 5: { lyric: "도-미-라", ans: "단6↓+완4↑", iv: [-8, 5] }, 6: { lyric: "솔-시-파", ans: "단6↓+증4/감5↑", iv: [-8, 6] }, 7: { lyric: "도-미-시", ans: "단6↓+완5↑", iv: [-8, 7] } };
+        const patternM6Up = { 1: { id: 1, lyric: "미-도-시", ans: "단6↑+단2↓", iv: [8, -1] }, 2: { id: 2, lyric: "시-솔-파", ans: "단6↑+장2↓", iv: [8, -2] }, 3: { id: 3, lyric: "미-도-라", ans: "단6↑+단3↓", iv: [8, -3] }, 4: { id: 4, lyric: "미-도-솔#", ans: "단6↑+장3↓", iv: [8, -4] }, 5: { id: 5, lyric: "미-도-솔", ans: "단6↑+완4↓", iv: [8, -5] }, 6: { id: 6, lyric: "라-파-시", ans: "단6↑+증4/감5↓", iv: [8, -6] }, 7: { id: 7, lyric: "시-솔-도", ans: "단6↑+완5↓", iv: [8, -7] } };
+        const patternM6Down = { 1: { id: 1, lyric: "솔-시-도", ans: "단6↓+단2↑", iv: [-8, 1] }, 2: { id: 2, lyric: "파-라-시", ans: "단6↓+장2↑", iv: [-8, 2] }, 3: { id: 3, lyric: "도-미-솔", ans: "단6↓+단3↑", iv: [-8, 3] }, 4: { id: 4, lyric: "도-미-솔#", ans: "단6↓+장3↑", iv: [-8, 4] }, 5: { id: 5, lyric: "도-미-라", ans: "단6↓+완4↑", iv: [-8, 5] }, 6: { id: 6, lyric: "솔-시-파", ans: "단6↓+증4/감5↑", iv: [-8, 6] }, 7: { id: 7, lyric: "도-미-시", ans: "단6↓+완5↑", iv: [-8, 7] } };
 
-        function selectMajor(major) { currentIntervalMajor = major; if (major === 6) { document.getElementById('step1-page').classList.remove('active'); document.getElementById('step1-5-page').classList.add('active'); } else { showStep2(); } }
-        function selectSub6(dir) { sub6Direction = dir; showStep2(); }
+        function selectMajor(major) { currentIntervalMajor = major; patternQueue = []; if (major === 6) { document.getElementById('step1-page').classList.remove('active'); document.getElementById('step1-5-page').classList.add('active'); } else { showStep2(); } }
+        function selectSub6(dir) { sub6Direction = dir; patternQueue = []; showStep2(); }
         function showStep2() { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById('step2-page').classList.add('active'); }
         function goStep1() { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); document.getElementById('step1-page').classList.add('active'); }
         function goPrevStep() { if (currentIntervalMajor === 6) { document.getElementById('step2-page').classList.remove('active'); document.getElementById('step1-5-page').classList.add('active'); } else { goStep1(); } }
@@ -178,32 +179,39 @@
             setTimeout(() => { handlePlay(false); }, 300);
         }
 
+        // 셔플 함수 (Fisher-Yates)
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
         function generateProblem() {
+            // 패턴 큐가 비었을 경우 새로 생성 및 셔플
+            if (patternQueue.length === 0) {
+                if (currentIntervalMajor === 2) {
+                    patternQueue = shuffle([...pattern2D]);
+                } else {
+                    const dict = (sub6Direction === 'up') ? patternM6Up : patternM6Down;
+                    patternQueue = shuffle(Object.values(dict));
+                }
+            }
+
+            const p = patternQueue.shift(); // 큐에서 하나 꺼냄
+            const ivs = p.iv;
+            
             let n1Midi, n2Midi, n3Midi;
-            const minMidi = 55; // G3
+            const minMidi = 55; 
             const maxMidi = isSightReadingMode ? 77 : 84; 
 
-            let p, ivs;
             let isValid = false;
-
             while (!isValid) {
                 n1Midi = minMidi + Math.floor(Math.random() * (maxMidi - minMidi - 8)); 
                 const n1Idx = [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6][n1Midi % 12];
-                
-                if (currentIntervalMajor === 2) {
-                    p = pattern2D[Math.floor(Math.random() * pattern2D.length)];
-                    ivs = p.iv;
-                } else {
-                    const dict = (sub6Direction === 'up') ? patternM6Up : patternM6Down;
-                    const keys = Object.keys(dict);
-                    p = dict[keys[Math.floor(Math.random() * keys.length)]];
-                    ivs = p.iv;
-                }
-
                 n2Midi = n1Midi + ivs[0];
                 n3Midi = n2Midi + ivs[1];
-                const n2Idx = (n1Idx + (ivs[0] > 0 ? 5 : -5) + 7) % 7; 
-                const n3Idx = (n2Idx + (ivs[1] > 0 ? 1 : -1) + 7) % 7;
 
                 if (n1Midi >= minMidi && n1Midi <= maxMidi &&
                     n2Midi >= minMidi && n2Midi <= maxMidi &&
@@ -211,6 +219,9 @@
                     isValid = true;
                     matchedLyric = p.lyric;
                     currentAns = p.ans;
+                    
+                    const n2Idx = (n1Idx + (ivs[0] > 0 ? 5 : -5) + 7) % 7; 
+                    const n3Idx = (n2Idx + (ivs[1] > 0 ? 1 : -1) + 7) % 7;
                     return [getSimplestNoteInfo(n1Midi, n1Idx), getSimplestNoteInfo(n2Midi, n2Idx), getSimplestNoteInfo(n3Midi, n3Idx)];
                 }
             }
@@ -239,7 +250,8 @@
             document.getElementById('quiz-guide-text').style.display = 'block'; 
             document.getElementById('play-btn').disabled = false; document.getElementById('replay-btn').disabled = true; 
             document.querySelectorAll('.opt-btn').forEach(b => { b.classList.remove('correct', 'wrong'); b.disabled = false; }); 
-            document.getElementById('quiz-status').innerText = isSightReadingMode ? "첫 음을 듣고 노래하세요!" : "";
+            const status = document.getElementById('quiz-status');
+            if (isSightReadingMode) { status.innerText = "첫 음을 듣고 노래하세요!"; } else { status.innerText = ""; }
         }
 
         function handlePlay(isReplay) {
@@ -275,8 +287,6 @@
             renderer.resize(260, 150);
             const ctx = renderer.getContext(); 
             const stave = new Stave(0, 0, 250); stave.addClef("treble").setContext(ctx).draw();
-            
-            // [복구] 정확한 4분음표 정보 렌더링
             const notes = visualNotes.map(n => { 
                 const sn = new StaveNote({ clef: "treble", keys: [`${n.key}/${n.oct}`], duration: "q" }); 
                 if (n.acc) sn.addModifier(new Accidental(n.acc)); 
