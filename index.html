@@ -64,7 +64,7 @@
 </head>
 <body>
     <div class="app-card">
-        <img src="logo.jpeg" alt="펜나뮤직 이어핏" class="app-logo">
+        <img src="logo.jpeg" alt="펜나뮤직 로고" class="app-logo">
 
         <div id="step1-page" class="page active">
             <h2 style="margin-top:20px;">펜나뮤직 이어핏</h2>
@@ -148,7 +148,8 @@
         let sub6Direction = 'up'; let sub3Direction = 'up';
         let patternQueue = [];
 
-        const RANGE_MIN = 55; // G3
+        // [Core Rules] 음역대 고정 상수
+        const RANGE_MIN = 55; // G3 (최저음 고정)
         const SIGHT_MAX = 77; // F5
         const EAR_MAX = 84;   // C6
 
@@ -187,7 +188,6 @@
             { lyric: "도-시-세", ans: "단2↓+단2↓", iv: [-1, -1], deg: [-1, -1] }, { lyric: "솔-파-미", ans: "장2↓+단2↓", iv: [-2, -1], deg: [-1, -1] }, { lyric: "도-시-라", ans: "단2↓+장2↓", iv: [-1, -2], deg: [-1, -1] }, { lyric: "미-레-도", ans: "장2↓+장2↓", iv: [-2, -2], deg: [-1, -1] }
         ];
 
-        // [추가] 3도 상행 훈련 데이터
         const pattern3DUp = [
             { lyric: "도미레", ans: "장3↑+장2↓", iv: [4, -2], deg: [2, -1] },
             { lyric: "도미메", ans: "장3↑+단2↓", iv: [4, -1], deg: [2, -1] },
@@ -212,15 +212,19 @@
         function generateProblem() {
             if (patternQueue.length === 0) {
                 if (currentIntervalMajor === 2) patternQueue = shuffle([...pattern2D]);
-                else if (currentIntervalMajor === 3) patternQueue = shuffle(sub3Direction === 'up' ? [...pattern3DUp] : [...pattern3DUp]); // 하행은 추후 데이터 추가 가능
+                else if (currentIntervalMajor === 3) patternQueue = shuffle([...pattern3DUp]);
                 else patternQueue = shuffle(Object.values((sub6Direction === 'up') ? patternM6Up : patternM6Down));
             }
             const p = patternQueue.shift();
             const CURRENT_MAX = isSightReadingMode ? SIGHT_MAX : EAR_MAX; 
             while (true) {
+                // n1Midi 선택 시 n2, n3 도약 거리를 고려하여 하한선(RANGE_MIN) 확보
                 let n1Midi = RANGE_MIN + Math.floor(Math.random() * (CURRENT_MAX - RANGE_MIN - 8));
                 let n2Midi = n1Midi + p.iv[0]; let n3Midi = n2Midi + p.iv[1];
+                
+                // [엄격 검증] 모든 음이 하한선(55) 이상, 상한선 이하인지 확인
                 if (n1Midi < RANGE_MIN || n2Midi < RANGE_MIN || n3Midi < RANGE_MIN || n1Midi > CURRENT_MAX || n2Midi > CURRENT_MAX || n3Midi > CURRENT_MAX) continue;
+                
                 const n1Options = getAllNotationOptions(n1Midi);
                 for (let n1 of n1Options) {
                     const n2 = getNoteByDegree(n2Midi, n1, p.deg[0]); const n3 = getNoteByDegree(n3Midi, n2, p.deg[1]);
@@ -236,11 +240,11 @@
             if (isSightReadingMode) { area.style.display = 'none'; guide.innerText = ""; return; }
             area.style.display = 'grid';
             if (currentIntervalMajor === 2) {
-                guide.innerText = "1. 도디레 (단2↑+단2↑)\n2. 미파솔 (단2↑+장2↑)..."; // 중략 (기존 가이드 유지)
+                guide.innerText = "1. 도디레 (단2↑+단2↑)\n2. 미파솔 (단2↑+장2↑)...";
                 pattern2D.forEach((p, i) => { const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${i+1}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
             } else if (currentIntervalMajor === 3) {
-                guide.innerText = sub3Direction === 'up' ? "1. 도미레 (장3↑장2↓)\n2. 도미메 (장3↑단2↓)\n3. 시레도 (단3↑장2↓)\n4. 라도시 (단3↑단2↓)\n5. 시레b도 (감3↑단2↓)" : "하행 데이터 준비중";
-                if(sub3Direction === 'up') pattern3DUp.forEach((p, i) => { const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${i+1}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
+                guide.innerText = "1. 도미레 (장3↑장2↓)\n2. 도미메 (장3↑단2↓)\n3. 시레도 (단3↑장2↓)\n4. 라도시 (단3↑단2↓)\n5. 시레b도 (감3↑단2↓)";
+                pattern3DUp.forEach((p, i) => { const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${i+1}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
             } else if (sub6Direction === 'up') {
                 guide.innerText = "1. 미도시 (단6↑+단2↓)...";
                 Object.keys(patternM6Up).forEach((key) => { const p = patternM6Up[key]; const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${key}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
