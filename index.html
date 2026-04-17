@@ -139,15 +139,18 @@
 
         const baseScales = [{ n: 'c', m: 0 }, { n: 'd', m: 2 }, { n: 'e', m: 4 }, { n: 'f', m: 5 }, { n: 'g', m: 7 }, { n: 'a', m: 9 }, { n: 'b', m: 11 }];
 
+        // [핵심] 음정 간격과 방향을 강제하는 정밀 노표 계산기
         function getNoteByDegree(midi, baseNote, degreeDiff) {
             const chroma = (midi % 12 + 12) % 12;
             const baseIdx = baseScales.findIndex(s => s.n === baseNote.key);
+            
+            // degreeDiff: 6도 상행이면 +5, 2도 하행이면 -1
             let targetIdx = (baseIdx + degreeDiff) % 7;
             if (targetIdx < 0) targetIdx += 7;
             const targetScale = baseScales[targetIdx];
             
-            // [수정] 옥타브를 수동 계산하여 튀어오름 방지
-            const octave = Math.floor(midi / 12) - 1;
+            // [개선] 옥타브를 수동으로 계산하여 음역대 및 간격 보장
+            let octave = Math.floor(midi / 12) - 1;
             
             let diff = chroma - targetScale.m;
             if (diff > 6) diff -= 12; else if (diff < -6) diff += 12;
@@ -172,6 +175,7 @@
             return options;
         }
 
+        // 도수 간격 정의 (2도는 deg:1, 6도는 deg:5)
         const pattern2D = [
             { lyric: "도-디-레", ans: "단2↑+단2↑", iv: [1, 1], deg: [1, 1] }, { lyric: "미-파-솔", ans: "단2↑+장2↑", iv: [1, 2], deg: [1, 1] }, { lyric: "라-시-도", ans: "장2↑+단2↑", iv: [2, 1], deg: [1, 1] }, { lyric: "도-레-미", ans: "장2↑+장2↑", iv: [2, 2], deg: [1, 1] },
             { lyric: "도-시-세", ans: "단2↓+단2↓", iv: [-1, -1], deg: [-1, -1] }, { lyric: "솔-파-미", ans: "장2↓+단2↓", iv: [-2, -1], deg: [-1, -1] }, { lyric: "도-시-라", ans: "단2↓+장2↓", iv: [-1, -2], deg: [-1, -1] }, { lyric: "미-레-도", ans: "장2↓+장2↓", iv: [-2, -2], deg: [-1, -1] }
@@ -196,6 +200,7 @@
             setTimeout(() => { handlePlay(false); }, 300);
         }
 
+        // [엄격] 음역대와 경제성, 정확한 간격을 결합한 문제 생성
         function generateProblem() {
             if (patternQueue.length === 0) {
                 if (currentIntervalMajor === 2) patternQueue = shuffle([...pattern2D]);
@@ -209,13 +214,21 @@
                 let n1Midi = RANGE_MIN + Math.floor(Math.random() * (RANGE_MAX - RANGE_MIN));
                 let n2Midi = n1Midi + p.iv[0];
                 let n3Midi = n2Midi + p.iv[1];
-                if (n1Midi < RANGE_MIN || n2Midi < RANGE_MIN || n3Midi < RANGE_MIN || n1Midi > RANGE_MAX || n2Midi > RANGE_MAX || n3Midi > RANGE_MAX) continue;
+                
+                // 모든 음이 설정된 음역대 안에 있는지 검증
+                if (n1Midi < RANGE_MIN || n2Midi < RANGE_MIN || n3Midi < RANGE_MIN || 
+                    n1Midi > RANGE_MAX || n2Midi > RANGE_MAX || n3Midi > RANGE_MAX) continue;
 
                 const n1Options = getAllNotationOptions(n1Midi);
                 for (let n1 of n1Options) {
                     const n2 = getNoteByDegree(n2Midi, n1, p.deg[0]);
                     const n3 = getNoteByDegree(n3Midi, n2, p.deg[1]);
-                    if (!n1.acc.includes('##') && !n1.acc.includes('bb') && !n2.acc.includes('##') && !n2.acc.includes('bb') && !n3.acc.includes('##') && !n3.acc.includes('bb')) {
+                    
+                    // 겹임시표 필터링
+                    if (!n1.acc.includes('##') && !n1.acc.includes('bb') &&
+                        !n2.acc.includes('##') && !n2.acc.includes('bb') &&
+                        !n3.acc.includes('##') && !n3.acc.includes('bb')) {
+                        
                         matchedLyric = p.lyric; currentAns = p.ans;
                         return [n1, n2, n3];
                     }
