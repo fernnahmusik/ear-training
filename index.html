@@ -13,7 +13,6 @@
         }
         body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; touch-action: manipulation; overflow-x: hidden; }
         
-        /* 카드 레이아웃 및 터치 간섭 방지 */
         .app-card { background: white; width: 94%; max-width: 400px; padding: 12px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; height: auto; min-height: 520px; display: flex; flex-direction: column; position: relative; z-index: 1; box-sizing: border-box; border: 5px solid transparent; background-image: linear-gradient(#fff, #fff), linear-gradient(to bottom right, var(--penna-pink), var(--penna-yellow), var(--penna-green), var(--penna-blue)); background-origin: border-box; background-clip: padding-box, border-box; }
         
         .app-logo { position: absolute; top: 15px; right: 15px; width: 35px; height: 35px; border-radius: 8px; object-fit: cover; pointer-events: none; z-index: 100; }
@@ -23,22 +22,20 @@
         h2 { margin: 15px 0 5px 0; color: var(--primary); font-size: 1.2rem; line-height: 1.2; }
         .sub-title { font-size: 0.9rem; color: #7F8C8D; margin-bottom: 20px; font-weight: 500; }
         
-        .display-box { background: #F2F4F6; min-height: 90px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 8px; padding: 10px; flex-shrink: 0; margin-top: 5px; position: relative; overflow: visible; z-index: 5; }
+        /* [수정] 배경색은 흰색, 테두리는 완전히 제거 */
+        .display-box { background: #ffffff; border: none; min-height: 90px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 8px; padding: 10px; flex-shrink: 0; margin-top: 5px; position: relative; overflow: visible; z-index: 5; }
+        
         .ans-header { display: none; width: 100%; justify-content: center; gap: 15px; margin-bottom: 2px; }
         #answer-text { font-size: 13px; color: var(--primary); font-weight: bold; margin: 0; }
         #lyric-match { font-size: 14px; color: #E74C3C; font-weight: 800; margin: 0; }
         #score-container { width: 100%; display: none; justify-content: center; transform: scale(0.85); margin-top: -10px; margin-bottom: -40px; overflow: visible; }
         
-        #quiz-guide-text { font-size: 13px; color: #2C3E50; line-height: 1.5; font-weight: 700; white-space: pre-wrap; background: rgba(255,255,255,0.8); padding: 12px; border-radius: 12px; width: 95%; box-shadow: inset 0 0 5px rgba(0,0,0,0.05); text-align: left; box-sizing: border-box; height: auto; max-height: 250px; overflow-y: auto; }
+        #quiz-guide-text { font-size: 13px; color: #2C3E50; line-height: 1.5; font-weight: 700; white-space: pre-wrap; background: rgba(242, 244, 246, 0.6); padding: 12px; border-radius: 12px; width: 95%; box-shadow: inset 0 0 5px rgba(0,0,0,0.05); text-align: left; box-sizing: border-box; height: auto; max-height: 250px; overflow-y: auto; }
         
         #options-area { display: none; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; position: relative; z-index: 20; }
         
-        /* 버튼 클릭 감도 및 레이어 우선순위 강화 */
         .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 4px; position: relative; z-index: 50; }
-        button, .opt-btn { 
-            width: 100%; padding: 12px; border: none; border-radius: 14px; font-size: 13px; font-weight: 600; 
-            cursor: pointer; position: relative; z-index: 60; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
-        }
+        button, .opt-btn { width: 100%; padding: 12px; border: none; border-radius: 14px; font-size: 13px; font-weight: 600; cursor: pointer; position: relative; z-index: 60; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
         button:active { transform: scale(0.97); opacity: 0.9; }
         
         .btn-category { background: var(--secondary); color: white; padding: 14px; font-size: 0.95rem; }
@@ -60,7 +57,7 @@
 </head>
 <body>
     <div class="app-card">
-        <img src="logo.jpeg" alt="펜나뮤직 로고" class="app-logo">
+        <img src="logo.jpeg" alt="펜나뮤직 이어핏 로고" class="app-logo">
 
         <div id="step1-page" class="page active">
             <h2 style="margin-top:20px;">펜나뮤직 이어핏</h2>
@@ -134,7 +131,7 @@
             <div class="display-box" style="min-height: 150px; padding: 15px;">
                 <div id="res-rate" style="font-size: 1.4rem; color: #27AE60; font-weight: 700;">정답률: 0%</div>
                 <div id="res-counts" style="font-size: 0.9rem; font-weight: 700;">(정답: 0 / 오답: 0)</div>
-                <div class="worst-pattern-box">
+                <div class="worst-pattern-box" style="background: #FFF0F0; border: 1px dashed #FF9AA2; padding: 12px; border-radius: 15px; margin-top: 10px; text-align: left;">
                     <div style="font-size: 11px; color: #E74C3C; font-weight: 800; margin-bottom: 5px;">⚠️ 취약 패턴 분석</div>
                     <div id="worst-pattern-text" style="font-size: 13px; font-weight: 700;">분석 중...</div>
                 </div>
@@ -264,7 +261,25 @@
         function handlePlay(isReplay) { const bpmSec = 60 / currentBpm; const now = Tone.now(); if (isSightReadingMode) { document.getElementById('ans-header').style.display = 'flex'; document.getElementById('answer-text').style.display = 'none'; document.getElementById('lyric-match').innerText = `가사 : ${matchedLyric}`; document.getElementById('lyric-match').style.display = 'block'; sampler.triggerAttackRelease(Tone.Frequency(visualNotes[0].midi, "midi"), 1.0); } else { visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); }); } document.getElementById('play-btn').disabled = true; document.getElementById('replay-btn').disabled = false; }
         function updateTempo(val) { currentBpm = val; document.getElementById('tempo-val').innerText = `BPM ${val}`; }
         function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-        function showAns() { if (!visualNotes.length) return; document.getElementById('ans-header').style.display = 'flex'; document.getElementById('answer-text').innerText = `정답 : ${currentAns}`; document.getElementById('answer-text').style.display = 'block'; document.getElementById('lyric-match').innerText = `가사 : ${matchedLyric}`; document.getElementById('quiz-guide-text').style.display = 'none'; drawScore(); const bpmSec = 60 / currentBpm; const now = Tone.now(); visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); }); }
+        
+        function showAns() { 
+            if (!visualNotes.length) return; 
+            document.getElementById('ans-header').style.display = 'flex'; 
+            document.getElementById('answer-text').innerText = `정답 : ${currentAns}`; 
+            document.getElementById('answer-text').style.display = 'block'; 
+            document.getElementById('lyric-match').innerText = `가사 : ${matchedLyric}`; 
+            document.getElementById('quiz-guide-text').style.display = 'none'; 
+            
+            if (isSightReadingMode) {
+                document.getElementById('quiz-status').innerText = ""; 
+            }
+            
+            drawScore(); 
+            const bpmSec = 60 / currentBpm; 
+            const now = Tone.now(); 
+            visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); }); 
+        }
+
         function drawScore() {
             const container = document.getElementById('score-container'); container.innerHTML = ""; container.style.display = "flex";
             const renderer = new Renderer(container, Renderer.Backends.SVG); renderer.resize(260, 150);
