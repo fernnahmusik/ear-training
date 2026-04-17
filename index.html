@@ -172,6 +172,7 @@
         ];
 
         const patternM6Up = { 1: { lyric: "미-도-시", ans: "단6↑+단2↓", iv: [8, -1], deg: [5, -1] }, 2: { lyric: "시-솔-파", ans: "단6↑+장2↓", iv: [8, -2], deg: [5, -1] }, 3: { lyric: "미-도-라", ans: "단6↑+단3↓", iv: [8, -3], deg: [5, -2] }, 4: { lyric: "미-도-솔#", ans: "단6↑+장3↓", iv: [8, -4], deg: [5, -2] }, 5: { lyric: "미-도-솔", ans: "단6↑+완4↓", iv: [8, -5], deg: [5, -3] }, 6: { lyric: "라-파-시", ans: "단6↑+증4/감5↓", iv: [8, -6], deg: [5, -4] }, 7: { lyric: "시-솔-도", ans: "단6↑+완5↓", iv: [8, -7], deg: [5, -4] } };
+        // [수정] 도-미-솔# 패턴의 deg 데이터를 [-5, 2]로 설정하여 단6도 하행 + 장3도 상행 렌더링 보장
         const patternM6Down = { 1: { lyric: "솔-시-도", ans: "단6↓+단2↑", iv: [-8, 1], deg: [-5, 1] }, 2: { lyric: "파-라-시", ans: "단6↓+장2↑", iv: [-8, 2], deg: [-5, 1] }, 3: { lyric: "도-미-솔", ans: "단6↓+단3↑", iv: [-8, 3], deg: [-5, 2] }, 4: { lyric: "도-미-솔#", ans: "단6↓+장3↑", iv: [-8, 4], deg: [-5, 2] }, 5: { lyric: "도-미-라", ans: "단6↓+완4↑", iv: [-8, 5], deg: [-5, 3] }, 6: { lyric: "솔-시-파", ans: "단6↓+증4/감5↑", iv: [-8, 6], deg: [-5, 4] }, 7: { lyric: "도-미-시", ans: "단6↓+완5↑", iv: [-8, 7], deg: [-5, 5] } };
 
         function updateTempo(val) { currentBpm = val; document.getElementById('tempo-val').innerText = `BPM ${val}`; }
@@ -190,36 +191,26 @@
             setTimeout(() => { handlePlay(false); }, 300);
         }
 
-        // [최종 수정] 음역대 하한선(55) 엄격 준수 로직
         function generateProblem() {
             if (patternQueue.length === 0) {
                 if (currentIntervalMajor === 2) patternQueue = shuffle([...pattern2D]);
                 else patternQueue = shuffle(Object.values((sub6Direction === 'up') ? patternM6Up : patternM6Down));
             }
             const p = patternQueue.shift();
-            
             const RANGE_MIN = 55; // G3
             const RANGE_MAX = isSightReadingMode ? 77 : 84; 
             
             while (true) {
-                // 시작음 범위를 여유있게 잡아 생성 시도
                 let n1Midi = RANGE_MIN + Math.floor(Math.random() * (RANGE_MAX - RANGE_MIN));
                 let n2Midi = n1Midi + p.iv[0];
                 let n3Midi = n2Midi + p.iv[1];
-                
-                // [검증] 세 음 중 하나라도 하한선(55)보다 낮거나 상한선을 넘으면 즉시 기각
-                if (n1Midi < RANGE_MIN || n2Midi < RANGE_MIN || n3Midi < RANGE_MIN || 
-                    n1Midi > RANGE_MAX || n2Midi > RANGE_MAX || n3Midi > RANGE_MAX) continue;
+                if (n1Midi < RANGE_MIN || n2Midi < RANGE_MIN || n3Midi < RANGE_MIN || n1Midi > RANGE_MAX || n2Midi > RANGE_MAX || n3Midi > RANGE_MAX) continue;
 
                 const n1Options = getAllNotationOptions(n1Midi);
                 for (let n1 of n1Options) {
                     const n2 = getNoteByDegree(n2Midi, n1, p.deg[0]);
                     const n3 = getNoteByDegree(n3Midi, n2, p.deg[1]);
-                    
-                    if (!n1.acc.includes('##') && !n1.acc.includes('bb') &&
-                        !n2.acc.includes('##') && !n2.acc.includes('bb') &&
-                        !n3.acc.includes('##') && !n3.acc.includes('bb')) {
-                        
+                    if (!n1.acc.includes('##') && !n1.acc.includes('bb') && !n2.acc.includes('##') && !n2.acc.includes('bb') && !n3.acc.includes('##') && !n3.acc.includes('bb')) {
                         matchedLyric = p.lyric; currentAns = p.ans;
                         return [n1, n2, n3];
                     }
