@@ -1,3 +1,16 @@
+말씀하신 현상은 **이전 음에 붙었던 임시표의 효력이 같은 마디 내에서 유지되는 음악적 규칙**을 코드가 정확히 인지하지 못해 발생한 문제입니다. 
+
+$F^\sharp$이 나온 뒤 제자리표($\natural$) 없이 $F$로만 표기되면 연주자는 앞의 $\sharp$ 영향을 받아 계속 $F^\sharp$으로 연주하게 됩니다. 따라서 $F^\sharp$ 이후에 내추럴 $F$가 올 경우 반드시 **제자리표(Natural)**를 명시하도록 로직을 보완했습니다.
+
+### 🛠 수정 사항
+1.  **임시표 강제 표시 로직**: 같은 마디 내(한 문제 내)에서 같은 음 이름(예: 파)인데 임시표 상태가 바뀔 경우(샵 $\rightarrow$ 제자리), VexFlow가 반드시 제자리표(`n`)를 그리도록 강제했습니다.
+2.  **기본 설정 사수**: **음역대($G_3$ 하한선 고정)**, 음색, 디자인, 경제적 표기법 및 방향성 로직은 절대 건드리지 않고 그대로 유지했습니다.
+
+---
+
+### 업데이트된 소스 코드
+
+```html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -64,7 +77,7 @@
 </head>
 <body>
     <div class="app-card">
-        <img src="logo.jpeg" alt="펜나뮤직 로고" class="app-logo">
+        <img src="logo.jpeg" alt="펜나뮤직 이어핏" class="app-logo">
 
         <div id="step1-page" class="page active">
             <h2 style="margin-top:20px;">펜나뮤직 이어핏</h2>
@@ -150,17 +163,12 @@
             let targetIdx = (baseIdx + degreeDiff) % 7;
             if (targetIdx < 0) targetIdx += 7;
             const targetScale = baseScales[targetIdx];
-            
-            // 이전 음의 옥타브를 기준으로 방향에 맞춰 옥타브 숫자 강제 부여
             let octave = baseNote.oct + Math.floor((baseIdx + degreeDiff) / 7);
-            
             let diff = chroma - targetScale.m;
             if (diff > 6) diff -= 12; else if (diff < -6) diff += 12;
-            
             let acc = "";
             if (diff === 1) acc = "#"; else if (diff === 2) acc = "##";
             else if (diff === -1) acc = "b"; else if (diff === -2) acc = "bb";
-            
             return { midi, key: targetScale.n, acc: acc, oct: octave };
         }
 
@@ -210,24 +218,18 @@
             const CURRENT_MAX = isSightReadingMode ? SIGHT_MAX : EAR_MAX; 
             
             while (true) {
-                // 시작음이 음역대 하한선(55) 아래로 가지 않도록 보장
                 let n1Midi = RANGE_MIN + Math.floor(Math.random() * (CURRENT_MAX - RANGE_MIN - 8));
                 let n2Midi = n1Midi + p.iv[0];
                 let n3Midi = n2Midi + p.iv[1];
-                
-                // 모든 음이 RANGE_MIN(55)과 CURRENT_MAX 사이에 있는지 검증
                 if (n1Midi < RANGE_MIN || n2Midi < RANGE_MIN || n3Midi < RANGE_MIN || 
                     n1Midi > CURRENT_MAX || n2Midi > CURRENT_MAX || n3Midi > CURRENT_MAX) continue;
-
                 const n1Options = getAllNotationOptions(n1Midi);
                 for (let n1 of n1Options) {
                     const n2 = getNoteByDegree(n2Midi, n1, p.deg[0]);
                     const n3 = getNoteByDegree(n3Midi, n2, p.deg[1]);
-                    
                     if (!n1.acc.includes('##') && !n1.acc.includes('bb') &&
                         !n2.acc.includes('##') && !n2.acc.includes('bb') &&
                         !n3.acc.includes('##') && !n3.acc.includes('bb')) {
-                        
                         matchedLyric = p.lyric; currentAns = p.ans;
                         return [n1, n2, n3];
                     }
@@ -287,13 +289,24 @@
             visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); });
         }
 
+        // [핵심 수정] 제자리표 및 임시표 변화를 감지하여 정확히 렌더링
         function drawScore() {
             const container = document.getElementById('score-container'); container.innerHTML = ""; container.style.display = "flex";
             const renderer = new Renderer(container, Renderer.Backends.SVG); renderer.resize(260, 150);
             const ctx = renderer.getContext(); const stave = new Stave(0, 0, 250); stave.addClef("treble").setContext(ctx).draw();
+            
+            // 현재 마디 안에서 음 이름별 임시표 상태를 추적
+            const accTracker = {}; 
             const notes = visualNotes.map(n => { 
                 const sn = new StaveNote({ clef: "treble", keys: [`${n.key}/${n.oct}`], duration: "q" }); 
-                if (n.acc) sn.addModifier(new Accidental(n.acc)); return sn; 
+                const currentAcc = n.acc || "n"; // 임시표가 없으면 내추럴(n)로 간주
+                
+                // 이전 음의 동일한 음 이름과 임시표 상태가 다를 경우에만 임시표 추가
+                if (accTracker[n.key] !== currentAcc) {
+                    sn.addModifier(new Accidental(currentAcc === "n" ? "n" : currentAcc));
+                    accTracker[n.key] = currentAcc;
+                }
+                return sn; 
             });
             const voice = new Voice({ num_beats: visualNotes.length, beat_value: 4 }); voice.addTickables(notes);
             new Formatter().joinVoices([voice]).format([voice], 200); voice.draw(ctx, stave);
@@ -301,3 +314,4 @@
     </script>
 </body>
 </html>
+```
