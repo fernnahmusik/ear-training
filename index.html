@@ -17,7 +17,7 @@
         .app-card { 
             background: white; width: 94%; max-width: 400px; padding: 12px; border-radius: 25px; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; height: auto; min-height: 520px;
-            display: flex; flex-direction: column; position: relative; box-sizing: border-box;
+            display: flex; flex-direction: column; position: relative; z-index: 10; box-sizing: border-box;
             border: 5px solid transparent;
             background-image: linear-gradient(#fff, #fff), linear-gradient(to bottom right, var(--penna-pink), var(--penna-yellow), var(--penna-green), var(--penna-blue));
             background-origin: border-box; background-clip: padding-box, border-box;
@@ -148,7 +148,6 @@
         let sub6Direction = 'up'; let sub3Direction = 'up';
         let patternQueue = [];
 
-        // Core Rules: 음역대 고정
         const RANGE_MIN = 55; // G3
         const SIGHT_MAX = 77; // F5
         const EAR_MAX = 84;   // C6
@@ -199,8 +198,8 @@
         const pattern3DDown = [
             { lyric: "미도레", ans: "장3↓+장2↑", iv: [-4, 2], deg: [-2, 1] },
             { lyric: "미도디", ans: "장3↓+단2↑", iv: [-4, 1], deg: [-2, 1] },
-            { lyric: "레시도", ans: "단3↓+장2↑", iv: [-3, 2], deg: [-2, 1] },
-            { lyric: "도라시", ans: "단3↓+단2↑", iv: [-3, 1], deg: [-2, 1] },
+            { lyric: "레시도", ans: "단3↓+단2↑", iv: [-3, 1], deg: [-2, 1] },
+            { lyric: "도라시", ans: "단3↓+장2↑", iv: [-3, 2], deg: [-2, 1] },
             { lyric: "레b시도", ans: "감3↓+단2↑", iv: [-2, 1], deg: [-2, 1] }
         ];
 
@@ -248,7 +247,7 @@
                 pattern2D.forEach((p, i) => { const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${i+1}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
             } else if (currentIntervalMajor === 3) {
                 const list = sub3Direction === 'up' ? pattern3DUp : pattern3DDown;
-                guide.innerText = sub3Direction === 'up' ? "1. 도미레 (장3↑장2↓)\n2. 도미메 (장3↑단2↓)\n3. 시레도 (단3↑장2↓)\n4. 라도시 (단3↑단2↓)\n5. 시레b도 (감3↑단2↓)" : "1. 미도레 (장3↓장2↑)\n2. 미도디 (장3↓단2↑)\n3. 레시도 (단3↓장2↑)\n4. 도라시 (단3↓단2↑)\n5. 레b시도 (감3↓단2↑)";
+                guide.innerText = sub3Direction === 'up' ? "1. 도미레 (장3↑장2↓)\n2. 도미메 (장3↑단2↓)\n3. 시레도 (단3↑장2↓)\n4. 라도시 (단3↑단2↓)\n5. 시레b도 (감3↑단2↓)" : "1. 미도레 (장3↓장2↑)\n2. 미도디 (장3↓단2↑)\n3. 레시도 (단3↓단2↑)\n4. 도라시 (단3↓장2↑)\n5. 레b시도 (감3↓단2↑)";
                 list.forEach((p, i) => { const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${i+1}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
             } else if (sub6Direction === 'up') {
                 guide.innerText = "1. 미도시 (단6↑+단2↓)...";
