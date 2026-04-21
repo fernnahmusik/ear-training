@@ -72,12 +72,12 @@
         <div id="step1-4-main-page" class="page">
             <h2>4도 훈련 세부 선택</h2>
             <div class="btn-group" style="gap: 4px;">
-                <button class="btn-category" onclick="selectSub4('up2')" style="font-size: 0.85rem; padding: 10px;">4도상행 2도하행</button>
-                <button class="btn-category" onclick="selectSub4('up3')" style="font-size: 0.85rem; padding: 10px;">4도상행 3도하행</button>
-                <button class="btn-category" onclick="selectSub4('upAll')" style="font-size: 0.85rem; padding: 10px; background: #2C3E50;">4도상행 2-4도하행</button>
-                <button class="btn-category" onclick="selectSub4('down2')" style="font-size: 0.85rem; padding: 10px;">4도하행 2도상행</button>
-                <button class="btn-category" onclick="selectSub4('down3')" style="font-size: 0.85rem; padding: 10px;">4도하행 3도상행</button>
-                <button class="btn-category" onclick="selectSub4('downAll')" style="font-size: 0.85rem; padding: 10px; background: #2C3E50;">4도하행 2-4도상행</button>
+                <button class="btn-category" onclick="selectSub4('up2')">4도상행 2도하행</button>
+                <button class="btn-category" onclick="selectSub4('up3')">4도상행 3도하행</button>
+                <button class="btn-category" onclick="selectSub4('upAll')" style="background: #2C3E50;">4도상행 2-4도하행</button>
+                <button class="btn-category" onclick="selectSub4('down2')">4도하행 2도상행</button>
+                <button class="btn-category" onclick="selectSub4('down3')">4도하행 3도상행</button>
+                <button class="btn-category" onclick="selectSub4('downAll')" style="background: #2C3E50;">4도하행 2-4도상행</button>
                 <button class="btn-back" onclick="goStep1()">⬅ 처음으로</button>
             </div>
         </div>
@@ -150,7 +150,10 @@
         const sampler = new Tone.Sampler({
             urls: { "A0": "A0.mp3", "C1": "C1.mp3", "D#1": "Ds1.mp3", "F#1": "Fs1.mp3", "A1": "A1.mp3", "C2": "C2.mp3", "D#2": "Ds2.mp3", "F#2": "Fs2.mp3", "A2": "A2.mp3", "C3": "C3.mp3", "D#3": "Ds3.mp3", "F#3": "Fs3.mp3", "A3": "A3.mp3", "C4": "C4.mp3", "D#4": "Ds4.mp3", "F#4": "Fs4.mp3", "A4": "A4.mp3", "C5": "C5.mp3", "D#5": "Ds5.mp3", "F#5": "Fs5.mp3", "A5": "A5.mp3", "C6": "C6.mp3" },
             release: 0.5, baseUrl: "https://tonejs.github.io/audio/salamander/",
-            onload: () => { document.querySelectorAll('.btn-main').forEach(b => b.disabled = false); }
+            onload: () => { 
+                document.getElementById('mode-ear-btn').disabled = false;
+                document.getElementById('mode-sight-btn').disabled = false;
+            }
         }).toDestination();
 
         let currentBpm = 80; let visualNotes = []; let currentAns = "", matchedLyric = "";
@@ -163,24 +166,26 @@
         const RANGE_MIN = 55; const SIGHT_MAX = 77; const EAR_MAX = 84;
         const baseScales = [{ n: 'c', m: 0 }, { n: 'd', m: 2 }, { n: 'e', m: 4 }, { n: 'f', m: 5 }, { n: 'g', m: 7 }, { n: 'a', m: 9 }, { n: 'b', m: 11 }];
 
+        // 전역 터치 핸들러: 오디오 차단 해제용
+        window.addEventListener('touchstart', () => { if (Tone.context.state !== 'running') Tone.context.resume(); }, { once: true });
+
         function hideAllPages() { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); }
         function goStep1() { hideAllPages(); document.getElementById('step1-page').classList.add('active'); }
         function goToStep1_3() { hideAllPages(); document.getElementById('step1-3-main-page').classList.add('active'); }
         function goToStep1_4() { hideAllPages(); document.getElementById('step1-4-main-page').classList.add('active'); }
-        function selectMajor(major) { hideAllPages(); currentIntervalMajor = major; patternQueue = []; if (major === 6) document.getElementById('step1-5-page').classList.add('active'); else showStep2(); }
-        function selectSub6(dir) { sub6Direction = dir; patternQueue = []; showStep2(); }
-        function selectSub3(type) { currentIntervalMajor = 3; sub3Type = type; patternQueue = []; showStep2(); }
-        function selectSub4(type) { currentIntervalMajor = 4; sub4Type = type; patternQueue = []; showStep2(); }
+        function selectMajor(major) { hideAllPages(); currentIntervalMajor = major; if (major === 6) document.getElementById('step1-5-page').classList.add('active'); else showStep2(); }
+        function selectSub6(dir) { sub6Direction = dir; showStep2(); }
+        function selectSub3(type) { currentIntervalMajor = 3; sub3Type = type; showStep2(); }
+        function selectSub4(type) { currentIntervalMajor = 4; sub4Type = type; showStep2(); }
         function showStep2() { hideAllPages(); document.getElementById('step2-page').classList.add('active'); }
         function goPrevStep() { hideAllPages(); if (currentIntervalMajor === 6) document.getElementById('step1-5-page').classList.add('active'); else if (currentIntervalMajor === 4) document.getElementById('step1-4-main-page').classList.add('active'); else if (currentIntervalMajor === 3) document.getElementById('step1-3-main-page').classList.add('active'); else goStep1(); }
 
         const p4Up2 = [{ lyric: "도파미", ans: "완전4↑+단2↓", iv: [5, -1], deg: [3, -1] }, { lyric: "레솔파", ans: "완전4↑+장2↓", iv: [5, -2], deg: [3, -1] }, { lyric: "시파미", ans: "증4↑+단2↓", iv: [6, -1], deg: [3, -1] }, { lyric: "파시라", ans: "증4↑+장2↓", iv: [6, -2], deg: [3, -1] }];
         const p4Up3 = [{ lyric: "도파레", ans: "완전4↑+단3↓", iv: [5, -3], deg: [3, -2] }, { lyric: "미라파", ans: "완전4↑+장3↓", iv: [5, -4], deg: [3, -2] }, { lyric: "시파레", ans: "증4↑+단3↓", iv: [6, -3], deg: [3, -2] }, { lyric: "파시솔", ans: "증4↑+장3↓", iv: [6, -4], deg: [3, -2] }];
-        const p4Down2 = [{ lyric: "솔도시", ans: "완전4↓+단2↑", iv: [-5, 1], deg: [-3, 1] }, { lyric: "레솔파", ans: "완전4↓+장2↑", iv: [-5, 2], deg: [-3, 1] }, { lyric: "파시도", ans: "증4↓+단2↑", iv: [-6, 1], deg: [-3, 1] }, { lyric: "시파솔", ans: "증4↓+장2↑", iv: [-6, 2], deg: [-3, 1] }];
+        const p4Down2 = [{ lyric: "솔도시", ans: "완전4↓+단2↑", iv: [-5, 1], deg: [-3, 1] }, { lyric: "레솔파", ans: "완전4↓+장2↑", iv: [-5, 2], deg: [-3, 1] }, { lyric: "파시도", ans: "증4↓+단2↑", iv: [-6, 1], deg: [-3, 1] }, { lyric: "시파솔", ans: "증4↓+단2↑", iv: [-6, 2], deg: [-3, 1] }];
         const p4Down3 = [{ lyric: "라미솔", ans: "완전4↓+단3↑", iv: [-5, 3], deg: [-3, 2] }, { lyric: "도솔시", ans: "완전4↓+장3↑", iv: [-5, 4], deg: [-3, 2] }, { lyric: "파시레", ans: "증4↓+단3↑", iv: [-6, 3], deg: [-3, 2] }, { lyric: "시파라", ans: "증4↓+장3↑", iv: [-6, 4], deg: [-3, 2] }];
         const p4UpExtra = { lyric: "시파도", ans: "증4↑+완전4↓", iv: [6, -5], deg: [3, -3] };
         const p4DownExtra = { lyric: "파시미", ans: "증4↓+완전4↑", iv: [-6, 5], deg: [-3, 3] };
-
         const pattern2D = [{ lyric: "도-디-레", ans: "단2↑+단2↑", iv: [1, 1], deg: [1, 1] }, { lyric: "미-파-솔", ans: "단2↑+장2↑", iv: [1, 2], deg: [1, 1] }, { lyric: "라-시-도", ans: "장2↑+단2↑", iv: [2, 1], deg: [1, 1] }, { lyric: "도-레-미", ans: "장2↑+장2↑", iv: [2, 2], deg: [1, 1] }, { lyric: "도-시-세", ans: "단2↓+단2↓", iv: [-1, -1], deg: [-1, -1] }, { lyric: "솔-파-미", ans: "장2↓+단2↓", iv: [-2, -1], deg: [-1, -1] }, { lyric: "도-시-라", ans: "단2↓+장2↓", iv: [-1, -2], deg: [-1, -1] }, { lyric: "미-레-도", ans: "장2↓+장2↓", iv: [-2, -2], deg: [-1, -1] }];
         const pattern3D2Up = [{ lyric: "도미레", ans: "장3↑+장2↓", iv: [4, -2], deg: [2, -1] }, { lyric: "도미메", ans: "장3↑+단2↓", iv: [4, -1], deg: [2, -1] }, { lyric: "시레도", ans: "단3↑+장2↓", iv: [3, -2], deg: [2, -1] }, { lyric: "라도시", ans: "단3↑+단2↓", iv: [3, -1], deg: [2, -1] }, { lyric: "시레b도", ans: "감3↑+단2↓", iv: [2, -1], deg: [2, -1] }];
         const pattern3D2Down = [{ lyric: "미도레", ans: "장3↓+장2↑", iv: [-4, 2], deg: [-2, 1] }, { lyric: "미도디", ans: "장3↓+단2↑", iv: [-4, 1], deg: [-2, 1] }, { lyric: "레시도", ans: "단3↓+단2↑", iv: [-3, 1], deg: [-2, 1] }, { lyric: "도라시", ans: "단3↓+장2↑", iv: [-3, 2], deg: [-2, 1] }, { lyric: "레b시도", ans: "감3↓+단2↑", iv: [-2, 1], deg: [-2, 1] }];
@@ -189,34 +194,20 @@
         const patternM6Up = { 1: { lyric: "미-도-시", ans: "단6↑+단2↓", iv: [8, -1], deg: [5, -1] }, 2: { lyric: "시-솔-파", ans: "단6↑+장2↓", iv: [8, -2], deg: [5, -1] }, 3: { lyric: "미-도-라", ans: "단6↑+단3↓", iv: [8, -3], deg: [5, -2] }, 4: { lyric: "미-도-솔#", ans: "단6↑+장3↓", iv: [8, -4], deg: [5, -2] }, 5: { lyric: "미-도-솔", ans: "단6↑+완4↓", iv: [8, -5], deg: [5, -3] }, 6: { lyric: "라-파-시", ans: "단6↑+증4/감5↓", iv: [8, -6], deg: [5, -4] }, 7: { lyric: "시-솔-도", ans: "단6↑+완5↓", iv: [8, -7], deg: [5, -4] } };
         const patternM6Down = { 1: { lyric: "솔-시-도", ans: "단6↓+단2↑", iv: [-8, 1], deg: [-5, 1] }, 2: { lyric: "파-라-시", ans: "단6↓+장2↑", iv: [-8, 2], deg: [-5, 1] }, 3: { lyric: "도-미-솔", ans: "단6↓+단3↑", iv: [-8, 3], deg: [-5, 2] }, 4: { lyric: "도-미-솔#", ans: "단6↓+장3↑", iv: [-8, 4], deg: [-5, 2] }, 5: { lyric: "도-미-라", ans: "단6↓+완4↑", iv: [-8, 5], deg: [-5, 3] }, 6: { lyric: "솔-시-파", ans: "단6↓+증4/감5↑", iv: [-8, 6], deg: [-5, 4] }, 7: { lyric: "도-미-시", ans: "단6↓+완5↑", iv: [-8, 7], deg: [-5, 5] } };
 
-        // [핵심 수정] 버튼 먹통 및 사운드 이슈 해결
-        async function startQuiz(mode) { 
-            try {
-                // 1. 오디오 컨텍스트 강제 활성화 (사용자 터치 이벤트 내부에서 실행)
-                await Tone.start(); 
-                console.log("Audio Engine Ready");
+        async function startQuiz(mode) {
+            await Tone.start();
+            isSightReadingMode = (mode === 'sight');
+            updateOptionsArea();
+            resetStats();
+            resetUI();
+            visualNotes = generateProblem();
+            patternQueue = []; // 초기화
 
-                // 2. 퀴즈 상태 설정
-                isSightReadingMode = (mode === 'sight'); 
-                updateOptionsArea(); 
-                resetStats(); 
-                resetUI(); 
-                visualNotes = generateProblem(); 
-
-                // 3. UI 전환 (비동기 처리로 렌더링 보장)
-                setTimeout(() => {
-                    hideAllPages();
-                    document.getElementById('quiz-page').classList.add('active');
-                    // 4. 소리 재생
-                    setTimeout(() => { handlePlay(false); }, 300);
-                }, 50);
-
-            } catch(e) {
-                console.error("Critical Start Error:", e);
-                // 오디오 오류 시에도 최소한 페이지는 넘김
+            requestAnimationFrame(() => {
                 hideAllPages();
                 document.getElementById('quiz-page').classList.add('active');
-            }
+                setTimeout(() => { handlePlay(false); }, 350);
+            });
         }
 
         function generateProblem() {
@@ -227,19 +218,17 @@
                     else if (sub3Type === '2down') patternQueue = shuffle([...pattern3D2Down]);
                     else if (sub3Type === '3up') patternQueue = shuffle([...pattern3D3Up]);
                     else if (sub3Type === '3down') patternQueue = shuffle([...pattern3D3Down]);
-                }
-                else if (currentIntervalMajor === 4) {
+                } else if (currentIntervalMajor === 4) {
                     if (sub4Type === 'up2') patternQueue = shuffle([...p4Up2]);
                     else if (sub4Type === 'up3') patternQueue = shuffle([...p4Up3]);
                     else if (sub4Type === 'upAll') patternQueue = shuffle([...p4Up2, ...p4Up3, p4UpExtra]);
                     else if (sub4Type === 'down2') patternQueue = shuffle([...p4Down2]);
                     else if (sub4Type === 'down3') patternQueue = shuffle([...p4Down3]);
                     else if (sub4Type === 'downAll') patternQueue = shuffle([...p4Down2, ...p4Down3, p4DownExtra]);
-                }
-                else patternQueue = shuffle(Object.values((sub6Direction === 'up') ? patternM6Up : patternM6Down));
+                } else patternQueue = shuffle(Object.values((sub6Direction === 'up') ? patternM6Up : patternM6Down));
             }
             const p = patternQueue.shift();
-            const CURRENT_MAX = isSightReadingMode ? SIGHT_MAX : EAR_MAX; 
+            const CURRENT_MAX = isSightReadingMode ? SIGHT_MAX : EAR_MAX;
             while (true) {
                 let n1Midi = RANGE_MIN + Math.floor(Math.random() * (CURRENT_MAX - RANGE_MIN - 10));
                 let n2Midi = n1Midi + p.iv[0]; let n3Midi = n2Midi + p.iv[1];
@@ -255,56 +244,34 @@
         }
 
         function updateOptionsArea() {
-            const area = document.getElementById('options-area'); const guide = document.getElementById('quiz-guide-text'); area.innerHTML = "";
-            if (isSightReadingMode) { area.style.display = 'none'; guide.innerText = ""; return; }
+            const area = document.getElementById('options-area'); const guide = document.getElementById('quiz-guide-text'); 
+            area.innerHTML = ""; if (isSightReadingMode) { area.style.display = 'none'; guide.innerText = ""; return; }
             area.style.display = 'grid';
             let list = [];
-            if (currentIntervalMajor === 2) { list = pattern2D; guide.innerText = "1. 도디레 (단2↑+단2↑)..."; }
+            if (currentIntervalMajor === 2) list = pattern2D;
             else if (currentIntervalMajor === 3) {
-                if (sub3Type === '2up') { list = pattern3D2Up; guide.innerText = "1~5. 3도2도 상행 패턴"; }
-                else if (sub3Type === '2down') { list = pattern3D2Down; guide.innerText = "1~5. 3도2도 하행 패턴"; }
-                else if (sub3Type === '3up') { list = pattern3D3Up; guide.innerText = "1. 도미솔\n2. 도미솔#\n3. 라도미\n4. 시레파"; }
-                else if (sub3Type === '3down') { list = pattern3D3Down; guide.innerText = "1. 솔미도\n2. 도솔#미\n3. 미도라\n4. 파레시"; }
+                if (sub3Type === '2up') list = pattern3D2Up; else if (sub3Type === '2down') list = pattern3D2Down;
+                else if (sub3Type === '3up') list = pattern3D3Up; else list = pattern3D3Down;
             } else if (currentIntervalMajor === 4) {
-                if (sub4Type === 'up2') { list = p4Up2; guide.innerText = "1. 도파미\n2. 레솔파\n3. 시파미\n4. 파시라"; }
-                else if (sub4Type === 'up3') { list = p4Up3; guide.innerText = "1. 도파레\n2. 미라파\n3. 시파레\n4. 파시솔"; }
-                else if (sub4Type === 'upAll') { list = [...p4Up2, ...p4Up3, p4UpExtra]; guide.innerText = "1~4. 2도하행\n5~8. 3도하행\n9. 시파도"; }
-                else if (sub4Type === 'down2') { list = p4Down2; guide.innerText = "1. 솔도시\n2. 레솔파\n3. 파시도\n4. 시파솔"; }
-                else if (sub4Type === 'down3') { list = p4Down3; guide.innerText = "1. 라미솔\n2. 도솔시\n3. 파시레\n4. 시파라"; }
-                else if (sub4Type === 'downAll') { list = [...p4Down2, ...p4Down3, p4DownExtra]; guide.innerText = "1~4. 2도상행\n5~8. 3도상행\n9. 파시미"; }
-            } else { list = Object.values(sub6Direction === 'up' ? patternM6Up : patternM6Down); }
+                if (sub4Type === 'up2') list = p4Up2; else if (sub4Type === 'up3') list = p4Up3; else if (sub4Type === 'upAll') list = [...p4Up2, ...p4Up3, p4UpExtra];
+                else if (sub4Type === 'down2') list = p4Down2; else if (sub4Type === 'down3') list = p4Down3; else list = [...p4Down2, ...p4Down3, p4DownExtra];
+            } else list = Object.values(sub6Direction === 'up' ? patternM6Up : patternM6Down);
             list.forEach((p, i) => { const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${i+1}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
         }
 
-        function checkChoice(btn, choice) { if (isSightReadingMode || btn.disabled) return; stats.sessionCount++; if (choice === matchedLyric) { btn.classList.add('correct'); stats.correct++; document.getElementById('quiz-status').innerText = "⭕ 정답!"; document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true); showAns(); } else { btn.classList.add('wrong'); stats.wrong++; errorTracker[matchedLyric] = (errorTracker[matchedLyric] || 0) + 1; document.getElementById('quiz-status').innerText = "❌ 오답!"; } }
+        function checkChoice(btn, choice) { stats.sessionCount++; if (choice === matchedLyric) { btn.classList.add('correct'); stats.correct++; document.getElementById('quiz-status').innerText = "⭕ 정답!"; document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true); showAns(); } else { btn.classList.add('wrong'); stats.wrong++; errorTracker[matchedLyric] = (errorTracker[matchedLyric] || 0) + 1; document.getElementById('quiz-status').innerText = "❌ 오답!"; } }
         async function nextProblem() { await Tone.start(); if (!isSightReadingMode && stats.sessionCount >= 10) { showResults(); return; } resetUI(); visualNotes = generateProblem(); setTimeout(() => { handlePlay(false); }, 150); }
-        function showResults() { hideAllPages(); document.getElementById('result-page').classList.add('active'); document.getElementById('res-counts').innerText = `(정답: ${stats.correct} / 오답: ${stats.wrong})`; const rate = Math.round((stats.correct / (stats.correct + stats.wrong)) * 100); document.getElementById('res-rate').innerText = `정답률: ${rate}%`; let worstPattern = "없음 (완벽합니다!)"; let maxErrors = 0; for (let lyric in errorTracker) { if (errorTracker[lyric] > maxErrors) { maxErrors = errorTracker[lyric]; worstPattern = `${lyric} (${maxErrors}회 오답)`; } } document.getElementById('worst-pattern-text').innerText = worstPattern; }
+        function showResults() { hideAllPages(); document.getElementById('result-page').classList.add('active'); document.getElementById('res-counts').innerText = `(정답: ${stats.correct} / 오답: ${stats.wrong})`; const rate = Math.round((stats.correct / (stats.correct + stats.wrong)) * 100); document.getElementById('res-rate').innerText = `정답률: ${rate}%`; let wp = "없음"; let maxE = 0; for (let l in errorTracker) { if (errorTracker[l] > maxE) { maxE = errorTracker[l]; wp = `${l} (${maxE}회)`; } } document.getElementById('worst-pattern-text').innerText = wp; }
         function continueQuiz() { stats.sessionCount = 0; hideAllPages(); document.getElementById('quiz-page').classList.add('active'); nextProblem(); }
         function resetStats() { stats = { correct: 0, wrong: 0, sessionCount: 0 }; errorTracker = {}; }
-        function resetUI() { document.getElementById('ans-header').style.display = 'none'; document.getElementById('score-container').style.display = 'none'; document.getElementById('quiz-guide-text').style.display = 'block'; document.getElementById('play-btn').disabled = false; document.getElementById('replay-btn').disabled = true; document.querySelectorAll('.opt-btn').forEach(b => { b.classList.remove('correct', 'wrong'); b.disabled = false; }); const status = document.getElementById('quiz-status'); if (isSightReadingMode) status.innerText = "첫 음을 듣고 노래하세요!"; else status.innerText = ""; }
-        
-        async function handlePlay(isReplay) { 
-            await Tone.start(); 
-            const bpmSec = 60 / currentBpm; 
-            const now = Tone.now(); 
-            if (isSightReadingMode) { 
-                document.getElementById('ans-header').style.display = 'flex'; 
-                document.getElementById('answer-text').style.display = 'none'; 
-                document.getElementById('lyric-match').innerText = `가사 : ${matchedLyric}`; 
-                document.getElementById('lyric-match').style.display = 'block'; 
-                sampler.triggerAttackRelease(Tone.Frequency(visualNotes[0].midi, "midi"), 1.0); 
-            } else { 
-                visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); }); 
-            } 
-            document.getElementById('play-btn').disabled = true; 
-            document.getElementById('replay-btn').disabled = false; 
-        }
-
+        function resetUI() { document.getElementById('ans-header').style.display = 'none'; document.getElementById('score-container').style.display = 'none'; document.getElementById('quiz-guide-text').style.display = 'block'; document.getElementById('play-btn').disabled = false; document.getElementById('replay-btn').disabled = true; document.querySelectorAll('.opt-btn').forEach(b => { b.classList.remove('correct', 'wrong'); b.disabled = false; }); const s = document.getElementById('quiz-status'); if (isSightReadingMode) s.innerText = "첫 음을 듣고 노래하세요!"; else s.innerText = ""; }
+        async function handlePlay(isReplay) { await Tone.start(); const bpmSec = 60 / currentBpm; const now = Tone.now(); if (isSightReadingMode) { document.getElementById('ans-header').style.display = 'flex'; document.getElementById('lyric-match').innerText = `가사 : ${matchedLyric}`; sampler.triggerAttackRelease(Tone.Frequency(visualNotes[0].midi, "midi"), 1.0); } else { visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); }); } document.getElementById('play-btn').disabled = true; document.getElementById('replay-btn').disabled = false; }
         function updateTempo(val) { currentBpm = val; document.getElementById('tempo-val').innerText = `BPM ${val}`; }
         function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-        function showAns() { if (!visualNotes.length) return; document.getElementById('ans-header').style.display = 'flex'; document.getElementById('answer-text').innerText = `정답 : ${currentAns}`; document.getElementById('answer-text').style.display = 'block'; document.getElementById('lyric-match').innerText = `가사 : ${matchedLyric}`; document.getElementById('quiz-guide-text').style.display = 'none'; if (isSightReadingMode) { document.getElementById('quiz-status').innerText = ""; } drawScore(); const bpmSec = 60 / currentBpm; const now = Tone.now(); visualNotes.forEach((n, i) => { sampler.triggerAttackRelease(Tone.Frequency(n.midi, "midi"), bpmSec, now + i * bpmSec); }); }
-        function drawScore() { const container = document.getElementById('score-container'); container.innerHTML = ""; container.style.display = "flex"; const renderer = new Renderer(container, Renderer.Backends.SVG); renderer.resize(260, 150); const ctx = renderer.getContext(); const stave = new Stave(0, 0, 250); stave.addClef("treble").setContext(ctx).draw(); const accTracker = {}; const notes = visualNotes.map(n => { const sn = new StaveNote({ clef: "treble", keys: [`${n.key}/${n.oct}`], duration: "q" }); const currentAcc = n.acc || ""; const prevAcc = accTracker[n.key]; if (currentAcc === "") { if (prevAcc !== undefined && prevAcc !== "") sn.addModifier(new Accidental("n")); } else { if (prevAcc !== currentAcc) sn.addModifier(new Accidental(currentAcc)); } accTracker[n.key] = currentAcc; return sn; }); const voice = new Voice({ num_beats: visualNotes.length, beat_value: 4 }); voice.addTickables(notes); new Formatter().joinVoices([voice]).format([voice], 200); voice.draw(ctx, stave); }
+        function showAns() { document.getElementById('ans-header').style.display = 'flex'; document.getElementById('answer-text').innerText = `정답 : ${currentAns}`; document.getElementById('lyric-match').innerText = `가사 : ${matchedLyric}`; document.getElementById('quiz-guide-text').style.display = 'none'; if (isSightReadingMode) document.getElementById('quiz-status').innerText = ""; drawScore(); const b = 60/currentBpm; const n = Tone.now(); visualNotes.forEach((v, i) => { sampler.triggerAttackRelease(Tone.Frequency(v.midi, "midi"), b, n + i * b); }); }
+        function drawScore() { const c = document.getElementById('score-container'); c.innerHTML = ""; c.style.display = "flex"; const r = new Renderer(c, Renderer.Backends.SVG); r.resize(260, 150); const ctx = r.getContext(); const s = new Stave(0, 0, 250); s.addClef("treble").setContext(ctx).draw(); const at = {}; const notes = visualNotes.map(n => { const sn = new StaveNote({ clef: "treble", keys: [`${n.key}/${n.oct}`], duration: "q" }); const ca = n.acc || ""; const pa = at[n.key]; if (ca === "") { if (pa !== undefined && pa !== "") sn.addModifier(new Accidental("n")); } else { if (pa !== ca) sn.addModifier(new Accidental(ca)); } at[n.key] = ca; return sn; }); const voice = new Voice({ num_beats: visualNotes.length, beat_value: 4 }); voice.addTickables(notes); new Formatter().joinVoices([voice]).format([voice], 200); voice.draw(ctx, s); }
         function getNoteByDegree(midi, baseNote, degreeDiff) { const chroma = (midi % 12 + 12) % 12; const baseIdx = baseScales.findIndex(s => s.n === baseNote.key); let targetIdx = (baseIdx + degreeDiff) % 7; if (targetIdx < 0) targetIdx += 7; const targetScale = baseScales[targetIdx]; let octave = baseNote.oct + Math.floor((baseIdx + degreeDiff) / 7); let diff = chroma - targetScale.m; if (diff > 6) diff -= 12; else if (diff < -6) diff += 12; let acc = diff === 1 ? "#" : (diff === 2 ? "##" : (diff === -1 ? "b" : (diff === -2 ? "bb" : ""))); return { midi, key: targetScale.n, acc, oct: octave }; }
+        function getAllNotationOptions(midi) { const chroma = (midi % 12 + 12) % 12; const options = []; baseScales.forEach((s) => { let diff = chroma - s.m; if (diff > 6) diff -= 12; else if (diff < -6) diff += 12; if (Math.abs(diff) <= 1) options.push({ midi, key: s.n, acc: diff === 1 ? "#" : (diff === -1 ? "b" : ""), oct: Math.floor(midi / 12) - 1 }); }); return options; }
     </script>
 </body>
 </html>
