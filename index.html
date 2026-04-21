@@ -18,23 +18,12 @@
         .page.active { display: flex; }
         h2 { margin: 15px 0 5px 0; color: var(--primary); font-size: 1.2rem; line-height: 1.2; }
         .sub-title { font-size: 0.9rem; color: #7F8C8D; margin-bottom: 20px; font-weight: 500; }
-        
         .display-box { background: #ffffff; border: none; min-height: 90px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 8px; padding: 10px; flex-shrink: 0; margin-top: 5px; position: relative; overflow: visible; z-index: 5; }
         .ans-header { display: none; width: 100%; justify-content: center; gap: 15px; margin-bottom: 2px; }
         #answer-text { font-size: 13px; color: var(--primary); font-weight: bold; margin: 0; }
         #lyric-match { font-size: 14px; color: #E74C3C; font-weight: 800; margin: 0; }
         #score-container { width: 100%; display: none; justify-content: center; transform: scale(0.85); margin-top: -10px; margin-bottom: -40px; overflow: visible; }
-        
-        /* [수정] 6도 훈련 가사가 잘리지 않도록 높이 제한 상향 및 스크롤 최적화 */
-        #quiz-guide-text { 
-            font-size: 13px; color: #2C3E50; line-height: 1.6; font-weight: 700; 
-            white-space: pre-wrap; background: rgba(242, 244, 246, 0.6); 
-            padding: 15px; border-radius: 12px; width: 98%; 
-            box-shadow: inset 0 0 5px rgba(0,0,0,0.05); text-align: left; 
-            box-sizing: border-box; height: auto; max-height: 320px; 
-            overflow-y: auto; -webkit-overflow-scrolling: touch;
-        }
-        
+        #quiz-guide-text { font-size: 13px; color: #2C3E50; line-height: 1.6; font-weight: 700; white-space: pre-wrap; background: rgba(242, 244, 246, 0.6); padding: 15px; border-radius: 12px; width: 98%; box-shadow: inset 0 0 5px rgba(0,0,0,0.05); text-align: left; box-sizing: border-box; height: auto; max-height: 320px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         #options-area { display: none; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 12px; position: relative; z-index: 20; }
         .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 4px; position: relative; z-index: 50; }
         button, .opt-btn { width: 100%; padding: 12px; border: none; border-radius: 14px; font-size: 13px; font-weight: 600; cursor: pointer; position: relative; z-index: 60; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -56,7 +45,7 @@
 </head>
 <body>
     <div class="app-card">
-        <img src="logo.jpeg" alt="펜나뮤직 이어핏 로고" class="app-logo">
+        <img src="logo.jpeg" alt="펜나뮤직 로고" class="app-logo">
 
         <div id="step1-page" class="page active">
             <h2 style="margin-top:20px;">펜나뮤직 이어핏</h2>
@@ -64,6 +53,7 @@
             <div class="btn-group">
                 <button class="btn-category" onclick="selectMajor(2)">2도 훈련</button>
                 <button class="btn-category" onclick="goToStep1_3()" style="background: #455A64;">3도 훈련</button>
+                <button class="btn-category" onclick="goToStep1_4()" style="background: #5D6D7E;">4도 훈련</button>
                 <button class="btn-category" onclick="selectMajor(6)" style="background: #2C3E50;">6도 훈련</button>
             </div>
         </div>
@@ -75,6 +65,19 @@
                 <button class="btn-category" onclick="selectSub3('2down')" style="background: #455A64;">3도 2도 하행훈련</button>
                 <button class="btn-category" onclick="selectSub3('3up')" style="background: #5D6D7E;">3도 3도 상행훈련</button>
                 <button class="btn-category" onclick="selectSub3('3down')" style="background: #5D6D7E;">3도 3도 하행훈련</button>
+                <button class="btn-back" onclick="goStep1()">⬅ 처음으로</button>
+            </div>
+        </div>
+
+        <div id="step1-4-main-page" class="page">
+            <h2>4도 훈련 세부 선택</h2>
+            <div class="btn-group" style="gap: 4px;">
+                <button class="btn-category" onclick="selectSub4('up2')" style="font-size: 0.85rem; padding: 10px;">4도상행 2도하행</button>
+                <button class="btn-category" onclick="selectSub4('up3')" style="font-size: 0.85rem; padding: 10px;">4도상행 3도하행</button>
+                <button class="btn-category" onclick="selectSub4('upAll')" style="font-size: 0.85rem; padding: 10px; background: #2C3E50;">4도상행 2-4도하행</button>
+                <button class="btn-category" onclick="selectSub4('down2')" style="font-size: 0.85rem; padding: 10px;">4도하행 2도상행</button>
+                <button class="btn-category" onclick="selectSub4('down3')" style="font-size: 0.85rem; padding: 10px;">4도하행 3도상행</button>
+                <button class="btn-category" onclick="selectSub4('downAll')" style="font-size: 0.85rem; padding: 10px; background: #2C3E50;">4도하행 2-4도상행</button>
                 <button class="btn-back" onclick="goStep1()">⬅ 처음으로</button>
             </div>
         </div>
@@ -152,7 +155,7 @@
 
         let currentBpm = 80; let visualNotes = []; let currentAns = "", matchedLyric = "";
         let isSightReadingMode = false; let currentIntervalMajor = 2; 
-        let sub6Direction = 'up'; let sub3Type = '2up';
+        let sub6Direction = 'up'; let sub3Type = '2up'; let sub4Type = 'up2';
         let patternQueue = [];
         let stats = { correct: 0, wrong: 0, sessionCount: 0 };
         let errorTracker = {};
@@ -163,40 +166,48 @@
         function hideAllPages() { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); }
         function goStep1() { hideAllPages(); document.getElementById('step1-page').classList.add('active'); }
         function goToStep1_3() { hideAllPages(); document.getElementById('step1-3-main-page').classList.add('active'); }
+        function goToStep1_4() { hideAllPages(); document.getElementById('step1-4-main-page').classList.add('active'); }
         function selectMajor(major) { hideAllPages(); currentIntervalMajor = major; patternQueue = []; if (major === 6) document.getElementById('step1-5-page').classList.add('active'); else showStep2(); }
         function selectSub6(dir) { sub6Direction = dir; patternQueue = []; showStep2(); }
         function selectSub3(type) { currentIntervalMajor = 3; sub3Type = type; patternQueue = []; showStep2(); }
+        function selectSub4(type) { currentIntervalMajor = 4; sub4Type = type; patternQueue = []; showStep2(); }
         function showStep2() { hideAllPages(); document.getElementById('step2-page').classList.add('active'); }
-        function goPrevStep() { hideAllPages(); if (currentIntervalMajor === 6) document.getElementById('step1-5-page').classList.add('active'); else if (currentIntervalMajor === 3) document.getElementById('step1-3-main-page').classList.add('active'); else goStep1(); }
+        function goPrevStep() { hideAllPages(); if (currentIntervalMajor === 6) document.getElementById('step1-5-page').classList.add('active'); else if (currentIntervalMajor === 4) document.getElementById('step1-4-main-page').classList.add('active'); else if (currentIntervalMajor === 3) document.getElementById('step1-3-main-page').classList.add('active'); else goStep1(); }
 
-        function getNoteByDegree(midi, baseNote, degreeDiff) {
-            const chroma = (midi % 12 + 12) % 12;
-            const baseIdx = baseScales.findIndex(s => s.n === baseNote.key);
-            let targetIdx = (baseIdx + degreeDiff) % 7;
-            if (targetIdx < 0) targetIdx += 7;
-            const targetScale = baseScales[targetIdx];
-            let octave = baseNote.oct + Math.floor((baseIdx + degreeDiff) / 7);
-            let diff = chroma - targetScale.m;
-            if (diff > 6) diff -= 12; else if (diff < -6) diff += 12;
-            let acc = diff === 1 ? "#" : (diff === 2 ? "##" : (diff === -1 ? "b" : (diff === -2 ? "bb" : "")));
-            return { midi, key: targetScale.n, acc, oct: octave };
-        }
+        // [데이터] 4도 훈련
+        const p4Up2 = [
+            { lyric: "도파미", ans: "완전4↑+단2↓", iv: [5, -1], deg: [3, -1] },
+            { lyric: "레솔파", ans: "완전4↑+장2↓", iv: [5, -2], deg: [3, -1] },
+            { lyric: "시파미", ans: "증4↑+단2↓", iv: [6, -1], deg: [3, -1] },
+            { lyric: "파시라", ans: "증4↑+장2↓", iv: [6, -2], deg: [3, -1] }
+        ];
+        const p4Up3 = [
+            { lyric: "도파레", ans: "완전4↑+단3↓", iv: [5, -3], deg: [3, -2] },
+            { lyric: "미라파", ans: "완전4↑+장3↓", iv: [5, -4], deg: [3, -2] },
+            { lyric: "시파레", ans: "증4↑+단3↓", iv: [6, -3], deg: [3, -2] },
+            { lyric: "파시솔", ans: "증4↑+장3↓", iv: [6, -4], deg: [3, -2] }
+        ];
+        const p4Down2 = [
+            { lyric: "솔도시", ans: "완전4↓+단2↑", iv: [-5, 1], deg: [-3, 1] },
+            { lyric: "레솔파", ans: "완전4↓+장2↑", iv: [-5, 2], deg: [-3, 1] },
+            { lyric: "파시도", ans: "증4↓+단2↑", iv: [-6, 1], deg: [-3, 1] },
+            { lyric: "시파솔", ans: "증4↓+장2↑", iv: [-6, 2], deg: [-3, 1] }
+        ];
+        const p4Down3 = [
+            { lyric: "라미솔", ans: "완전4↓+단3↑", iv: [-5, 3], deg: [-3, 2] },
+            { lyric: "도솔시", ans: "완전4↓+장3↑", iv: [-5, 4], deg: [-3, 2] },
+            { lyric: "파시레", ans: "증4↓+단3↑", iv: [-6, 3], deg: [-3, 2] },
+            { lyric: "시파라", ans: "증4↓+장3↑", iv: [-6, 4], deg: [-3, 2] }
+        ];
+        const p4UpExtra = { lyric: "시파도", ans: "증4↑+완전4↓", iv: [6, -5], deg: [3, -3] };
+        const p4DownExtra = { lyric: "파시미", ans: "증4↓+완전4↑", iv: [-6, 5], deg: [-3, 3] };
 
-        function getAllNotationOptions(midi) {
-            const chroma = (midi % 12 + 12) % 12; const options = [];
-            baseScales.forEach((s) => {
-                let diff = chroma - s.m; if (diff > 6) diff -= 12; else if (diff < -6) diff += 12;
-                if (Math.abs(diff) <= 1) options.push({ midi, key: s.n, acc: diff === 1 ? "#" : (diff === -1 ? "b" : ""), oct: Math.floor(midi / 12) - 1 });
-            });
-            return options;
-        }
-
+        // [기존 데이터]
         const pattern2D = [{ lyric: "도-디-레", ans: "단2↑+단2↑", iv: [1, 1], deg: [1, 1] }, { lyric: "미-파-솔", ans: "단2↑+장2↑", iv: [1, 2], deg: [1, 1] }, { lyric: "라-시-도", ans: "장2↑+단2↑", iv: [2, 1], deg: [1, 1] }, { lyric: "도-레-미", ans: "장2↑+장2↑", iv: [2, 2], deg: [1, 1] }, { lyric: "도-시-세", ans: "단2↓+단2↓", iv: [-1, -1], deg: [-1, -1] }, { lyric: "솔-파-미", ans: "장2↓+단2↓", iv: [-2, -1], deg: [-1, -1] }, { lyric: "도-시-라", ans: "단2↓+장2↓", iv: [-1, -2], deg: [-1, -1] }, { lyric: "미-레-도", ans: "장2↓+장2↓", iv: [-2, -2], deg: [-1, -1] }];
         const pattern3D2Up = [{ lyric: "도미레", ans: "장3↑+장2↓", iv: [4, -2], deg: [2, -1] }, { lyric: "도미메", ans: "장3↑+단2↓", iv: [4, -1], deg: [2, -1] }, { lyric: "시레도", ans: "단3↑+장2↓", iv: [3, -2], deg: [2, -1] }, { lyric: "라도시", ans: "단3↑+단2↓", iv: [3, -1], deg: [2, -1] }, { lyric: "시레b도", ans: "감3↑+단2↓", iv: [2, -1], deg: [2, -1] }];
         const pattern3D2Down = [{ lyric: "미도레", ans: "장3↓+장2↑", iv: [-4, 2], deg: [-2, 1] }, { lyric: "미도디", ans: "장3↓+단2↑", iv: [-4, 1], deg: [-2, 1] }, { lyric: "레시도", ans: "단3↓+단2↑", iv: [-3, 1], deg: [-2, 1] }, { lyric: "도라시", ans: "단3↓+장2↑", iv: [-3, 2], deg: [-2, 1] }, { lyric: "레b시도", ans: "감3↓+단2↑", iv: [-2, 1], deg: [-2, 1] }];
         const pattern3D3Up = [{ lyric: "도미솔", ans: "장3↑+단3↑ (장3화음)", iv: [4, 3], deg: [2, 2] }, { lyric: "도미솔#", ans: "장3↑+장3↑ (증3화음)", iv: [4, 4], deg: [2, 2] }, { lyric: "라도미", ans: "단3↑+장3↑ (단3화음)", iv: [3, 4], deg: [2, 2] }, { lyric: "시레파", ans: "단3↑+단3↑ (감3화음)", iv: [3, 3], deg: [2, 2] }];
         const pattern3D3Down = [{ lyric: "솔미도", ans: "단3↓+장3↓ (장3화음)", iv: [-3, -4], deg: [-2, -2] }, { lyric: "도솔#미", ans: "장3↓+장3↓ (증3화음)", iv: [-4, -4], deg: [-2, -2] }, { lyric: "미도라", ans: "장3↓+단3↓ (단3화음)", iv: [-4, -3], deg: [-2, -2] }, { lyric: "파레시", ans: "단3↓+단3↓ (감3화음)", iv: [-3, -3], deg: [-2, -2] }];
-        
         const patternM6Up = { 1: { lyric: "미-도-시", ans: "단6↑+단2↓", iv: [8, -1], deg: [5, -1] }, 2: { lyric: "시-솔-파", ans: "단6↑+장2↓", iv: [8, -2], deg: [5, -1] }, 3: { lyric: "미-도-라", ans: "단6↑+단3↓", iv: [8, -3], deg: [5, -2] }, 4: { lyric: "미-도-솔#", ans: "단6↑+장3↓", iv: [8, -4], deg: [5, -2] }, 5: { lyric: "미-도-솔", ans: "단6↑+완4↓", iv: [8, -5], deg: [5, -3] }, 6: { lyric: "라-파-시", ans: "단6↑+증4/감5↓", iv: [8, -6], deg: [5, -4] }, 7: { lyric: "시-솔-도", ans: "단6↑+완5↓", iv: [8, -7], deg: [5, -4] } };
         const patternM6Down = { 1: { lyric: "솔-시-도", ans: "단6↓+단2↑", iv: [-8, 1], deg: [-5, 1] }, 2: { lyric: "파-라-시", ans: "단6↓+장2↑", iv: [-8, 2], deg: [-5, 1] }, 3: { lyric: "도-미-솔", ans: "단6↓+단3↑", iv: [-8, 3], deg: [-5, 2] }, 4: { lyric: "도-미-솔#", ans: "단6↓+장3↑", iv: [-8, 4], deg: [-5, 2] }, 5: { lyric: "도-미-라", ans: "단6↓+완4↑", iv: [-8, 5], deg: [-5, 3] }, 6: { lyric: "솔-시-파", ans: "단6↓+증4/감5↑", iv: [-8, 6], deg: [-5, 4] }, 7: { lyric: "도-미-시", ans: "단6↓+완5↑", iv: [-8, 7], deg: [-5, 5] } };
 
@@ -211,12 +222,20 @@
                     else if (sub3Type === '3up') patternQueue = shuffle([...pattern3D3Up]);
                     else if (sub3Type === '3down') patternQueue = shuffle([...pattern3D3Down]);
                 }
+                else if (currentIntervalMajor === 4) {
+                    if (sub4Type === 'up2') patternQueue = shuffle([...p4Up2]);
+                    else if (sub4Type === 'up3') patternQueue = shuffle([...p4Up3]);
+                    else if (sub4Type === 'upAll') patternQueue = shuffle([...p4Up2, ...p4Up3, p4UpExtra]);
+                    else if (sub4Type === 'down2') patternQueue = shuffle([...p4Down2]);
+                    else if (sub4Type === 'down3') patternQueue = shuffle([...p4Down3]);
+                    else if (sub4Type === 'downAll') patternQueue = shuffle([...p4Down2, ...p4Down3, p4DownExtra]);
+                }
                 else patternQueue = shuffle(Object.values((sub6Direction === 'up') ? patternM6Up : patternM6Down));
             }
             const p = patternQueue.shift();
             const CURRENT_MAX = isSightReadingMode ? SIGHT_MAX : EAR_MAX; 
             while (true) {
-                let n1Midi = RANGE_MIN + Math.floor(Math.random() * (CURRENT_MAX - RANGE_MIN - 8));
+                let n1Midi = RANGE_MIN + Math.floor(Math.random() * (CURRENT_MAX - RANGE_MIN - 10));
                 let n2Midi = n1Midi + p.iv[0]; let n3Midi = n2Midi + p.iv[1];
                 if (n1Midi < RANGE_MIN || n2Midi < RANGE_MIN || n3Midi < RANGE_MIN || n1Midi > CURRENT_MAX || n2Midi > CURRENT_MAX || n3Midi > CURRENT_MAX) continue;
                 const n1Options = getAllNotationOptions(n1Midi);
@@ -233,23 +252,27 @@
             const area = document.getElementById('options-area'); const guide = document.getElementById('quiz-guide-text'); area.innerHTML = "";
             if (isSightReadingMode) { area.style.display = 'none'; guide.innerText = ""; return; }
             area.style.display = 'grid';
+            let list = [];
             if (currentIntervalMajor === 2) {
-                guide.innerText = "1. 도디레 (단2↑+단2↑)\n2. 미파솔 (단2↑+장2↑)...";
-                pattern2D.forEach((p, i) => { const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${i+1}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
+                guide.innerText = "1. 도디레 (단2↑+단2↑)...";
+                list = pattern2D;
             } else if (currentIntervalMajor === 3) {
-                let list = [];
-                if (sub3Type === '2up') { list = pattern3D2Up; guide.innerText = "1. 도미레 (장3↑장2↓)\n2. 도미메 (장3↑단2↓)\n3. 시레도 (단3↑장2↓)\n4. 라도시 (단3↑단2↓)\n5. 시레b도 (감3↑단2↓)"; }
-                else if (sub3Type === '2down') { list = pattern3D2Down; guide.innerText = "1. 미도레 (장3↓장2↑)\n2. 미도디 (장3↓단2↑)\n3. 레시도 (단3↓단2↑)\n4. 도라시 (단3↓장2↑)\n5. 레b시도 (감3↓단2↑)"; }
-                else if (sub3Type === '3up') { list = pattern3D3Up; guide.innerText = "1. 도미솔 (장3화음)\n2. 도미솔# (증3화음)\n3. 라도미 (단3화음)\n4. 시레파 (감3화음)"; }
-                else if (sub3Type === '3down') { list = pattern3D3Down; guide.innerText = "1. 솔미도 (장3화음)\n2. 도솔#미 (증3화음)\n3. 미도라 (단3화음)\n4. 파레시 (감3화음)"; }
-                list.forEach((p, i) => { const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${i+1}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
-            } else if (sub6Direction === 'up') {
-                guide.innerText = "1. 미도시 (단6↑+단2↓)\n2. 시솔파 (단6↑+장2↓)\n3. 미도라 (단6↑+단3↓)\n4. 미도솔# (단6↑+장3↓)\n5. 미도솔 (단6↑+완4↓)\n6. 라파시 (단6↑+증4/감5↓)\n7. 시솔도 (단6↑+완5↓)";
-                Object.keys(patternM6Up).forEach((key) => { const p = patternM6Up[key]; const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${key}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
+                if (sub3Type === '2up') { list = pattern3D2Up; guide.innerText = "1. 도미레...\n2. 도미메...\n3. 시레도...\n4. 라도시...\n5. 시레b도..."; }
+                else if (sub3Type === '2down') { list = pattern3D2Down; guide.innerText = "1. 미도레...\n2. 미도디...\n3. 레시도...\n4. 도라시...\n5. 레b시도..."; }
+                else if (sub3Type === '3up') { list = pattern3D3Up; guide.innerText = "1. 도미솔...\n2. 도미솔#...\n3. 라도미...\n4. 시레파..."; }
+                else if (sub3Type === '3down') { list = pattern3D3Down; guide.innerText = "1. 솔미도...\n2. 도솔#미...\n3. 미도라...\n4. 파레시..."; }
+            } else if (currentIntervalMajor === 4) {
+                if (sub4Type === 'up2') { list = p4Up2; guide.innerText = "1. 도파미 (완4+단2)\n2. 레솔파 (완4+장2)\n3. 시파미 (증4+단2)\n4. 파시라 (증4+장2)"; }
+                else if (sub4Type === 'up3') { list = p4Up3; guide.innerText = "1. 도파레 (완4+단3)\n2. 미라파 (완4+장3)\n3. 시파레 (증4+단3)\n4. 파시솔 (증4+장3)"; }
+                else if (sub4Type === 'upAll') { list = [...p4Up2, ...p4Up3, p4UpExtra]; guide.innerText = "1~4. 2도하행 패턴\n5~8. 3도하행 패턴\n9. 시파도 (증4+완4)"; }
+                else if (sub4Type === 'down2') { list = p4Down2; guide.innerText = "1. 솔도시 (완4+단2)\n2. 레솔파 (완4+장2)\n3. 파시도 (증4+단2)\n4. 시파솔 (증4+장2)"; }
+                else if (sub4Type === 'down3') { list = p4Down3; guide.innerText = "1. 라미솔 (완4+단3)\n2. 도솔시 (완4+장3)\n3. 파시레 (증4+단3)\n4. 시파라 (증4+장3)"; }
+                else if (sub4Type === 'downAll') { list = [...p4Down2, ...p4Down3, p4DownExtra]; guide.innerText = "1~4. 2도상행 패턴\n5~8. 3도상행 패턴\n9. 파시미 (증4+완4)"; }
             } else {
-                guide.innerText = "1. 솔시도 (단6↓+단2↑)\n2. 파라시 (단6↓+장2↑)\n3. 도미솔 (단6↓+단3↑)\n4. 도미솔# (단6↓+장3↑)\n5. 도미라 (단6↓+완4↑)\n6. 솔시파 (단6↓+증4/감5↑)\n7. 도미시 (단6↓+완5↑)";
-                Object.keys(patternM6Down).forEach((key) => { const p = patternM6Down[key]; const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${key}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
+                guide.innerText = sub6Direction === 'up' ? "1. 미도시 (단6↑+단2↓)..." : "1. 솔시도 (단6↓+단2↑)...";
+                list = Object.values(sub6Direction === 'up' ? patternM6Up : patternM6Down);
             }
+            list.forEach((p, i) => { const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${i+1}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
         }
 
         function checkChoice(btn, choice) { if (isSightReadingMode || btn.disabled) return; stats.sessionCount++; if (choice === matchedLyric) { btn.classList.add('correct'); stats.correct++; document.getElementById('quiz-status').innerText = "⭕ 정답!"; document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true); showAns(); } else { btn.classList.add('wrong'); stats.wrong++; errorTracker[matchedLyric] = (errorTracker[matchedLyric] || 0) + 1; document.getElementById('quiz-status').innerText = "❌ 오답!"; } }
