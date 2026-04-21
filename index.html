@@ -166,7 +166,6 @@
         const RANGE_MIN = 55; const SIGHT_MAX = 77; const EAR_MAX = 84;
         const baseScales = [{ n: 'c', m: 0 }, { n: 'd', m: 2 }, { n: 'e', m: 4 }, { n: 'f', m: 5 }, { n: 'g', m: 7 }, { n: 'a', m: 9 }, { n: 'b', m: 11 }];
 
-        // 전역 터치 핸들러: 오디오 차단 해제용
         window.addEventListener('touchstart', () => { if (Tone.context.state !== 'running') Tone.context.resume(); }, { once: true });
 
         function hideAllPages() { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); }
@@ -182,7 +181,7 @@
 
         const p4Up2 = [{ lyric: "도파미", ans: "완전4↑+단2↓", iv: [5, -1], deg: [3, -1] }, { lyric: "레솔파", ans: "완전4↑+장2↓", iv: [5, -2], deg: [3, -1] }, { lyric: "시파미", ans: "증4↑+단2↓", iv: [6, -1], deg: [3, -1] }, { lyric: "파시라", ans: "증4↑+장2↓", iv: [6, -2], deg: [3, -1] }];
         const p4Up3 = [{ lyric: "도파레", ans: "완전4↑+단3↓", iv: [5, -3], deg: [3, -2] }, { lyric: "미라파", ans: "완전4↑+장3↓", iv: [5, -4], deg: [3, -2] }, { lyric: "시파레", ans: "증4↑+단3↓", iv: [6, -3], deg: [3, -2] }, { lyric: "파시솔", ans: "증4↑+장3↓", iv: [6, -4], deg: [3, -2] }];
-        const p4Down2 = [{ lyric: "솔도시", ans: "완전4↓+단2↑", iv: [-5, 1], deg: [-3, 1] }, { lyric: "레솔파", ans: "완전4↓+장2↑", iv: [-5, 2], deg: [-3, 1] }, { lyric: "파시도", ans: "증4↓+단2↑", iv: [-6, 1], deg: [-3, 1] }, { lyric: "시파솔", ans: "증4↓+단2↑", iv: [-6, 2], deg: [-3, 1] }];
+        const p4Down2 = [{ lyric: "솔도시", ans: "완전4↓+단2↑", iv: [-5, 1], deg: [-3, 1] }, { lyric: "레솔파", ans: "완전4↓+장2↑", iv: [-5, 2], deg: [-3, 1] }, { lyric: "파시도", ans: "증4↓+단2↑", iv: [-6, 1], deg: [-3, 1] }, { lyric: "시파솔", ans: "증4↓+장2↑", iv: [-6, 2], deg: [-3, 1] }];
         const p4Down3 = [{ lyric: "라미솔", ans: "완전4↓+단3↑", iv: [-5, 3], deg: [-3, 2] }, { lyric: "도솔시", ans: "완전4↓+장3↑", iv: [-5, 4], deg: [-3, 2] }, { lyric: "파시레", ans: "증4↓+단3↑", iv: [-6, 3], deg: [-3, 2] }, { lyric: "시파라", ans: "증4↓+장3↑", iv: [-6, 4], deg: [-3, 2] }];
         const p4UpExtra = { lyric: "시파도", ans: "증4↑+완전4↓", iv: [6, -5], deg: [3, -3] };
         const p4DownExtra = { lyric: "파시미", ans: "증4↓+완전4↑", iv: [-6, 5], deg: [-3, 3] };
@@ -197,11 +196,11 @@
         async function startQuiz(mode) {
             await Tone.start();
             isSightReadingMode = (mode === 'sight');
-            updateOptionsArea();
+            patternQueue = []; // 큐 먼저 비우기
+            updateOptionsArea(); // 여기서 가이드 텍스트 렌더링
             resetStats();
             resetUI();
-            visualNotes = generateProblem();
-            patternQueue = []; // 초기화
+            visualNotes = generateProblem(); // 첫 문제 생성
 
             requestAnimationFrame(() => {
                 hideAllPages();
@@ -248,14 +247,23 @@
             area.innerHTML = ""; if (isSightReadingMode) { area.style.display = 'none'; guide.innerText = ""; return; }
             area.style.display = 'grid';
             let list = [];
-            if (currentIntervalMajor === 2) list = pattern2D;
+            if (currentIntervalMajor === 2) { list = pattern2D; guide.innerText = "1. 도디레 (단2↑+단2↑)\n2. 미파솔 (단2↑+장2↑)\n3. 라시도 (장2↑+단2↑)\n4. 도레미 (장2↑+장2↑)\n5. 도시세 (단2↓+단2↓)\n6. 솔파미 (장2↓+단2↓)\n7. 도시라 (단2↓+장2↓)\n8. 미레도 (장2↓+장2↓)"; }
             else if (currentIntervalMajor === 3) {
-                if (sub3Type === '2up') list = pattern3D2Up; else if (sub3Type === '2down') list = pattern3D2Down;
-                else if (sub3Type === '3up') list = pattern3D3Up; else list = pattern3D3Down;
+                if (sub3Type === '2up') { list = pattern3D2Up; guide.innerText = "1. 도미레 (장3↑장2↓)\n2. 도미메 (장3↑단2↓)\n3. 시레도 (단3↑장2↓)\n4. 라도시 (단3↑단2↓)\n5. 시레b도 (감3↑단2↓)"; }
+                else if (sub3Type === '2down') { list = pattern3D2Down; guide.innerText = "1. 미도레 (장3↓장2↑)\n2. 미도디 (장3↓단2↑)\n3. 레시도 (단3↓단2↑)\n4. 도라시 (단3↓장2↑)\n5. 레b시도 (감3↓단2↑)"; }
+                else if (sub3Type === '3up') { list = pattern3D3Up; guide.innerText = "1. 도미솔 (장3화음)\n2. 도미솔# (증3화음)\n3. 라도미 (단3화음)\n4. 시레파 (감3화음)"; }
+                else { list = pattern3D3Down; guide.innerText = "1. 솔미도 (장3화음)\n2. 도솔#미 (증3화음)\n3. 미도라 (단3화음)\n4. 파레시 (감3화음)"; }
             } else if (currentIntervalMajor === 4) {
-                if (sub4Type === 'up2') list = p4Up2; else if (sub4Type === 'up3') list = p4Up3; else if (sub4Type === 'upAll') list = [...p4Up2, ...p4Up3, p4UpExtra];
-                else if (sub4Type === 'down2') list = p4Down2; else if (sub4Type === 'down3') list = p4Down3; else list = [...p4Down2, ...p4Down3, p4DownExtra];
-            } else list = Object.values(sub6Direction === 'up' ? patternM6Up : patternM6Down);
+                if (sub4Type === 'up2') { list = p4Up2; guide.innerText = "1. 도파미 (완4↑단2↓)\n2. 레솔파 (완4↑장2↓)\n3. 시파미 (증4↑단2↓)\n4. 파시라 (증4↑장2↓)"; }
+                else if (sub4Type === 'up3') { list = p4Up3; guide.innerText = "1. 도파레 (완4↑단3↓)\n2. 미라파 (완4↑장3↓)\n3. 시파레 (증4↑단3↓)\n4. 파시솔 (증4↑장3↓)"; }
+                else if (sub4Type === 'upAll') { list = [...p4Up2, ...p4Up3, p4UpExtra]; guide.innerText = "4도 상행 2도하행/3도하행 전체 및\n시파도 (증4↑완4↓) 포함"; }
+                else if (sub4Type === 'down2') { list = p4Down2; guide.innerText = "1. 솔도시 (완4↓단2↑)\n2. 레솔파 (완4↓장2↑)\n3. 파시도 (증4↓단2↑)\n4. 시파솔 (증4↓장2↑)"; }
+                else if (sub4Type === 'down3') { list = p4Down3; guide.innerText = "1. 라미솔 (완4↓단3↑)\n2. 도솔시 (완4↓장3↑)\n3. 파시레 (증4↓단3↑)\n4. 시파라 (증4↓장3↑)"; }
+                else { list = [...p4Down2, ...p4Down3, p4DownExtra]; guide.innerText = "4도 하행 2도상행/3도상행 전체 및\n파시미 (증4↓완4↑) 포함"; }
+            } else {
+                guide.innerText = sub6Direction === 'up' ? "1. 미도시 (단6↑단2↓)\n2. 시솔파 (단6↑장2↓)\n3. 미도라 (단6↑단3↓)\n4. 미도솔# (단6↑장3↓)\n5. 미도솔 (단6↑완4↓)\n6. 라파시 (단6↑증4↓)\n7. 시솔도 (단6↑완5↓)" : "1. 솔시도 (단6↓단2↑)\n2. 파라시 (단6↓장2↑)\n3. 도미솔 (단6↓단3↑)\n4. 도미솔# (단6↓장3↑)\n5. 도미라 (단6↓완4↑)\n6. 솔시파 (단6↓증4↑)\n7. 도미시 (단6↓완5↑)";
+                list = Object.values(sub6Direction === 'up' ? patternM6Up : patternM6Down);
+            }
             list.forEach((p, i) => { const btn = document.createElement('button'); btn.className = "opt-btn"; btn.innerText = `${i+1}.${p.lyric}`; btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; area.appendChild(btn); });
         }
 
