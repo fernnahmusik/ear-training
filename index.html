@@ -24,15 +24,34 @@
         #lyric-match { font-size: 14px; color: #E74C3C; font-weight: 800; margin: 0; }
         #score-container { width: 100%; display: none; justify-content: center; transform: scale(0.85); margin-top: -10px; margin-bottom: -40px; overflow: visible; }
         
-        /* 가이드 텍스트 제거 */
-        #quiz-guide-text { display: none; }
+        /* [수정] 버튼 한 줄에 2개씩 배치하도록 그리드 복구 */
+        #options-area { 
+            display: none; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 6px; 
+            margin-bottom: 12px; 
+            position: relative; 
+            z-index: 20; 
+            width: 100%; 
+        }
         
-        #options-area { display: none; grid-template-columns: 1fr; gap: 6px; margin-bottom: 12px; position: relative; z-index: 20; width: 100%; }
         .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 4px; position: relative; z-index: 50; }
-        button, .opt-btn { width: 100%; padding: 12px; border: none; border-radius: 14px; font-size: 13px; font-weight: 600; cursor: pointer; position: relative; z-index: 60; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        button, .opt-btn { width: 100%; padding: 10px 6px; border: none; border-radius: 14px; font-weight: 600; cursor: pointer; position: relative; z-index: 60; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
         
-        /* 정답 버튼 텍스트 정렬 보정 */
-        .opt-btn { text-align: left; padding-left: 20px; font-size: 12px; height: 45px; display: flex; align-items: center; }
+        /* [수정] 2개 배치 시 텍스트 가독성을 위한 폰트 조정 */
+        .opt-btn { 
+            background: #fff; 
+            border: 1.5px solid #DCDFE6; 
+            color: #606266;
+            font-size: 11px; 
+            line-height: 1.2;
+            height: 52px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center;
+            text-align: center;
+            word-break: keep-all;
+        }
         
         button:active { transform: scale(0.97); opacity: 0.9; }
         .btn-category { background: var(--secondary); color: white; padding: 14px; font-size: 0.95rem; }
@@ -42,7 +61,6 @@
         .btn-next { background: #E67E22; color: white; } 
         .btn-sub { background: white; color: var(--primary); border: 1.5px solid #DCDFE6; }
         .btn-back { background: transparent; color: #95A5A6; font-size: 11px; padding: 4px; z-index: 70; }
-        .opt-btn { background: #fff; border: 1.5px solid #DCDFE6; color: #606266; }
         .opt-btn.correct { background: var(--penna-green); color: white; border-color: #27AE60; }
         .opt-btn.wrong { background: #FFD1D1; color: #E74C3C; border-color: #E74C3C; }
         .tempo-container { background: #fff; padding: 6px 10px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #eee; flex-shrink: 0; position: relative; z-index: 40; }
@@ -192,16 +210,7 @@
         const p4UpExtra = { lyric: "시파도", ans: "증4↑완4↓", iv: [6, -5], deg: [3, -3] };
         const p4DownExtra = { lyric: "파시미", ans: "증4↓완4↑", iv: [-6, 5], deg: [-3, 3] };
 
-        const pattern2D = [
-            { lyric: "도디레", ans: "단2↑단2↑", iv: [1, 1], deg: [1, 1] }, 
-            { lyric: "미파솔", ans: "단2↑장2↑", iv: [1, 2], deg: [1, 1] }, 
-            { lyric: "라시도", ans: "장2↑단2↑", iv: [2, 1], deg: [1, 1] }, 
-            { lyric: "도레미", ans: "장2↑장2↑", iv: [2, 2], deg: [1, 1] }, 
-            { lyric: "도시세", ans: "단2↓단2↓", iv: [-1, -1], deg: [-1, -1] }, 
-            { lyric: "솔파미", ans: "장2↓단2↓", iv: [-2, -1], deg: [-1, -1] }, 
-            { lyric: "도시라", ans: "단2↓장2↓", iv: [-1, -2], deg: [-1, -1] }, 
-            { lyric: "미레도", ans: "장2↓장2↓", iv: [-2, -2], deg: [-1, -1] }
-        ];
+        const pattern2D = [{ lyric: "도디레", ans: "단2↑단2↑", iv: [1, 1], deg: [1, 1] }, { lyric: "미파솔", ans: "단2↑장2↑", iv: [1, 2], deg: [1, 1] }, { lyric: "라시도", ans: "장2↑단2↑", iv: [2, 1], deg: [1, 1] }, { lyric: "도레미", ans: "장2↑장2↑", iv: [2, 2], deg: [1, 1] }, { lyric: "도시세", ans: "단2↓단2↓", iv: [-1, -1], deg: [-1, -1] }, { lyric: "솔파미", ans: "장2↓단2↓", iv: [-2, -1], deg: [-1, -1] }, { lyric: "도시라", ans: "단2↓장2↓", iv: [-1, -2], deg: [-1, -1] }, { lyric: "미레도", ans: "장2↓장2↓", iv: [-2, -2], deg: [-1, -1] }];
         const pattern3D2Up = [{ lyric: "도미레", ans: "장3↑장2↓", iv: [4, -2], deg: [2, -1] }, { lyric: "도미메", ans: "장3↑단2↓", iv: [4, -1], deg: [2, -1] }, { lyric: "시레도", ans: "단3↑장2↓", iv: [3, -2], deg: [2, -1] }, { lyric: "라도시", ans: "단3↑단2↓", iv: [3, -1], deg: [2, -1] }, { lyric: "시레b도", ans: "감3↑단2↓", iv: [2, -1], deg: [2, -1] }];
         const pattern3D2Down = [{ lyric: "미도레", ans: "장3↓장2↑", iv: [-4, 2], deg: [-2, 1] }, { lyric: "미도디", ans: "장3↓단2↑", iv: [-4, 1], deg: [-2, 1] }, { lyric: "레시도", ans: "단3↓단2↑", iv: [-3, 1], deg: [-2, 1] }, { lyric: "도라시", ans: "단3↓장2↑", iv: [-3, 2], deg: [-2, 1] }, { lyric: "레b시도", ans: "감3↓단2↑", iv: [-2, 1], deg: [-2, 1] }];
         const pattern3D3Up = [{ lyric: "도미솔", ans: "장3↑단3↑", iv: [4, 3], deg: [2, 2] }, { lyric: "도미솔#", ans: "장3↑장3↑", iv: [4, 4], deg: [2, 2] }, { lyric: "라도미", ans: "단3↑장3↑", iv: [3, 4], deg: [2, 2] }, { lyric: "시레파", ans: "단3↑단3↑", iv: [3, 3], deg: [2, 2] }];
@@ -275,8 +284,7 @@
             list.forEach((p, i) => { 
                 const btn = document.createElement('button'); 
                 btn.className = "opt-btn"; 
-                // 버튼 안에 가사와 음정 간격을 통합해서 표시
-                btn.innerText = `${i+1}. ${p.lyric} (${p.ans})`; 
+                btn.innerText = `${i+1}.${p.lyric}\n(${p.ans})`; 
                 btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); }; 
                 area.appendChild(btn); 
             });
