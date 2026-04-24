@@ -211,6 +211,7 @@
             <div class="btn-group">
                 <div style="display:flex; gap:6px;">
                     <button id="m4-play-btn" class="btn-play" style="flex:1;" onclick="playMelody4()">재생</button>
+                    <button id="m4-stop-btn" class="btn-replay" style="flex:1; background:#E74C3C;" onclick="stopMelody4()" disabled>정지</button>
                     <button id="m4-replay-btn" class="btn-replay" style="flex:1;" onclick="playMelody4()" disabled>다시듣기</button>
                 </div>
                 <div style="display:flex; gap:6px;">
@@ -462,6 +463,7 @@
         const MELODY_NOTE_NAMES = ['c','d','e','f','g','a','b'];
         let melody4Notes = [];
         let m4Bpm = 80;
+        let m4PlayTimer = null;
 
         // 마디당 리듬 패턴 (q=4분, e=8분, de=점8분, s=16분)
         const RHYTHM_PATTERNS = [
@@ -556,26 +558,52 @@
 
         async function startMelody4() {
             await Tone.start();
+            if (m4PlayTimer) { clearTimeout(m4PlayTimer); m4PlayTimer = null; }
+            sampler.releaseAll();
             generateMelody4();
             hideAllPages();
             document.getElementById('melody4-page').classList.add('active');
             document.getElementById('m4-status').innerText = '재생 버튼을 눌러 시작하세요';
             document.getElementById('m4-score-container').style.display = 'none';
             document.getElementById('m4-play-btn').disabled = false;
+            document.getElementById('m4-stop-btn').disabled = true;
             document.getElementById('m4-replay-btn').disabled = true;
         }
 
         async function playMelody4() {
             await Tone.start();
+            Tone.Transport.cancel();
+            Tone.Transport.stop();
+            sampler.releaseAll();
+
             document.getElementById('m4-play-btn').disabled = true;
-            document.getElementById('m4-replay-btn').disabled = false;
+            document.getElementById('m4-stop-btn').disabled = false;
+            document.getElementById('m4-replay-btn').disabled = true;
             document.getElementById('m4-status').innerText = '🎵 듣고 있는 중...';
+
             let t = Tone.now() + 0.1;
+            let totalDur = 0;
             for (const n of melody4Notes) {
                 const sec = durToSeconds(n.duration, m4Bpm);
                 sampler.triggerAttackRelease(Tone.Frequency(n.midi, 'midi'), sec * 0.85, t);
                 t += sec;
+                totalDur += sec;
             }
+            // 재생 끝나면 자동으로 버튼 상태 복구
+            m4PlayTimer = setTimeout(() => {
+                document.getElementById('m4-stop-btn').disabled = true;
+                document.getElementById('m4-replay-btn').disabled = false;
+                document.getElementById('m4-status').innerText = '다시듣기 또는 정답 악보를 확인하세요';
+            }, totalDur * 1000 + 200);
+        }
+
+        function stopMelody4() {
+            if (m4PlayTimer) { clearTimeout(m4PlayTimer); m4PlayTimer = null; }
+            sampler.releaseAll();
+            document.getElementById('m4-play-btn').disabled = true;
+            document.getElementById('m4-stop-btn').disabled = true;
+            document.getElementById('m4-replay-btn').disabled = false;
+            document.getElementById('m4-status').innerText = '⏹ 정지됨';
         }
 
         function showMelody4Ans() {
@@ -650,10 +678,13 @@
         }
 
         function nextMelody4() {
+            if (m4PlayTimer) { clearTimeout(m4PlayTimer); m4PlayTimer = null; }
+            sampler.releaseAll();
             generateMelody4();
             document.getElementById('m4-status').innerText = '재생 버튼을 눌러 시작하세요';
             document.getElementById('m4-score-container').style.display = 'none';
             document.getElementById('m4-play-btn').disabled = false;
+            document.getElementById('m4-stop-btn').disabled = true;
             document.getElementById('m4-replay-btn').disabled = true;
         }
 
