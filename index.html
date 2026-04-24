@@ -506,8 +506,16 @@
 
         function generateMelody4() {
             melody4Notes = [];
-            const scaleMidis = getScaleMidis();
-            let prevIdx = Math.floor(scaleMidis.length / 2); // C4 근처에서 시작
+            const CURRENT_MAX = 84;
+            // pattern2D의 iv를 이용해 실제 2도 훈련 음정으로 멜로디 생성
+            // 각 음표마다 pattern2D 중 하나를 골라 첫 음에서 iv[0] 이동
+            // 멜로디는 음표 단위로 생성: 각 마디 리듬 패턴 선택 후 음 결정
+
+            // 시작 음: RANGE_MIN~CURRENT_MAX-12 사이 임의 음
+            let prevMidi = RANGE_MIN + 5 + Math.floor(Math.random() * (CURRENT_MAX - RANGE_MIN - 15));
+            // 시작 음을 흰건반(자연음)으로 맞춤
+            const naturalChroma = [0,2,4,5,7,9,11];
+            while (!naturalChroma.includes((prevMidi % 12 + 12) % 12)) prevMidi++;
 
             for (let bar = 0; bar < 4; bar++) {
                 const pattern = RHYTHM_PATTERNS[Math.floor(Math.random() * RHYTHM_PATTERNS.length)];
@@ -519,24 +527,28 @@
                     if (beats + b > 4) break;
                     beats += b;
 
-                    // 2도 이내 이동
-                    const lo = Math.max(0, prevIdx - 2);
-                    const hi = Math.min(scaleMidis.length - 1, prevIdx + 2);
-                    prevIdx = lo + Math.floor(Math.random() * (hi - lo + 1));
-                    const midi = scaleMidis[prevIdx];
-                    const chromaIdx = MELODY_SCALE_STEPS.indexOf((midi % 12 + 12) % 12);
-                    const oct = Math.floor(midi / 12) - 1;
-                    melody4Notes.push({ midi, key: MELODY_NOTE_NAMES[chromaIdx], acc: '', oct, duration: dur });
+                    // pattern2D에서 랜덤 iv[0] 이동
+                    const p2 = pattern2D[Math.floor(Math.random() * pattern2D.length)];
+                    let nextMidi = prevMidi + p2.iv[0];
+                    // 범위 벗어나면 방향 반전
+                    if (nextMidi < RANGE_MIN || nextMidi > CURRENT_MAX) nextMidi = prevMidi - p2.iv[0];
+                    if (nextMidi < RANGE_MIN || nextMidi > CURRENT_MAX) nextMidi = prevMidi;
+                    prevMidi = nextMidi;
+
+                    const n1Options = getAllNotationOptions(prevMidi);
+                    const n1 = n1Options.find(o => o.acc === '') || n1Options[0];
+                    melody4Notes.push({ midi: prevMidi, key: n1.key, acc: n1.acc, oct: n1.oct, duration: dur });
                 }
-                // 마디 박자 못 채우면 4분음표로 채움
+                // 박자 못 채우면 4분음표로 채움
                 while (beats < 4) {
-                    const lo = Math.max(0, prevIdx - 2);
-                    const hi = Math.min(scaleMidis.length - 1, prevIdx + 2);
-                    prevIdx = lo + Math.floor(Math.random() * (hi - lo + 1));
-                    const midi = scaleMidis[prevIdx];
-                    const chromaIdx = MELODY_SCALE_STEPS.indexOf((midi % 12 + 12) % 12);
-                    const oct = Math.floor(midi / 12) - 1;
-                    melody4Notes.push({ midi, key: MELODY_NOTE_NAMES[chromaIdx], acc: '', oct, duration: 'q' });
+                    const p2 = pattern2D[Math.floor(Math.random() * pattern2D.length)];
+                    let nextMidi = prevMidi + p2.iv[0];
+                    if (nextMidi < RANGE_MIN || nextMidi > CURRENT_MAX) nextMidi = prevMidi - p2.iv[0];
+                    if (nextMidi < RANGE_MIN || nextMidi > CURRENT_MAX) nextMidi = prevMidi;
+                    prevMidi = nextMidi;
+                    const n1Options = getAllNotationOptions(prevMidi);
+                    const n1 = n1Options.find(o => o.acc === '') || n1Options[0];
+                    melody4Notes.push({ midi: prevMidi, key: n1.key, acc: n1.acc, oct: n1.oct, duration: 'q' });
                     beats += 1;
                 }
             }
@@ -598,8 +610,7 @@
                     const x = col * staveW;
                     const y = row * 105;
                     const s = new Vex.Flow.Stave(x, y, staveW);
-                    if (col === 0) s.addClef('treble');
-                    s.addTimeSignature('4/4');
+                    if (bar === 0) { s.addClef('treble'); s.addTimeSignature('4/4'); }
                     s.setContext(ctx).draw();
 
                     const vexNotes = bars[bar].map(n => {
