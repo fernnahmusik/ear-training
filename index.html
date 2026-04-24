@@ -111,19 +111,28 @@
             <h2 style="margin-top:20px;">펜나뮤직 이어핏</h2>
             <div class="sub-title">시창/청음 트레이닝</div>
             <div class="btn-group">
-                <button class="btn-category" onclick="selectMajor(2)">2도 훈련</button>
+                <button class="btn-category" onclick="goToStep1_2()">2도 훈련</button>
                 <button class="btn-category" onclick="goToStep1_3()" style="background: #455A64;">3도 훈련</button>
                 <button class="btn-category" onclick="goToStep1_4()" style="background: #5D6D7E;">4도 훈련</button>
                 <button class="btn-category" onclick="selectMajor(6)" style="background: #2C3E50;">6도 훈련</button>
             </div>
         </div>
 
+        <div id="step1-2-main-page" class="page">
+            <h2>2도 훈련 세부 선택</h2>
+            <div class="btn-group">
+                <button class="btn-category" onclick="selectMajor(2)">2도 패턴 훈련</button>
+                <button class="btn-category" onclick="startMelody4()" style="background: #2C3E50;">4마디 멜로디 청음</button>
+                <button class="btn-back" onclick="goStep1()">⬅ 처음으로</button>
+            </div>
+        </div>
+
         <div id="step1-3-main-page" class="page">
             <h2>3도 훈련 세부 선택</h2>
             <div class="btn-group">
+                <button class="btn-category" onclick="selectSub3('2upup')" style="background: #607D8B;">3도↑ 2도↑</button>
                 <button class="btn-category" onclick="selectSub3('2up')">3도↑ 2도↓</button>
                 <button class="btn-category" onclick="selectSub3('2down')" style="background: #455A64;">3도↓ 2도↑</button>
-                <button class="btn-category" onclick="selectSub3('2upup')" style="background: #607D8B;">3도↑ 2도↑</button>
                 <button class="btn-category" onclick="selectSub3('2downdown')" style="background: #546E7A;">3도↓ 2도↓</button>
                 <button class="btn-category" onclick="selectSub3('3up')" style="background: #5D6D7E;">3도↑ 3도↓</button>
                 <button class="btn-category" onclick="selectSub3('3down')" style="background: #5D6D7E;">3도↓ 3도↑</button>
@@ -189,6 +198,29 @@
             </div>
         </div>
 
+        <div id="melody4-page" class="page">
+            <h2>4마디 멜로디 청음</h2>
+            <div class="display-box" style="min-height: 110px;">
+                <div id="m4-status" style="font-size:13px; color: var(--primary); font-weight:600;">재생 버튼을 눌러 시작하세요</div>
+                <div id="m4-score-container" style="width:100%; display:none; justify-content:center; overflow:visible;"></div>
+            </div>
+            <div class="tempo-container">
+                <div class="tempo-label"><span>속도</span><span id="m4-tempo-val">BPM 80</span></div>
+                <input type="range" id="m4-tempo-slider" min="50" max="180" value="80" oninput="updateM4Tempo(this.value)">
+            </div>
+            <div class="btn-group">
+                <div style="display:flex; gap:6px;">
+                    <button id="m4-play-btn" class="btn-play" style="flex:1;" onclick="playMelody4()">재생</button>
+                    <button id="m4-replay-btn" class="btn-replay" style="flex:1;" onclick="playMelody4()" disabled>다시듣기</button>
+                </div>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn-sub" style="flex:1.2;" onclick="showMelody4Ans()">정답 악보 확인</button>
+                    <button class="btn-next" style="flex:1;" onclick="nextMelody4()">다음 문제</button>
+                </div>
+                <button class="btn-back" onclick="goToStep1_2()">⬅ 세부 선택으로</button>
+            </div>
+        </div>
+
         <div id="result-page" class="page">
             <h2 style="margin-top:20px;">🎯 중간 점검</h2>
             <div class="display-box" style="min-height: 150px; padding: 15px;">
@@ -239,6 +271,7 @@
 
         function hideAllPages() { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); }
         function goStep1() { hideAllPages(); document.getElementById('step1-page').classList.add('active'); }
+        function goToStep1_2() { hideAllPages(); document.getElementById('step1-2-main-page').classList.add('active'); }
         function goToStep1_3() { hideAllPages(); document.getElementById('step1-3-main-page').classList.add('active'); }
         function goToStep1_4() { hideAllPages(); document.getElementById('step1-4-main-page').classList.add('active'); }
         function selectMajor(major) { hideAllPages(); currentIntervalMajor = major; if (major === 6) document.getElementById('step1-5-page').classList.add('active'); else showStep2(); }
@@ -423,6 +456,200 @@
         }
 
         function updateTempo(val) { currentBpm = val; document.getElementById('tempo-val').innerText = `BPM ${val}`; }
+
+        // ====== 4마디 멜로디 청음 ======
+        const MELODY_SCALE_STEPS = [0, 2, 4, 5, 7, 9, 11];
+        const MELODY_NOTE_NAMES = ['c','d','e','f','g','a','b'];
+        let melody4Notes = [];
+        let m4Bpm = 80;
+
+        // 마디당 리듬 패턴 (q=4분, e=8분, de=점8분, s=16분)
+        const RHYTHM_PATTERNS = [
+            ['q','q','q','q'],
+            ['e','e','e','e','e','e','e','e'],
+            ['de','s','de','s','de','s','de','s'],   // 붓점(점8분+16분) × 4
+            ['s','de','s','de','s','de','s','de'],   // 역붓점(16분+점8분) × 4
+            ['q','e','e','q'],
+            ['e','e','q','q'],
+        ];
+
+        function getScaleMidis() {
+            const base = 60; // C4
+            const result = [];
+            // C4(60) ~ C5(72)
+            for (let oct = 0; oct <= 1; oct++) {
+                MELODY_SCALE_STEPS.forEach(s => {
+                    const m = base + oct * 12 + s;
+                    if (m <= 72) result.push(m);
+                });
+            }
+            return [...new Set(result)].sort((a,b) => a - b);
+        }
+
+        function durBeats(dur) {
+            if (dur === 'q') return 1;
+            if (dur === 'e') return 0.5;
+            if (dur === 'de') return 0.75;  // 점8분
+            if (dur === 's') return 0.25;   // 16분
+            return 1;
+        }
+
+        function durToSeconds(dur, bpm) { return durBeats(dur) * (60 / bpm); }
+
+        function durToVex(dur) {
+            if (dur === 'q') return 'q';
+            if (dur === 'e') return '8';
+            if (dur === 'de') return '8'; // 점8분: addDotToAll로 처리
+            if (dur === 's') return '16';
+            return 'q';
+        }
+
+        function generateMelody4() {
+            melody4Notes = [];
+            const scaleMidis = getScaleMidis();
+            let prevIdx = Math.floor(scaleMidis.length / 2); // C4 근처에서 시작
+
+            for (let bar = 0; bar < 4; bar++) {
+                const pattern = RHYTHM_PATTERNS[Math.floor(Math.random() * RHYTHM_PATTERNS.length)];
+                let beats = 0;
+                let pi = 0;
+                while (beats < 4 && pi < pattern.length) {
+                    const dur = pattern[pi++];
+                    const b = durBeats(dur);
+                    if (beats + b > 4) break;
+                    beats += b;
+
+                    // 2도 이내 이동
+                    const lo = Math.max(0, prevIdx - 2);
+                    const hi = Math.min(scaleMidis.length - 1, prevIdx + 2);
+                    prevIdx = lo + Math.floor(Math.random() * (hi - lo + 1));
+                    const midi = scaleMidis[prevIdx];
+                    const chromaIdx = MELODY_SCALE_STEPS.indexOf((midi % 12 + 12) % 12);
+                    const oct = Math.floor(midi / 12) - 1;
+                    melody4Notes.push({ midi, key: MELODY_NOTE_NAMES[chromaIdx], acc: '', oct, duration: dur });
+                }
+                // 마디 박자 못 채우면 4분음표로 채움
+                while (beats < 4) {
+                    const lo = Math.max(0, prevIdx - 2);
+                    const hi = Math.min(scaleMidis.length - 1, prevIdx + 2);
+                    prevIdx = lo + Math.floor(Math.random() * (hi - lo + 1));
+                    const midi = scaleMidis[prevIdx];
+                    const chromaIdx = MELODY_SCALE_STEPS.indexOf((midi % 12 + 12) % 12);
+                    const oct = Math.floor(midi / 12) - 1;
+                    melody4Notes.push({ midi, key: MELODY_NOTE_NAMES[chromaIdx], acc: '', oct, duration: 'q' });
+                    beats += 1;
+                }
+            }
+        }
+
+        async function startMelody4() {
+            await Tone.start();
+            generateMelody4();
+            hideAllPages();
+            document.getElementById('melody4-page').classList.add('active');
+            document.getElementById('m4-status').innerText = '재생 버튼을 눌러 시작하세요';
+            document.getElementById('m4-score-container').style.display = 'none';
+            document.getElementById('m4-play-btn').disabled = false;
+            document.getElementById('m4-replay-btn').disabled = true;
+        }
+
+        async function playMelody4() {
+            await Tone.start();
+            document.getElementById('m4-play-btn').disabled = true;
+            document.getElementById('m4-replay-btn').disabled = false;
+            document.getElementById('m4-status').innerText = '🎵 듣고 있는 중...';
+            let t = Tone.now() + 0.1;
+            for (const n of melody4Notes) {
+                const sec = durToSeconds(n.duration, m4Bpm);
+                sampler.triggerAttackRelease(Tone.Frequency(n.midi, 'midi'), sec * 0.85, t);
+                t += sec;
+            }
+        }
+
+        function showMelody4Ans() {
+            document.getElementById('m4-status').innerText = '✅ 정답 악보';
+            drawMelody4Score();
+            let t = Tone.now() + 0.1;
+            for (const n of melody4Notes) {
+                const sec = durToSeconds(n.duration, m4Bpm);
+                sampler.triggerAttackRelease(Tone.Frequency(n.midi, 'midi'), sec * 0.85, t);
+                t += sec;
+            }
+        }
+
+        function drawMelody4Score() {
+            const c = document.getElementById('m4-score-container');
+            c.innerHTML = ''; c.style.display = 'flex';
+            c.style.justifyContent = 'center'; c.style.alignItems = 'flex-start';
+
+            // 4마디를 2마디씩 2줄
+            const staveW = 155;
+            const svgW = staveW * 2 + 10;
+            const r = new Vex.Flow.Renderer(c, Vex.Flow.Renderer.Backends.SVG);
+            r.resize(svgW, 230);
+            const ctx = r.getContext();
+
+            // 4마디로 분배
+            const bars = buildBars();
+
+            for (let row = 0; row < 2; row++) {
+                for (let col = 0; col < 2; col++) {
+                    const bar = row * 2 + col;
+                    const x = col * staveW;
+                    const y = row * 105;
+                    const s = new Vex.Flow.Stave(x, y, staveW);
+                    if (col === 0) s.addClef('treble');
+                    s.addTimeSignature('4/4');
+                    s.setContext(ctx).draw();
+
+                    const vexNotes = bars[bar].map(n => {
+                        const sn = new Vex.Flow.StaveNote({
+                            clef: 'treble',
+                            keys: [`${n.key}/${n.oct}`],
+                            duration: durToVex(n.duration)
+                        });
+                        if (n.duration === 'de') sn.addDotToAll();
+                        return sn;
+                    });
+
+                    const voice = new Vex.Flow.Voice({ num_beats: 4, beat_value: 4 })
+                        .setMode(Vex.Flow.Voice.Mode.SOFT);
+                    voice.addTickables(vexNotes);
+                    new Vex.Flow.Formatter().joinVoices([voice]).format([voice], staveW - 35);
+                    voice.draw(ctx, s);
+                }
+            }
+        }
+
+        function buildBars() {
+            const bars = [[], [], [], []];
+            let ni = 0;
+            for (let bar = 0; bar < 4; bar++) {
+                let beats = 0;
+                while (ni < melody4Notes.length && beats < 4) {
+                    const n = melody4Notes[ni];
+                    const b = durBeats(n.duration);
+                    if (beats + b > 4.01) break;
+                    bars[bar].push(n);
+                    beats += b;
+                    ni++;
+                }
+            }
+            return bars;
+        }
+
+        function nextMelody4() {
+            generateMelody4();
+            document.getElementById('m4-status').innerText = '재생 버튼을 눌러 시작하세요';
+            document.getElementById('m4-score-container').style.display = 'none';
+            document.getElementById('m4-play-btn').disabled = false;
+            document.getElementById('m4-replay-btn').disabled = true;
+        }
+
+        function updateM4Tempo(val) { m4Bpm = parseInt(val); document.getElementById('m4-tempo-val').innerText = `BPM ${val}`; }
+        // ====== 4마디 멜로디 청음 끝 ======
+
+
         function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
         function showAns() {
