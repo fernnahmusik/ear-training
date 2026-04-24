@@ -11,86 +11,100 @@
             --penna-pink: #FF9AA2; --penna-yellow: #FFE39F; --penna-green: #B5EAD7; --penna-blue: #C7CEEA;
             --primary: #2C3E50; --secondary: #34495E; --bg: #F9F9F9;
         }
-        body { font-family: 'Pretendard', -apple-system, sans-serif; background: var(--bg); margin: 0; display: flex; justify-content: center; align-items: center; min-height: 100vh; touch-action: manipulation; overflow-x: hidden; }
-        .app-card { background: white; width: 94%; max-width: 400px; padding: 12px; border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; height: auto; min-height: 520px; display: flex; flex-direction: column; position: relative; z-index: 1; box-sizing: border-box; border: 5px solid transparent; background-image: linear-gradient(#fff, #fff), linear-gradient(to bottom right, var(--penna-pink), var(--penna-yellow), var(--penna-green), var(--penna-blue)); background-origin: border-box; background-clip: padding-box, border-box; }
+        * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
+        body {
+            font-family: 'Pretendard', -apple-system, sans-serif;
+            background: var(--bg); margin: 0;
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh;
+            /* [수정] touch-action을 body 대신 명시적으로 제어 */
+            touch-action: pan-y;
+            overflow-x: hidden;
+        }
+        .app-card {
+            background: white; width: 94%; max-width: 400px; padding: 12px;
+            border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center; min-height: 520px;
+            display: flex; flex-direction: column; position: relative;
+            /* [수정] z-index 및 isolation 추가 — 자식 터치 이벤트가 카드 배경에 막히지 않도록 */
+            isolation: isolate;
+            border: 5px solid transparent;
+            background-image: linear-gradient(#fff, #fff), linear-gradient(to bottom right, var(--penna-pink), var(--penna-yellow), var(--penna-green), var(--penna-blue));
+            background-origin: border-box; background-clip: padding-box, border-box;
+        }
         .app-logo { position: absolute; top: 15px; right: 15px; width: 35px; height: 35px; border-radius: 8px; object-fit: cover; pointer-events: none; z-index: 100; }
-        .page { display: none; flex-direction: column; flex-grow: 1; position: relative; z-index: 10; }
+        .page { display: none; flex-direction: column; flex-grow: 1; position: relative; }
         .page.active { display: flex; }
         h2 { margin: 15px 0 5px 0; color: var(--primary); font-size: 1.2rem; line-height: 1.2; }
         .sub-title { font-size: 0.9rem; color: #7F8C8D; margin-bottom: 20px; font-weight: 500; }
-        .display-box { background: #ffffff; border: none; min-height: 90px; border-radius: 18px; display: flex; flex-direction: column; justify-content: center; align-items: center; margin-bottom: 8px; padding: 10px; flex-shrink: 0; margin-top: 5px; position: relative; overflow: visible; z-index: 5; }
+        .display-box {
+            background: #ffffff; border: none; min-height: 90px; border-radius: 18px;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            margin-bottom: 8px; padding: 10px; flex-shrink: 0; margin-top: 5px;
+            position: relative; overflow: visible;
+        }
         .ans-header { display: none; width: 100%; justify-content: center; gap: 15px; margin-bottom: 2px; }
         #answer-text { font-size: 13px; color: var(--primary); font-weight: bold; margin: 0; }
         #lyric-match { font-size: 14px; color: #E74C3C; font-weight: 800; margin: 0; }
         #score-container { width: 100%; display: none; justify-content: center; transform: scale(0.85); margin-top: -10px; margin-bottom: -40px; overflow: visible; }
 
-        /* 버튼 한 줄에 2개씩 배치 그리드 */
         #options-area {
             display: none;
             grid-template-columns: repeat(2, 1fr);
             gap: 6px;
             margin-bottom: 12px;
-            position: relative;
-            z-index: 20;
             width: 100%;
         }
 
-        .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 4px; position: relative; z-index: 50; }
-        button, .opt-btn { width: 100%; padding: 10px 6px; border: none; border-radius: 14px; font-weight: 600; cursor: pointer; position: relative; z-index: 60; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+        .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 4px; }
 
-        /* 2개 배치 시 텍스트 가독성을 위한 폰트 조정 */
+        /* [핵심 수정] 버튼 터치 이벤트 완전 허용 */
+        button, .opt-btn {
+            width: 100%; padding: 10px 6px; border: none; border-radius: 14px;
+            font-weight: 600; cursor: pointer;
+            touch-action: manipulation;          /* ← 모바일 더블탭 지연 제거 */
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            position: relative;
+        }
+        button:active, .opt-btn:active { transform: scale(0.97); opacity: 0.9; }
+
         .opt-btn {
-            background: #fff;
-            border: 1.5px solid #DCDFE6;
-            color: #606266;
-            font-size: 11px;
-            line-height: 1.2;
-            height: 52px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            word-break: keep-all;
+            background: #fff; border: 1.5px solid #DCDFE6; color: #606266;
+            font-size: 11px; line-height: 1.2; height: 52px;
+            display: flex; align-items: center; justify-content: center;
+            text-align: center; word-break: keep-all;
         }
 
-        button:active { transform: scale(0.97); opacity: 0.9; }
         .btn-category { background: var(--secondary); color: white; padding: 14px; font-size: 0.95rem; }
         .btn-main { background: var(--primary); color: white; }
         .btn-play { background: #27AE60; color: white; }
         .btn-replay { background: #95A5A6; color: white; }
         .btn-next { background: #E67E22; color: white; }
         .btn-sub { background: white; color: var(--primary); border: 1.5px solid #DCDFE6; }
-        .btn-back { background: transparent; color: #95A5A6; font-size: 11px; padding: 4px; z-index: 70; }
+        .btn-back { background: transparent; color: #95A5A6; font-size: 11px; padding: 4px; }
         .opt-btn.correct { background: var(--penna-green); color: white; border-color: #27AE60; }
         .opt-btn.wrong { background: #FFD1D1; color: #E74C3C; border-color: #E74C3C; }
-        .tempo-container { background: #fff; padding: 6px 10px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #eee; flex-shrink: 0; position: relative; z-index: 40; }
+
+        .tempo-container { background: #fff; padding: 6px 10px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #eee; flex-shrink: 0; }
         .tempo-label { font-size: 10px; color: var(--secondary); font-weight: 600; margin-bottom: 2px; display: flex; justify-content: space-between; }
         #tempo-slider { width: 100%; cursor: pointer; accent-color: var(--secondary); margin: 0; }
 
-        /* [추가] 로딩 상태 표시 배너 */
         #loading-banner {
-            position: absolute;
-            bottom: 10px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0,0,0,0.6);
-            color: white;
-            font-size: 11px;
-            padding: 5px 14px;
-            border-radius: 20px;
-            white-space: nowrap;
-            z-index: 999;
-            transition: opacity 0.5s;
+            position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%);
+            background: rgba(0,0,0,0.6); color: white; font-size: 11px;
+            padding: 5px 14px; border-radius: 20px; white-space: nowrap;
+            z-index: 999; transition: opacity 0.5s;
+            /* [수정] 로딩 배너가 버튼 클릭 막지 않도록 */
+            pointer-events: none;
         }
-        #loading-banner.hidden { opacity: 0; pointer-events: none; }
+        #loading-banner.hidden { opacity: 0; }
     </style>
 </head>
 <body>
     <div class="app-card">
-        <!-- [수정 5] logo.jpeg → 같은 폴더에 logo.jpeg 파일이 있어야 표시됩니다 -->
         <img src="logo.jpeg" alt="펜나뮤직 로고" class="app-logo" onerror="this.style.display='none'">
-
-        <!-- [추가] 샘플러 로딩 상태 배너 -->
         <div id="loading-banner">🎹 음원 로딩 중...</div>
 
         <div id="step1-page" class="page active">
@@ -194,14 +208,12 @@
     <script>
         const { Renderer, Stave, StaveNote, Voice, Formatter, Accidental } = Vex.Flow;
 
-        // [수정 6] 샘플러 로딩 완료 시 배너 숨김 처리
         const sampler = new Tone.Sampler({
             urls: { "A0": "A0.mp3", "C1": "C1.mp3", "D#1": "Ds1.mp3", "F#1": "Fs1.mp3", "A1": "A1.mp3", "C2": "C2.mp3", "D#2": "Ds2.mp3", "F#2": "Fs2.mp3", "A2": "A2.mp3", "C3": "C3.mp3", "D#3": "Ds3.mp3", "F#3": "Fs3.mp3", "A3": "A3.mp3", "C4": "C4.mp3", "D#4": "Ds4.mp3", "F#4": "Fs4.mp3", "A4": "A4.mp3", "C5": "C5.mp3", "D#5": "Ds5.mp3", "F#5": "Fs5.mp3", "A5": "A5.mp3", "C6": "C6.mp3" },
             release: 0.5, baseUrl: "https://tonejs.github.io/audio/salamander/",
             onload: () => {
                 document.getElementById('mode-ear-btn').disabled = false;
                 document.getElementById('mode-sight-btn').disabled = false;
-                // 로딩 완료 배너 페이드 아웃
                 const banner = document.getElementById('loading-banner');
                 banner.innerText = '✅ 준비 완료!';
                 setTimeout(() => banner.classList.add('hidden'), 1200);
@@ -214,13 +226,15 @@
         let patternQueue = [];
         let stats = { correct: 0, wrong: 0, sessionCount: 0 };
         let errorTracker = {};
-        // [수정 4] 현재 문제에 답했는지 추적하는 플래그
         let answeredCurrent = false;
 
         const RANGE_MIN = 55; const SIGHT_MAX = 77; const EAR_MAX = 84;
         const baseScales = [{ n: 'c', m: 0 }, { n: 'd', m: 2 }, { n: 'e', m: 4 }, { n: 'f', m: 5 }, { n: 'g', m: 7 }, { n: 'a', m: 9 }, { n: 'b', m: 11 }];
 
-        window.addEventListener('touchstart', () => { if (Tone.context.state !== 'running') Tone.context.resume(); }, { once: true });
+        // [수정] touchstart 대신 Tone.start()를 각 버튼 클릭 시점에서 처리 (이미 startQuiz에서 함)
+        document.addEventListener('touchstart', () => {
+            if (Tone.context.state !== 'running') Tone.context.resume();
+        }, { passive: true });
 
         function hideAllPages() { document.querySelectorAll('.page').forEach(p => p.classList.remove('active')); }
         function goStep1() { hideAllPages(); document.getElementById('step1-page').classList.add('active'); }
@@ -265,7 +279,6 @@
             });
         }
 
-        // [수정 1] generateProblem: while(true) 무한루프 방지 — 시도 횟수 제한 추가
         function generateProblem() {
             if (patternQueue.length === 0) {
                 if (currentIntervalMajor === 2) patternQueue = shuffle([...pattern2D]);
@@ -286,17 +299,14 @@
             }
             const p = patternQueue.shift();
             const CURRENT_MAX = isSightReadingMode ? SIGHT_MAX : EAR_MAX;
-
             let attempts = 0;
-            const MAX_ATTEMPTS = 500; // [수정 1] 최대 시도 횟수 제한
-
-            while (attempts < MAX_ATTEMPTS) {
+            while (attempts < 500) {
                 attempts++;
                 let n1Midi = RANGE_MIN + Math.floor(Math.random() * (CURRENT_MAX - RANGE_MIN - 10));
                 let n2Midi = n1Midi + p.iv[0]; let n3Midi = n2Midi + p.iv[1];
                 if (n1Midi < RANGE_MIN || n2Midi < RANGE_MIN || n3Midi < RANGE_MIN || n1Midi > CURRENT_MAX || n2Midi > CURRENT_MAX || n3Midi > CURRENT_MAX) continue;
                 const n1Options = getAllNotationOptions(n1Midi);
-                if (n1Options.length === 0) continue; // [수정 1] 옵션 없으면 건너뜀
+                if (n1Options.length === 0) continue;
                 for (let n1 of n1Options) {
                     const n2 = getNoteByDegree(n2Midi, n1, p.deg[0]); const n3 = getNoteByDegree(n3Midi, n2, p.deg[1]);
                     if (!n1.acc.includes('##') && !n1.acc.includes('bb') && !n2.acc.includes('##') && !n2.acc.includes('bb') && !n3.acc.includes('##') && !n3.acc.includes('bb')) {
@@ -304,19 +314,17 @@
                     }
                 }
             }
-
-            // [수정 1] 500회 시도 후에도 실패 시: 다른 패턴으로 재시도
             console.warn('generateProblem: 유효한 조합을 찾지 못해 다른 패턴으로 재시도합니다.');
             if (patternQueue.length > 0) return generateProblem();
-
-            // 패턴 큐도 비어있으면 안전하게 기본 패턴 사용
             patternQueue = shuffle([...pattern2D]);
             return generateProblem();
         }
 
+        // [핵심 수정] opt-btn 생성 시 addEventListener로 등록 (onclick 속성 방식 대신)
         function updateOptionsArea() {
             const area = document.getElementById('options-area');
-            area.innerHTML = ""; if (isSightReadingMode) { area.style.display = 'none'; return; }
+            area.innerHTML = "";
+            if (isSightReadingMode) { area.style.display = 'none'; return; }
             area.style.display = 'grid';
             let list = [];
             if (currentIntervalMajor === 2) list = pattern2D;
@@ -332,15 +340,22 @@
             list.forEach((p, i) => {
                 const btn = document.createElement('button');
                 btn.className = "opt-btn";
-                btn.innerText = `${i+1}.${p.lyric}\n(${p.ans})`;
-                btn.onclick = (e) => { e.preventDefault(); checkChoice(btn, p.lyric); };
+                btn.textContent = `${i+1}.${p.lyric}\n(${p.ans})`;
+                btn.style.whiteSpace = 'pre-line';
+                // [핵심] addEventListener + touchend 이중 처리로 iOS 반응성 보장
+                const handler = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!btn.disabled) checkChoice(btn, p.lyric);
+                };
+                btn.addEventListener('click', handler);
+                btn.addEventListener('touchend', handler, { passive: false });
                 area.appendChild(btn);
             });
         }
 
-        // [수정 4] checkChoice: 답 선택 시 answeredCurrent 플래그 설정
         function checkChoice(btn, choice) {
-            answeredCurrent = true; // [수정 4]
+            answeredCurrent = true;
             stats.sessionCount++;
             if (choice === matchedLyric) {
                 btn.classList.add('correct'); stats.correct++;
@@ -354,26 +369,21 @@
             }
         }
 
-        // [수정 4] nextProblem: 답 선택 없이 넘어갈 경우 sessionCount 증가 처리
         async function nextProblem() {
             await Tone.start();
-            // 청음 모드에서 답을 고르지 않고 넘어간 경우도 문제 수에 포함
-            if (!isSightReadingMode && !answeredCurrent) {
-                stats.sessionCount++;
-            }
+            if (!isSightReadingMode && !answeredCurrent) { stats.sessionCount++; }
             if (!isSightReadingMode && stats.sessionCount >= 10) { showResults(); return; }
             resetUI();
             visualNotes = generateProblem();
             setTimeout(() => { handlePlay(false); }, 150);
         }
 
-        // [수정 3] showResults: correct+wrong=0 일 때 NaN 방지
         function showResults() {
             hideAllPages();
             document.getElementById('result-page').classList.add('active');
             document.getElementById('res-counts').innerText = `(정답: ${stats.correct} / 오답: ${stats.wrong})`;
             const total = stats.correct + stats.wrong;
-            const rate = total > 0 ? Math.round((stats.correct / total) * 100) : 0; // [수정 3]
+            const rate = total > 0 ? Math.round((stats.correct / total) * 100) : 0;
             document.getElementById('res-rate').innerText = `정답률: ${rate}%`;
             let wp = "없음"; let maxE = 0;
             for (let l in errorTracker) { if (errorTracker[l] > maxE) { maxE = errorTracker[l]; wp = `${l} (${maxE}회)`; } }
@@ -383,9 +393,8 @@
         function continueQuiz() { stats.sessionCount = 0; hideAllPages(); document.getElementById('quiz-page').classList.add('active'); nextProblem(); }
         function resetStats() { stats = { correct: 0, wrong: 0, sessionCount: 0 }; errorTracker = {}; }
 
-        // [수정 4] resetUI: 새 문제 시작 시 answeredCurrent 초기화
         function resetUI() {
-            answeredCurrent = false; // [수정 4]
+            answeredCurrent = false;
             document.getElementById('ans-header').style.display = 'none';
             document.getElementById('score-container').style.display = 'none';
             document.getElementById('play-btn').disabled = false;
@@ -457,7 +466,6 @@
             return { midi, key: targetScale.n, acc, oct: octave };
         }
 
-        // [수정 2] getAllNotationOptions: B#과 Cb의 옥타브 보정 추가
         function getAllNotationOptions(midi) {
             const chroma = (midi % 12 + 12) % 12;
             const options = [];
@@ -467,9 +475,7 @@
                 if (Math.abs(diff) <= 1) {
                     const acc = diff === 1 ? "#" : (diff === -1 ? "b" : "");
                     let oct = Math.floor(midi / 12) - 1;
-                    // [수정 2] B# 표기 시 옥타브 -1 보정 (B#3 = C4이므로 MIDI 기준보다 한 옥타브 낮게 표기)
                     if (s.n === 'b' && acc === '#') oct -= 1;
-                    // [수정 2] Cb 표기 시 옥타브 +1 보정 (Cb5 = B4이므로 MIDI 기준보다 한 옥타브 높게 표기)
                     if (s.n === 'c' && acc === 'b') oct += 1;
                     options.push({ midi, key: s.n, acc, oct });
                 }
