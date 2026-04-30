@@ -17,7 +17,6 @@
             background: var(--bg); margin: 0;
             display: flex; justify-content: center; align-items: center;
             min-height: 100vh;
-            /* [수정] touch-action을 body 대신 명시적으로 제어 */
             touch-action: pan-y;
             overflow-x: hidden;
         }
@@ -26,7 +25,6 @@
             border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             text-align: center; min-height: 520px;
             display: flex; flex-direction: column; position: relative;
-            /* [수정] z-index 및 isolation 추가 — 자식 터치 이벤트가 카드 배경에 막히지 않도록 */
             isolation: isolate;
             border: 5px solid transparent;
             background-image: linear-gradient(#fff, #fff), linear-gradient(to bottom right, var(--penna-pink), var(--penna-yellow), var(--penna-green), var(--penna-blue));
@@ -58,11 +56,10 @@
 
         .btn-group { display: flex; flex-direction: column; gap: 6px; margin-top: auto; padding-bottom: 4px; }
 
-        /* [핵심 수정] 버튼 터치 이벤트 완전 허용 */
         button, .opt-btn {
             width: 100%; padding: 10px 6px; border: none; border-radius: 14px;
             font-weight: 600; cursor: pointer;
-            touch-action: manipulation;          /* ← 모바일 더블탭 지연 제거 */
+            touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
             user-select: none;
             -webkit-user-select: none;
@@ -96,7 +93,6 @@
             background: rgba(0,0,0,0.6); color: white; font-size: 11px;
             padding: 5px 14px; border-radius: 20px; white-space: nowrap;
             z-index: 999; transition: opacity 0.5s;
-            /* [수정] 로딩 배너가 버튼 클릭 막지 않도록 */
             pointer-events: none;
         }
         #loading-banner.hidden { opacity: 0; }
@@ -134,8 +130,8 @@
                 <button class="btn-category" onclick="selectSub3('2up')">3도↑ 2도↓</button>
                 <button class="btn-category" onclick="selectSub3('2down')" style="background: #455A64;">3도↓ 2도↑</button>
                 <button class="btn-category" onclick="selectSub3('2downdown')" style="background: #546E7A;">3도↓ 2도↓</button>
-                <button class="btn-category" onclick="selectSub3('3up')" style="background: #5D6D7E;">3도↑ 3도↓</button>
-                <button class="btn-category" onclick="selectSub3('3down')" style="background: #5D6D7E;">3도↓ 3도↑</button>
+                <button class="btn-category" onclick="selectSub3('3up')" style="background: #5D6D7E;">3도↑ 3도↑</button>
+                <button class="btn-category" onclick="selectSub3('3down')" style="background: #5D6D7E;">3도↓ 3도↓</button>
                 <button class="btn-back" onclick="goStep1()">⬅ 처음으로</button>
             </div>
         </div>
@@ -265,7 +261,6 @@
         const RANGE_MIN = 55; const SIGHT_MAX = 77; const EAR_MAX = 84;
         const baseScales = [{ n: 'c', m: 0 }, { n: 'd', m: 2 }, { n: 'e', m: 4 }, { n: 'f', m: 5 }, { n: 'g', m: 7 }, { n: 'a', m: 9 }, { n: 'b', m: 11 }];
 
-        // [수정] touchstart 대신 Tone.start()를 각 버튼 클릭 시점에서 처리 (이미 startQuiz에서 함)
         document.addEventListener('touchstart', () => {
             if (Tone.context.state !== 'running') Tone.context.resume();
         }, { passive: true });
@@ -293,7 +288,8 @@
         const pattern3D2Up = [{ lyric: "도미레", ans: "장3↑장2↓", iv: [4, -2], deg: [2, -1] }, { lyric: "도미메", ans: "장3↑단2↓", iv: [4, -1], deg: [2, -1] }, { lyric: "시레도", ans: "단3↑장2↓", iv: [3, -2], deg: [2, -1] }, { lyric: "라도시", ans: "단3↑단2↓", iv: [3, -1], deg: [2, -1] }, { lyric: "시레b도", ans: "감3↑단2↓", iv: [2, -1], deg: [2, -1] }];
         const pattern3D2Down = [{ lyric: "미도레", ans: "장3↓장2↑", iv: [-4, 2], deg: [-2, 1] }, { lyric: "미도디", ans: "장3↓단2↑", iv: [-4, 1], deg: [-2, 1] }, { lyric: "레시도", ans: "단3↓단2↑", iv: [-3, 1], deg: [-2, 1] }, { lyric: "도라시", ans: "단3↓장2↑", iv: [-3, 2], deg: [-2, 1] }, { lyric: "레b시도", ans: "감3↓단2↑", iv: [-2, 1], deg: [-2, 1] }];
         const pattern3D2UpUp = [{ lyric: "라도디", ans: "단3↑단2↑", iv: [3, 1], deg: [2, 1] }, { lyric: "레파솔", ans: "단3↑장2↑", iv: [3, 2], deg: [2, 1] }, { lyric: "솔시도", ans: "장3↑단2↑", iv: [4, 1], deg: [2, 1] }, { lyric: "파라시", ans: "장3↑장2↑", iv: [4, 2], deg: [2, 1] }];
-        const pattern3D2DownDown = [{ lyric: "레시라", ans: "단3↓단2↓", iv: [-3, -1], deg: [-2, -1] }, { lyric: "시솔파", ans: "단3↓장2↓", iv: [-3, -2], deg: [-2, -1] }, { lyric: "미도디", ans: "장3↓단2↓", iv: [-4, -1], deg: [-2, -1] }, { lyric: "파레도", ans: "장3↓장2↓", iv: [-4, -2], deg: [-2, -1] }];
+        // ✅ 수정된 pattern3D2DownDown 가사
+        const pattern3D2DownDown = [{ lyric: "도라셀", ans: "단3↓단2↓", iv: [-3, -1], deg: [-2, -1] }, { lyric: "도라솔", ans: "단3↓장2↓", iv: [-3, -2], deg: [-2, -1] }, { lyric: "미도시", ans: "장3↓단2↓", iv: [-4, -1], deg: [-2, -1] }, { lyric: "시솔파", ans: "장3↓장2↓", iv: [-4, -2], deg: [-2, -1] }];
         const pattern3D3Up = [{ lyric: "도미솔", ans: "장3↑단3↑", iv: [4, 3], deg: [2, 2] }, { lyric: "도미솔#", ans: "장3↑장3↑", iv: [4, 4], deg: [2, 2] }, { lyric: "라도미", ans: "단3↑장3↑", iv: [3, 4], deg: [2, 2] }, { lyric: "시레파", ans: "단3↑단3↑", iv: [3, 3], deg: [2, 2] }];
         const pattern3D3Down = [{ lyric: "솔미도", ans: "단3↓장3↓", iv: [-3, -4], deg: [-2, -2] }, { lyric: "도솔#미", ans: "장3↓장3↓", iv: [-4, -4], deg: [-2, -2] }, { lyric: "미도라", ans: "장3↓단3↓", iv: [-4, -3], deg: [-2, -2] }, { lyric: "파레시", ans: "단3↓단3↓", iv: [-3, -3], deg: [-2, -2] }];
         const patternM6Up = [{ lyric: "미도시", ans: "단6↑단2↓", iv: [8, -1], deg: [5, -1] }, { lyric: "시솔파", ans: "단6↑장2↓", iv: [8, -2], deg: [5, -1] }, { lyric: "미도라", ans: "단6↑단3↓", iv: [8, -3], deg: [5, -2] }, { lyric: "미도솔#", ans: "단6↑장3↓", iv: [8, -4], deg: [5, -2] }, { lyric: "미도솔", ans: "단6↑완4↓", iv: [8, -5], deg: [5, -3] }, { lyric: "라파시", ans: "단6↑증4↓", iv: [8, -6], deg: [5, -4] }, { lyric: "시솔도", ans: "단6↑완5↓", iv: [8, -7], deg: [5, -4] }];
@@ -357,7 +353,6 @@
             return generateProblem();
         }
 
-        // [핵심 수정] opt-btn 생성 시 addEventListener로 등록 (onclick 속성 방식 대신)
         function updateOptionsArea() {
             const area = document.getElementById('options-area');
             area.innerHTML = "";
@@ -380,7 +375,6 @@
                 btn.className = "opt-btn";
                 btn.textContent = `${i+1}.${p.lyric}\n(${p.ans})`;
                 btn.style.whiteSpace = 'pre-line';
-                // [핵심] addEventListener + touchend 이중 처리로 iOS 반응성 보장
                 const handler = (e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -465,20 +459,18 @@
         let m4Bpm = 80;
         let m4PlayTimer = null;
 
-        // 마디당 리듬 패턴 (q=4분, e=8분, de=점8분, s=16분)
         const RHYTHM_PATTERNS = [
             ['q','q','q','q'],
             ['e','e','e','e','e','e','e','e'],
-            ['de','s','de','s','de','s','de','s'],   // 붓점(점8분+16분) × 4
-            ['s','de','s','de','s','de','s','de'],   // 역붓점(16분+점8분) × 4
+            ['de','s','de','s','de','s','de','s'],
+            ['s','de','s','de','s','de','s','de'],
             ['q','e','e','q'],
             ['e','e','q','q'],
         ];
 
         function getScaleMidis() {
-            const base = 60; // C4
+            const base = 60;
             const result = [];
-            // C4(60) ~ C5(72)
             for (let oct = 0; oct <= 1; oct++) {
                 MELODY_SCALE_STEPS.forEach(s => {
                     const m = base + oct * 12 + s;
@@ -491,8 +483,8 @@
         function durBeats(dur) {
             if (dur === 'q') return 1;
             if (dur === 'e') return 0.5;
-            if (dur === 'de') return 0.75;  // 점8분
-            if (dur === 's') return 0.25;   // 16분
+            if (dur === 'de') return 0.75;
+            if (dur === 's') return 0.25;
             return 1;
         }
 
@@ -501,7 +493,7 @@
         function durToVex(dur) {
             if (dur === 'q') return 'q';
             if (dur === 'e') return '8';
-            if (dur === 'de') return '8'; // 점8분: addDotToAll로 처리
+            if (dur === 'de') return '8';
             if (dur === 's') return '16';
             return 'q';
         }
@@ -509,13 +501,7 @@
         function generateMelody4() {
             melody4Notes = [];
             const CURRENT_MAX = 84;
-            // pattern2D의 iv를 이용해 실제 2도 훈련 음정으로 멜로디 생성
-            // 각 음표마다 pattern2D 중 하나를 골라 첫 음에서 iv[0] 이동
-            // 멜로디는 음표 단위로 생성: 각 마디 리듬 패턴 선택 후 음 결정
-
-            // 시작 음: RANGE_MIN~CURRENT_MAX-12 사이 임의 음
             let prevMidi = RANGE_MIN + 5 + Math.floor(Math.random() * (CURRENT_MAX - RANGE_MIN - 15));
-            // 시작 음을 흰건반(자연음)으로 맞춤
             const naturalChroma = [0,2,4,5,7,9,11];
             while (!naturalChroma.includes((prevMidi % 12 + 12) % 12)) prevMidi++;
 
@@ -529,10 +515,8 @@
                     if (beats + b > 4) break;
                     beats += b;
 
-                    // pattern2D에서 랜덤 iv[0] 이동
                     const p2 = pattern2D[Math.floor(Math.random() * pattern2D.length)];
                     let nextMidi = prevMidi + p2.iv[0];
-                    // 범위 벗어나면 방향 반전
                     if (nextMidi < RANGE_MIN || nextMidi > CURRENT_MAX) nextMidi = prevMidi - p2.iv[0];
                     if (nextMidi < RANGE_MIN || nextMidi > CURRENT_MAX) nextMidi = prevMidi;
                     prevMidi = nextMidi;
@@ -541,7 +525,6 @@
                     const n1 = n1Options.find(o => o.acc === '') || n1Options[0];
                     melody4Notes.push({ midi: prevMidi, key: n1.key, acc: n1.acc, oct: n1.oct, duration: dur });
                 }
-                // 박자 못 채우면 4분음표로 채움
                 while (beats < 4) {
                     const p2 = pattern2D[Math.floor(Math.random() * pattern2D.length)];
                     let nextMidi = prevMidi + p2.iv[0];
@@ -589,7 +572,6 @@
                 t += sec;
                 totalDur += sec;
             }
-            // 재생 끝나면 자동으로 버튼 상태 복구
             m4PlayTimer = setTimeout(() => {
                 document.getElementById('m4-stop-btn').disabled = true;
                 document.getElementById('m4-replay-btn').disabled = false;
@@ -622,14 +604,12 @@
             c.innerHTML = ''; c.style.display = 'flex';
             c.style.justifyContent = 'center'; c.style.alignItems = 'flex-start';
 
-            // 4마디를 2마디씩 2줄
             const staveW = 155;
             const svgW = staveW * 2 + 10;
             const r = new Vex.Flow.Renderer(c, Vex.Flow.Renderer.Backends.SVG);
             r.resize(svgW, 230);
             const ctx = r.getContext();
 
-            // 4마디로 분배
             const bars = buildBars();
 
             for (let row = 0; row < 2; row++) {
